@@ -1,0 +1,191 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Open Sans', Arial, sans-serif;
+  font-size: 10pt;
+  color: #222;
+  line-height: 1.4;
+}
+
+@page {
+  size: A4;
+  margin: 28mm 15mm 28mm 15mm;
+}
+
+.page-header {
+  width: 100%;
+  border-bottom: 2px solid #0097b2;
+  padding-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: running(page-header);
+}
+
+.page-header img {
+  height: 48px;
+  width: auto;
+}
+
+.page-header .company-name {
+  font-size: 11pt;
+  font-weight: 700;
+  color: #0097b2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.page-footer {
+  width: 100%;
+  border-top: 1px solid #0097b2;
+  padding-top: 5px;
+  text-align: center;
+  font-size: 8pt;
+  color: #555;
+  position: running(page-footer);
+}
+
+.data-linha {
+  text-align: right;
+  font-size: 9.5pt;
+  margin-bottom: 18px;
+  color: #333;
+}
+
+.bloco-cliente {
+  margin-bottom: 16px;
+}
+
+.bloco-cliente p {
+  margin: 2px 0;
+}
+
+.prezados {
+  margin-bottom: 14px;
+}
+
+h2 {
+  font-size: 11pt;
+  color: #0097b2;
+  border-bottom: 1px solid #0097b2;
+  padding-bottom: 3px;
+  margin: 18px 0 8px;
+}
+
+.quem-somos p {
+  text-align: justify;
+  margin-bottom: 8px;
+}
+
+.parceiros {
+  font-weight: 600;
+  color: #0097b2;
+}
+
+.categoria-titulo {
+  font-size: 10.5pt;
+  font-weight: 700;
+  background: #0097b2;
+  color: #fff;
+  padding: 5px 8px;
+  margin: 16px 0 0;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+table.itens {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 4px;
+}
+
+table.itens thead th {
+  background: #e8f7fa;
+  color: #0097b2;
+  font-weight: 700;
+  font-size: 9pt;
+  padding: 5px 6px;
+  border: 1px solid #c0dde3;
+  text-align: center;
+}
+
+table.itens thead th.col-desc {
+  text-align: left;
+}
+
+table.itens tbody td {
+  padding: 5px 6px;
+  border: 1px solid #ddd;
+  font-size: 9pt;
+  vertical-align: top;
+}
+
+table.itens tbody td.col-desc {
+  text-align: left;
+}
+
+table.itens tbody td.col-num {
+  text-align: center;
+}
+
+table.itens tbody td.col-val {
+  text-align: right;
+  white-space: nowrap;
+}
+
+table.itens tbody tr:nth-child(even) {
+  background: #f9fdfe;
+}
+
+.subtotal-row {
+  font-weight: 600;
+  background: #f0f9fc;
+}
+
+.valor-total-geral {
+  text-align: right;
+  font-size: 11pt;
+  font-weight: 700;
+  color: #0097b2;
+  margin: 10px 0 18px;
+  padding: 6px 8px;
+  border: 1.5px solid #0097b2;
+  background: #e8f7fa;
+}
+
+table.investimento {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+table.investimento th {
+  background: #0097b2;
+  color: #fff;
+  font-size: 9.5pt;
+  padding: 5px 8px;
+  text-align: left;
+  border: 1px solid #007d96;
+}
+
+table.investimento td {
+  padding: 5px 8px;
+  border: 1px solid #c0dde3;
+  font-size: 9.5pt;
+}
+
+table.investimento td.col-valor {
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.faturamento p {
+  text-align: justify;
+}
