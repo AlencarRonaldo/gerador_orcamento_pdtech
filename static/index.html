@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Novo Orçamento — RC Suporte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
+    <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
+    <a href="/historico.html" class="text-sm underline hover:text-blue-100">Ver Histórico →</a>
+  </nav>
+
+  <main class="max-w-4xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-gray-700 mb-6">Novo Orçamento</h1>
+
+    <section class="bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">Dados do Cliente</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Nome da Empresa</label>
+          <input id="cliente_nome" type="text" placeholder="Ex: Complexo de Saude"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">A/C (Contato)</label>
+          <input id="cliente_contato" type="text" placeholder="Ex: Sr. Eduardo Nobuo"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Endereço</label>
+          <input id="cliente_endereco" type="text" placeholder="Ex: Centro – São Bernardo do Campo - SP"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Condição de Pagamento</label>
+          <input id="condicao_pagto" type="text" value="até 28 dias"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Descrição do Orçamento</label>
+          <input id="descricao_intro" type="text" placeholder="Ex: orçamento de 15 cameras Intelbras"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-6">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-base font-semibold text-[#0097b2] uppercase">Itens do Orçamento</h2>
+        <button onclick="adicionarCategoria()"
+          class="bg-[#0097b2] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#007d96] transition">
+          + Adicionar Categoria
+        </button>
+      </div>
+      <div id="categorias-container"></div>
+    </section>
+
+    <div id="total-geral" class="bg-[#e8f7fa] border border-[#0097b2] rounded-lg p-4 mb-6 text-right hidden">
+      <span class="font-bold text-[#0097b2] text-lg">VALOR TOTAL GERAL: </span>
+      <span id="total-valor" class="font-bold text-gray-800 text-lg"></span>
+    </div>
+
+    <div class="flex justify-end">
+      <button onclick="salvarEGerarPDF()"
+        class="bg-green-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-700 transition shadow">
+        Salvar e Gerar PDF
+      </button>
+    </div>
+  </main>
+
+  <script>
+    let categoriaCount = 0;
+
+    function adicionarCategoria() {
+      const id = categoriaCount++;
+      const container = document.getElementById('categorias-container');
+      const div = document.createElement('div');
+      div.className = 'bg-white rounded-xl shadow p-5 mb-4';
+      div.id = `cat-${id}`;
+      div.innerHTML = `
+        <div class="flex items-center gap-3 mb-4">
+          <input type="text" placeholder="Nome da Categoria (ex: EQUIPAMENTOS CAMERAS)"
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-[#0097b2]"
+            id="cat-titulo-${id}">
+          <button onclick="document.getElementById('cat-${id}').remove(); recalcularTotal()"
+            class="text-red-400 hover:text-red-600 text-sm">Remover</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="bg-[#e8f7fa] text-[#0097b2]">
+                <th class="border border-gray-200 px-2 py-2 text-left w-24">Garantia</th>
+                <th class="border border-gray-200 px-2 py-2 text-left">Descrição</th>
+                <th class="border border-gray-200 px-2 py-2 text-center w-16">Qtd</th>
+                <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Unitário</th>
+                <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Total</th>
+                <th class="border border-gray-200 px-2 py-2 w-10"></th>
+              </tr>
+            </thead>
+            <tbody id="itens-${id}"></tbody>
+          </table>
+        </div>
+        <button onclick="adicionarItem(${id})"
+          class="mt-3 text-sm text-[#0097b2] hover:underline">+ Adicionar Item</button>
+      `;
+      container.appendChild(div);
+      adicionarItem(id);
+    }
+
+    function adicionarItem(catId) {
+      const tbody = document.getElementById(`itens-${catId}`);
+      const rowId = Date.now() + Math.random();
+      const tr = document.createElement('tr');
+      tr.id = `item-${rowId}`;
+      tr.innerHTML = `
+        <td class="border border-gray-200 px-1 py-1">
+          <input type="text" value="12 Meses" class="w-full border-0 text-sm px-1" id="gar-${rowId}">
+        </td>
+        <td class="border border-gray-200 px-1 py-1">
+          <input type="text" placeholder="Descrição do item" class="w-full border-0 text-sm px-1" id="desc-${rowId}">
+        </td>
+        <td class="border border-gray-200 px-1 py-1">
+          <input type="number" value="1" min="1" class="w-full border-0 text-sm text-center px-1" id="qtd-${rowId}"
+            oninput="calcularLinha(${rowId})">
+        </td>
+        <td class="border border-gray-200 px-1 py-1">
+          <input type="number" value="0" step="0.01" class="w-full border-0 text-sm text-right px-1" id="vun-${rowId}"
+            oninput="calcularLinha(${rowId})">
+        </td>
+        <td class="border border-gray-200 px-1 py-1 text-right font-semibold text-sm pr-2" id="vtot-${rowId}">R$ 0,00</td>
+        <td class="border border-gray-200 px-1 py-1 text-center">
+          <button onclick="document.getElementById('item-${rowId}').remove(); recalcularTotal()"
+            class="text-red-400 hover:text-red-600 text-xs">X</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    function calcularLinha(rowId) {
+      const qtd = parseFloat(document.getElementById(`qtd-${rowId}`)?.value) || 0;
+      const vun = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
+      const total = qtd * vun;
+      document.getElementById(`vtot-${rowId}`).textContent = formatarMoeda(total);
+      recalcularTotal();
+    }
+
+    function recalcularTotal() {
+      let total = 0;
+      document.querySelectorAll('[id^="vtot-"]').forEach(el => {
+        const txt = el.textContent.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
+        const val = parseFloat(txt) || 0;
+        total += val;
+      });
+      const el = document.getElementById('total-geral');
+      el.classList.toggle('hidden', total === 0);
+      document.getElementById('total-valor').textContent = formatarMoeda(total);
+    }
+
+    function formatarMoeda(val) {
+      return 'R$ ' + val.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function coletarDados() {
+      const categorias = [];
+      document.querySelectorAll('[id^="cat-"]').forEach(catEl => {
+        const catId = catEl.id.replace('cat-', '');
+        const titulo = document.getElementById(`cat-titulo-${catId}`)?.value?.trim();
+        if (!titulo) return;
+        const itens = [];
+        catEl.querySelectorAll('tbody tr').forEach(tr => {
+          const rowId = tr.id.replace('item-', '');
+          const garantia = document.getElementById(`gar-${rowId}`)?.value?.trim() || '';
+          const descricao = document.getElementById(`desc-${rowId}`)?.value?.trim() || '';
+          const quantidade = parseInt(document.getElementById(`qtd-${rowId}`)?.value) || 0;
+          const valor_unitario = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
+          if (descricao) itens.push({ garantia, descricao, quantidade, valor_unitario });
+        });
+        if (itens.length) categorias.push({ titulo, itens });
+      });
+      return {
+        cliente_nome: document.getElementById('cliente_nome').value.trim(),
+        cliente_contato: document.getElementById('cliente_contato').value.trim(),
+        cliente_endereco: document.getElementById('cliente_endereco').value.trim(),
+        condicao_pagto: document.getElementById('condicao_pagto').value.trim(),
+        descricao_intro: document.getElementById('descricao_intro').value.trim(),
+        categorias,
+      };
+    }
+
+    async function salvarEGerarPDF() {
+      const dados = coletarDados();
+      if (!dados.cliente_nome || !dados.categorias.length) {
+        alert('Preencha o nome do cliente e pelo menos uma categoria com itens.');
+        return;
+      }
+      try {
+        const resp = await fetch('/orcamentos', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dados),
+        });
+        if (!resp.ok) throw new Error(await resp.text());
+        const orc = await resp.json();
+        window.location.href = `/orcamentos/${orc.id}/pdf`;
+      } catch (err) {
+        alert('Erro ao gerar orçamento: ' + err.message);
+      }
+    }
+
+    adicionarCategoria();
+  </script>
+</body>
+</html>

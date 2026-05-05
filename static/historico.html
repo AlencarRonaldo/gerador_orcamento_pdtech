@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico — RC Suporte</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+
+  <nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
+    <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
+    <a href="/" class="text-sm bg-white text-[#0097b2] font-semibold px-4 py-1.5 rounded-lg hover:bg-blue-50">
+      + Novo Orçamento
+    </a>
+  </nav>
+
+  <main class="max-w-4xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-gray-700 mb-6">Histórico de Orçamentos</h1>
+
+    <div id="loading" class="text-gray-400 text-sm">Carregando...</div>
+    <div id="vazio" class="hidden text-gray-400 text-sm">Nenhum orçamento gerado ainda.</div>
+
+    <div class="bg-white rounded-xl shadow overflow-hidden hidden" id="tabela-wrapper">
+      <table class="w-full text-sm">
+        <thead class="bg-[#e8f7fa] text-[#0097b2]">
+          <tr>
+            <th class="text-left px-4 py-3 font-semibold">Número</th>
+            <th class="text-left px-4 py-3 font-semibold">Cliente</th>
+            <th class="text-left px-4 py-3 font-semibold">Data</th>
+            <th class="px-4 py-3"></th>
+          </tr>
+        </thead>
+        <tbody id="lista"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    function formatarData(iso) {
+      return new Date(iso).toLocaleDateString('pt-BR');
+    }
+
+    async function carregarHistorico() {
+      const resp = await fetch('/orcamentos');
+      const lista = await resp.json();
+      document.getElementById('loading').classList.add('hidden');
+      if (!lista.length) {
+        document.getElementById('vazio').classList.remove('hidden');
+        return;
+      }
+      document.getElementById('tabela-wrapper').classList.remove('hidden');
+      const tbody = document.getElementById('lista');
+      lista.forEach((orc, i) => {
+        const tr = document.createElement('tr');
+        tr.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-mono font-semibold text-gray-700">${orc.numero}</td>
+          <td class="px-4 py-3 text-gray-700">${orc.cliente_nome}</td>
+          <td class="px-4 py-3 text-gray-500">${formatarData(orc.criado_em)}</td>
+          <td class="px-4 py-3 text-right">
+            <a href="/orcamentos/${orc.id}/pdf"
+              class="inline-block bg-[#0097b2] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-[#007d96] transition">
+              Baixar PDF
+            </a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    carregarHistorico();
+  </script>
+</body>
+</html>

@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
-from database import Base
+from base import Base
 
 
 class Orcamento(Base):
