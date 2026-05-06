@@ -186,6 +186,19 @@ table.itens tbody tr:nth-child(even) td {
   margin: 14px 0 18px;
 }
 
+.subtotal-line {
+  font-size: 9pt;
+  color: #555;
+  margin-bottom: 2px;
+}
+
+.desconto-line {
+  font-size: 9pt;
+  color: #c0392b;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
 .total-box {
   display: inline-block;
   background: #0097b2;

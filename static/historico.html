@@ -8,68 +8,178 @@
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-  <nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
-    <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
-    <a href="/" class="text-sm bg-white text-[#0097b2] font-semibold px-4 py-1.5 rounded-lg hover:bg-blue-50">
-      + Novo Orçamento
-    </a>
-  </nav>
+<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
+  <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
+  <a href="/" class="text-sm bg-white text-[#0097b2] font-semibold px-4 py-1.5 rounded-lg hover:bg-blue-50">
+    + Novo Orçamento
+  </a>
+</nav>
 
-  <main class="max-w-4xl mx-auto p-6">
-    <h1 class="text-2xl font-bold text-gray-700 mb-6">Histórico de Orçamentos</h1>
-
-    <div id="loading" class="text-gray-400 text-sm">Carregando...</div>
-    <div id="vazio" class="hidden text-gray-400 text-sm">Nenhum orçamento gerado ainda.</div>
-
-    <div class="bg-white rounded-xl shadow overflow-hidden hidden" id="tabela-wrapper">
-      <table class="w-full text-sm">
-        <thead class="bg-[#e8f7fa] text-[#0097b2]">
-          <tr>
-            <th class="text-left px-4 py-3 font-semibold">Número</th>
-            <th class="text-left px-4 py-3 font-semibold">Cliente</th>
-            <th class="text-left px-4 py-3 font-semibold">Data</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody id="lista"></tbody>
-      </table>
+<main class="max-w-6xl mx-auto p-6">
+  <div class="flex items-center justify-between mb-4">
+    <h1 class="text-2xl font-bold text-gray-700">Histórico de Orçamentos</h1>
+    <div class="flex gap-2 items-center flex-wrap">
+      <input id="filtro-cliente" type="text" placeholder="Filtrar por cliente..."
+        oninput="filtrar()"
+        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+      <div class="flex gap-1 flex-wrap" id="filtro-status">
+        <button onclick="setFiltroStatus('')" data-status="" class="filtro-btn ativo px-3 py-1.5 rounded-lg text-xs font-semibold border">Todos</button>
+        <button onclick="setFiltroStatus('Aguardando')" data-status="Aguardando" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Aguardando</button>
+        <button onclick="setFiltroStatus('Aprovado')" data-status="Aprovado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Aprovado</button>
+        <button onclick="setFiltroStatus('Reprovado')" data-status="Reprovado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Reprovado</button>
+        <button onclick="setFiltroStatus('Expirado')" data-status="Expirado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Expirado</button>
+      </div>
     </div>
-  </main>
+  </div>
 
-  <script>
-    function formatarData(iso) {
-      return new Date(iso).toLocaleDateString('pt-BR');
-    }
+  <div id="loading" class="text-gray-400 text-sm">Carregando...</div>
+  <div id="vazio" class="hidden text-gray-400 text-sm">Nenhum orçamento encontrado.</div>
 
-    async function carregarHistorico() {
-      const resp = await fetch('/orcamentos');
-      const lista = await resp.json();
-      document.getElementById('loading').classList.add('hidden');
-      if (!lista.length) {
-        document.getElementById('vazio').classList.remove('hidden');
-        return;
-      }
-      document.getElementById('tabela-wrapper').classList.remove('hidden');
-      const tbody = document.getElementById('lista');
-      lista.forEach((orc, i) => {
-        const tr = document.createElement('tr');
-        tr.className = i % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-        tr.innerHTML = `
-          <td class="px-4 py-3 font-mono font-semibold text-gray-700">${orc.numero}</td>
-          <td class="px-4 py-3 text-gray-700">${orc.cliente_nome}</td>
-          <td class="px-4 py-3 text-gray-500">${formatarData(orc.criado_em)}</td>
-          <td class="px-4 py-3 text-right">
-            <a href="/orcamentos/${orc.id}/pdf"
+  <!-- Totalizador -->
+  <div id="totalizador" class="hidden bg-white rounded-xl shadow p-4 mb-4 flex gap-6 flex-wrap text-sm">
+    <div><span class="text-gray-500">Total de orçamentos:</span> <strong id="tot-count">0</strong></div>
+    <div><span class="text-gray-500">Aprovados:</span> <strong id="tot-aprovados" class="text-green-600">0</strong></div>
+    <div><span class="text-gray-500">Aguardando:</span> <strong id="tot-aguardando" class="text-yellow-600">0</strong></div>
+    <div><span class="text-gray-500">Valor total aprovado:</span> <strong id="tot-valor" class="text-[#0097b2]"></strong></div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow overflow-hidden hidden" id="tabela-wrapper">
+    <table class="w-full text-sm">
+      <thead class="bg-[#e8f7fa] text-[#0097b2]">
+        <tr>
+          <th class="text-left px-4 py-3 font-semibold">Número</th>
+          <th class="text-left px-4 py-3 font-semibold">Cliente</th>
+          <th class="text-left px-4 py-3 font-semibold">Data</th>
+          <th class="text-right px-4 py-3 font-semibold">Valor Total</th>
+          <th class="text-center px-4 py-3 font-semibold">Status</th>
+          <th class="px-4 py-3"></th>
+        </tr>
+      </thead>
+      <tbody id="lista"></tbody>
+    </table>
+  </div>
+</main>
+
+<style>
+  .filtro-btn { background: white; color: #555; }
+  .filtro-btn.ativo { background: #0097b2; color: white; border-color: #0097b2; }
+  .badge-Aguardando { background:#fef9c3; color:#92400e; }
+  .badge-Aprovado   { background:#dcfce7; color:#166534; }
+  .badge-Reprovado  { background:#fee2e2; color:#991b1b; }
+  .badge-Expirado   { background:#f3f4f6; color:#6b7280; }
+</style>
+
+<script>
+  let todosOrcamentos = [];
+  let filtroStatus = '';
+
+  function moeda(val) {
+    return 'R$ ' + (val||0).toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+
+  function formatarData(iso) {
+    return new Date(iso).toLocaleDateString('pt-BR');
+  }
+
+  function setFiltroStatus(s) {
+    filtroStatus = s;
+    document.querySelectorAll('.filtro-btn').forEach(btn => {
+      btn.classList.toggle('ativo', btn.dataset.status === s);
+    });
+    renderizar();
+  }
+
+  function filtrar() { renderizar(); }
+
+  function renderizar() {
+    const termoBusca = document.getElementById('filtro-cliente').value.toLowerCase();
+    const lista = todosOrcamentos.filter(o => {
+      const matchStatus = !filtroStatus || o.status === filtroStatus;
+      const matchCliente = !termoBusca || o.cliente_nome.toLowerCase().includes(termoBusca);
+      return matchStatus && matchCliente;
+    });
+
+    const tbody = document.getElementById('lista');
+    tbody.innerHTML = '';
+
+    document.getElementById('vazio').classList.toggle('hidden', lista.length > 0);
+    document.getElementById('tabela-wrapper').classList.toggle('hidden', lista.length === 0);
+
+    lista.forEach((orc, i) => {
+      const tr = document.createElement('tr');
+      tr.className = i % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100';
+      tr.innerHTML = `
+        <td class="px-4 py-3 font-mono font-semibold text-gray-700">${orc.numero}</td>
+        <td class="px-4 py-3 text-gray-700">${orc.cliente_nome}</td>
+        <td class="px-4 py-3 text-gray-500">${formatarData(orc.criado_em)}</td>
+        <td class="px-4 py-3 text-right font-semibold text-gray-800">${moeda(orc.valor_total)}</td>
+        <td class="px-4 py-3 text-center">
+          <select onchange="atualizarStatus(${orc.id}, this.value)"
+            class="text-xs font-semibold rounded-full px-2 py-1 border-0 badge-${orc.status} cursor-pointer focus:outline-none">
+            <option value="Aguardando" ${orc.status==='Aguardando'?'selected':''}>Aguardando</option>
+            <option value="Aprovado"   ${orc.status==='Aprovado'  ?'selected':''}>Aprovado</option>
+            <option value="Reprovado"  ${orc.status==='Reprovado' ?'selected':''}>Reprovado</option>
+            <option value="Expirado"   ${orc.status==='Expirado'  ?'selected':''}>Expirado</option>
+          </select>
+        </td>
+        <td class="px-4 py-3 text-right">
+          <div class="flex gap-2 justify-end">
+            <button onclick="duplicar(${orc.id})"
+              class="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">
+              Duplicar
+            </button>
+            <a href="/orcamentos/${orc.id}/pdf" target="_blank"
               class="inline-block bg-[#0097b2] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-[#007d96] transition">
               Baixar PDF
             </a>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
+          </div>
+        </td>`;
+      tbody.appendChild(tr);
+    });
 
-    carregarHistorico();
-  </script>
+    // Totalizador
+    const aprovados = todosOrcamentos.filter(o => o.status === 'Aprovado');
+    const aguardando = todosOrcamentos.filter(o => o.status === 'Aguardando');
+    const valorAprovado = aprovados.reduce((s, o) => s + (o.valor_total || 0), 0);
+    document.getElementById('tot-count').textContent = todosOrcamentos.length;
+    document.getElementById('tot-aprovados').textContent = aprovados.length;
+    document.getElementById('tot-aguardando').textContent = aguardando.length;
+    document.getElementById('tot-valor').textContent = moeda(valorAprovado);
+    document.getElementById('totalizador').classList.toggle('hidden', todosOrcamentos.length === 0);
+  }
+
+  async function atualizarStatus(id, status) {
+    try {
+      await fetch(`/orcamentos/${id}/status`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({status}),
+      });
+      const orc = todosOrcamentos.find(o => o.id === id);
+      if (orc) { orc.status = status; renderizar(); }
+    } catch(e) { alert('Erro ao atualizar status.'); }
+  }
+
+  async function duplicar(id) {
+    try {
+      const resp = await fetch(`/orcamentos/${id}/duplicar`, {method: 'POST'});
+      if (!resp.ok) throw new Error();
+      const {id: novoId} = await resp.json();
+      window.location.href = `/?from=${novoId}`;
+    } catch(e) { alert('Erro ao duplicar orçamento.'); }
+  }
+
+  async function carregarHistorico() {
+    try {
+      todosOrcamentos = await (await fetch('/orcamentos')).json();
+      document.getElementById('loading').classList.add('hidden');
+      renderizar();
+    } catch(e) {
+      document.getElementById('loading').textContent = 'Erro ao carregar histórico.';
+    }
+  }
+
+  carregarHistorico();
+</script>
 </body>
 </html>

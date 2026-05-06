@@ -106,6 +106,10 @@
 
 <!-- Total Geral -->
 <div class="total-geral">
+  {% if desconto_percent and desconto_percent > 0 %}
+  <div class="subtotal-line">Subtotal: {{ valor_subtotal | moeda }}</div>
+  <div class="desconto-line">Desconto ({{ desconto_percent | int }}%): &minus; {{ valor_desconto | moeda }}</div>
+  {% endif %}
   <div class="total-box">TOTAL GERAL:&nbsp; {{ valor_total_geral | moeda }}</div>
 </div>
 
@@ -148,10 +152,9 @@
 <div class="section no-break">
   <h2>Observações</h2>
   <ul class="obs-list">
-    <li>Validade da proposta: até <strong>{{ validade_formatada }}</strong></li>
-    <li>Instalação: mediante orçamento adicional</li>
-    <li>Garantia: fabricante (equipamentos) + 12 meses (mão de obra)</li>
-    <li>Suporte pós-venda: 30 dias após a conclusão dos serviços</li>
+    {% for obs in observacoes %}
+    <li>{{ obs }}</li>
+    {% endfor %}
   </ul>
 </div>
 

@@ -1,4 +1,6 @@
+import asyncio
 import base64
+import concurrent.futures
 from datetime import datetime
 from pathlib import Path
 
@@ -22,7 +24,7 @@ def _formatar_moeda(valor: float) -> str:
     return "R$ " + formatted.replace(",", "X").replace(".", ",").replace("X", ".")
 
 
-def gerar_pdf(orcamento) -> bytes:
+def _gerar_pdf_sync(orcamento) -> bytes:
     env = Environment(loader=FileSystemLoader(str(BASE_DIR / "templates")))
     env.filters["moeda"] = _formatar_moeda
 
@@ -53,4 +55,12 @@ def gerar_pdf(orcamento) -> bytes:
         )
         browser.close()
 
+    return pdf_bytes
+
+
+def gerar_pdf(orcamento) -> bytes:
+    loop = asyncio.new_event_loop()
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future = executor.submit(_gerar_pdf_sync, orcamento)
+        pdf_bytes = future.result()
     return pdf_bytes

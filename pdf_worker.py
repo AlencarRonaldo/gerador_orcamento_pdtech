@@ -20,6 +20,12 @@ CATEGORIA_NOMES = {
     "MAO_DE_OBRA": "Mão de Obra",
 }
 
+OBS_DEFAULT = [
+    "Instalação: mediante orçamento adicional",
+    "Garantia: fabricante (equipamentos) + 12 meses (mão de obra)",
+    "Suporte pós-venda: 30 dias após a conclusão dos serviços",
+]
+
 BASE_DIR = Path(__file__).parent
 
 
@@ -33,8 +39,7 @@ def _formatar_moeda(valor):
 
 
 def _formatar_validade(criado_em, validade_dias=7):
-    validade = criado_em + timedelta(days=int(validade_dias))
-    return validade.strftime("%d/%m/%Y")
+    return (criado_em + timedelta(days=int(validade_dias))).strftime("%d/%m/%Y")
 
 
 def _processar_categorias(categorias):
@@ -61,22 +66,35 @@ def gerar_pdf(orcamento_dict) -> bytes:
     if isinstance(criado_em, str):
         criado_em = datetime.fromisoformat(criado_em.replace("Z", "+00:00"))
 
-    valor_total_geral = sum(
+    valor_subtotal = sum(
         item["valor_total"]
         for cat in orcamento_dict.get("categorias", [])
         for item in cat.get("itens", [])
     )
 
+    desconto_percent = float(orcamento_dict.get("desconto_percent") or 0)
+    valor_desconto = valor_subtotal * desconto_percent / 100 if desconto_percent else 0
+    valor_total_geral = valor_subtotal - valor_desconto
+
     validade_dias = orcamento_dict.get("validade_dias") or 7
+    validade_formatada = _formatar_validade(criado_em, validade_dias)
     categorias_processadas = _processar_categorias(orcamento_dict.get("categorias", []))
+
+    # Observações: validade sempre primeiro, resto editável
+    obs_custom = orcamento_dict.get("observacoes_custom")
+    obs_resto = obs_custom if obs_custom else OBS_DEFAULT
+    observacoes = [f"Validade da proposta: até {validade_formatada}"] + obs_resto
 
     html_content = env.get_template("orcamento.html").render(
         orcamento=orcamento_dict,
         data_formatada=_formatar_data(criado_em),
+        valor_subtotal=valor_subtotal,
+        valor_desconto=valor_desconto,
         valor_total_geral=valor_total_geral,
+        desconto_percent=desconto_percent,
         logo_b64=logo_b64,
         categorias_processadas=categorias_processadas,
-        validade_formatada=_formatar_validade(criado_em, validade_dias),
+        observacoes=observacoes,
         multiplas_categorias=len(categorias_processadas) > 1,
     )
 

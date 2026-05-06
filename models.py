@@ -23,6 +23,9 @@ class Orcamento(Base):
     condicao_pagto = Column(String, nullable=False)
     descricao_intro = Column(String, nullable=False)
     validade_dias = Column(Integer, default=7, nullable=True)
+    desconto_percent = Column(Float, default=0.0, nullable=True)
+    observacoes_json = Column(Text, nullable=True)
+    status = Column(String, default="Aguardando", nullable=True)
     dados_json = Column(Text, nullable=True)
 
     categorias = relationship(
@@ -78,6 +81,8 @@ class OrcamentoInput(BaseModel):
     condicao_pagto: str
     descricao_intro: str
     validade_dias: int = 7
+    desconto_percent: float = 0.0
+    observacoes_custom: Optional[List[str]] = None
     categorias: List[CategoriaInput]
 
 
@@ -114,6 +119,8 @@ class OrcamentoOutput(BaseModel):
     condicao_pagto: str
     descricao_intro: str
     validade_dias: int = 7
+    desconto_percent: float = 0.0
+    status: str = "Aguardando"
     categorias: List[CategoriaOutput]
 
     model_config = {"from_attributes": True}
@@ -124,5 +131,7 @@ class OrcamentoListItem(BaseModel):
     numero: str
     criado_em: datetime
     cliente_nome: str
+    status: str = "Aguardando"
+    valor_total: float = 0.0
 
     model_config = {"from_attributes": True}

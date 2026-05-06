@@ -19,12 +19,14 @@ def get_db():
 def create_tables():
     from models import Orcamento, Categoria, Item
     Base.metadata.create_all(bind=engine)
-    # Migrate: add new columns if they don't exist (SQLite doesn't support IF NOT EXISTS for columns)
     migrations = [
         "ALTER TABLE orcamentos ADD COLUMN cliente_cnpj TEXT",
         "ALTER TABLE orcamentos ADD COLUMN cliente_email TEXT",
         "ALTER TABLE orcamentos ADD COLUMN cliente_telefone TEXT",
         "ALTER TABLE orcamentos ADD COLUMN validade_dias INTEGER DEFAULT 7",
+        "ALTER TABLE orcamentos ADD COLUMN desconto_percent REAL DEFAULT 0.0",
+        "ALTER TABLE orcamentos ADD COLUMN observacoes_json TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN status TEXT DEFAULT 'Aguardando'",
     ]
     with engine.connect() as conn:
         for sql in migrations:
