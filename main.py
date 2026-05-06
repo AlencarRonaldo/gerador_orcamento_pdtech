@@ -1,13 +1,16 @@
+import base64
 import json
+import secrets
 import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import List
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.responses import Response
+from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi.responses import Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -22,6 +25,40 @@ from models import (
 
 app = FastAPI(title="RC Suporte — Gerador de Orçamentos")
 
+SESSION_TOKEN = str(secrets.token_urlsafe(32))
+
+class LoginData(BaseModel):
+    email: str
+    password: str
+
+@app.post("/api/login")
+def login_api(data: LoginData, response: Response):
+    correct_username = secrets.compare_digest(data.email, "contato@rcsuporte.com.br")
+    correct_password = secrets.compare_digest(data.password, "Isabely@2803")
+    
+    if correct_username and correct_password:
+        response.set_cookie(key="session_token", value=SESSION_TOKEN, httponly=True, max_age=86400 * 7) # 7 dias
+        return {"ok": True}
+    raise HTTPException(status_code=401, detail="Credenciais inválidas")
+
+@app.post("/api/logout")
+def logout_api(response: Response):
+    response.delete_cookie("session_token")
+    return {"ok": True}
+
+@app.middleware("http")
+async def cookie_auth(request: Request, call_next):
+    # Rotas públicas
+    if request.url.path in ["/login.html", "/api/login", "/favicon.ico"]:
+        return await call_next(request)
+        
+    token = request.cookies.get("session_token")
+    if not token or not secrets.compare_digest(token, SESSION_TOKEN):
+        if request.url.path == "/" or request.url.path.endswith(".html"):
+            return RedirectResponse(url="/login.html", status_code=303)
+        return Response(content="Não autorizado", status_code=401)
+        
+    return await call_next(request)
 
 @app.on_event("startup")
 def startup():

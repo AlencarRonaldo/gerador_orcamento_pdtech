@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — RC Suporte</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0097b2;
+      --primary-hover: #007a90;
+      --bg-dark: #0f172a;
+      --bg-glass: rgba(30, 41, 59, 0.7);
+      --border-glass: rgba(255, 255, 255, 0.1);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top right, #1e293b, var(--bg-dark));
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Decorative circles */
+    .blob {
+      position: absolute;
+      filter: blur(80px);
+      z-index: 0;
+      border-radius: 50%;
+      opacity: 0.5;
+    }
+    .blob-1 {
+      top: -10%; left: -10%;
+      width: 50vw; height: 50vw;
+      background: var(--primary);
+      animation: float 10s ease-in-out infinite alternate;
+    }
+    .blob-2 {
+      bottom: -20%; right: -10%;
+      width: 40vw; height: 40vw;
+      background: #3b82f6;
+      animation: float 12s ease-in-out infinite alternate-reverse;
+    }
+
+    @keyframes float {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(50px, 50px) scale(1.1); }
+    }
+
+    .login-container {
+      position: relative;
+      z-index: 1;
+      background: var(--bg-glass);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-glass);
+      border-radius: 24px;
+      padding: 48px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .logo-container {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    
+    .logo-icon {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), #3b82f6);
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 16px;
+      box-shadow: 0 10px 20px -10px var(--primary);
+    }
+    .logo-icon svg {
+      width: 32px; height: 32px; color: white;
+    }
+
+    h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    .input-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper input {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid var(--border-glass);
+      color: white;
+      padding: 14px 16px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .input-wrapper input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(0, 151, 178, 0.15);
+      background: rgba(15, 23, 42, 0.8);
+    }
+
+    .btn-login {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-login:hover {
+      background: var(--primary-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -8px var(--primary);
+    }
+    .btn-login:active {
+      transform: translateY(0);
+    }
+
+    .error-message {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      padding: 12px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      display: none;
+      text-align: center;
+    }
+
+    .loader {
+      display: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+
+  <div class="login-container">
+    <div class="logo-container">
+      <div class="logo-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <h1>Bem-vindo de volta</h1>
+      <p class="subtitle">Acesse o Gerador de Orçamentos RC Suporte</p>
+    </div>
+
+    <div id="error-box" class="error-message"></div>
+
+    <form id="login-form">
+      <div class="input-group">
+        <label for="email">E-mail Corporativo</label>
+        <div class="input-wrapper">
+          <input type="email" id="email" required placeholder="ex: contato@rcsuporte.com.br" autocomplete="email">
+        </div>
+      </div>
+      
+      <div class="input-group">
+        <label for="password">Senha de Acesso</label>
+        <div class="input-wrapper">
+          <input type="password" id="password" required placeholder="••••••••" autocomplete="current-password">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login" id="submit-btn">
+        <span id="btn-text">Entrar no Sistema</span>
+        <div class="loader" id="btn-loader"></div>
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
+      const loader = document.getElementById('btn-loader');
+      const errorBox = document.getElementById('error-box');
+
+      // Loading state
+      btn.disabled = true;
+      btnText.style.display = 'none';
+      loader.style.display = 'block';
+      errorBox.style.display = 'none';
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+
+        if (response.ok) {
+          window.location.href = '/';
+        } else {
+          const data = await response.json();
+          errorBox.textContent = data.detail || 'E-mail ou senha incorretos.';
+          errorBox.style.display = 'block';
+          btn.disabled = false;
+          btnText.style.display = 'block';
+          loader.style.display = 'none';
+        }
+      } catch (error) {
+        errorBox.textContent = 'Erro de conexão com o servidor.';
+        errorBox.style.display = 'block';
+        btn.disabled = false;
+        btnText.style.display = 'block';
+        loader.style.display = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
