@@ -10,6 +10,7 @@ import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import Response, RedirectResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy import func
 from sqlalchemy.orm import Session
@@ -24,6 +25,13 @@ from models import (
 )
 
 app = FastAPI(title="RC Suporte — Gerador de Orçamentos")
+templates = Jinja2Templates(directory="templates")
+
+def _formatar_moeda(valor):
+    formatted = f"{valor:,.2f}"
+    return "R$ " + formatted.replace(",", "X").replace(".", ",").replace("X", ".")
+
+templates.env.filters["moeda"] = _formatar_moeda
 
 SESSION_TOKEN = str(secrets.token_urlsafe(32))
 
@@ -49,7 +57,7 @@ def logout_api(response: Response):
 @app.middleware("http")
 async def cookie_auth(request: Request, call_next):
     # Rotas públicas
-    if request.url.path in ["/login.html", "/api/login", "/favicon.ico"]:
+    if request.url.path in ["/login.html", "/api/login", "/favicon.ico"] or request.url.path.startswith("/p/") or request.url.path.startswith("/api/p/"):
         return await call_next(request)
         
     token = request.cookies.get("session_token")
@@ -93,6 +101,9 @@ def _orc_to_dict(orc: Orcamento) -> dict:
         "desconto_percent": orc.desconto_percent or 0.0,
         "observacoes_custom": obs,
         "status": orc.status or "Aguardando",
+        "uuid_publico": orc.uuid_publico,
+        "aceito_em": orc.aceito_em.isoformat() if orc.aceito_em else None,
+        "assinatura_nome": orc.assinatura_nome,
         "categorias": [
             {
                 "id": cat.id,
@@ -141,6 +152,7 @@ def _criar_categorias(db: Session, orcamento_id: int, categorias_data):
 def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
     orcamento = Orcamento(
         numero=_gerar_numero(db),
+        uuid_publico=secrets.token_urlsafe(16),
         cliente_nome=data.cliente_nome,
         cliente_contato=data.cliente_contato,
         cliente_endereco=data.cliente_endereco,
@@ -176,6 +188,8 @@ def listar_orcamentos(db: Session = Depends(get_db)):
             "cliente_nome": orc.cliente_nome,
             "status": orc.status or "Aguardando",
             "valor_total": total,
+            "uuid_publico": orc.uuid_publico,
+            "assinatura_nome": orc.assinatura_nome,
         })
     return result
 
@@ -215,6 +229,7 @@ def duplicar_orcamento(id: int, db: Session = Depends(get_db)):
 
     novo = Orcamento(
         numero=_gerar_numero(db),
+        uuid_publico=secrets.token_urlsafe(16),
         cliente_nome=orc.cliente_nome,
         cliente_contato=orc.cliente_contato,
         cliente_endereco=orc.cliente_endereco,
@@ -299,6 +314,61 @@ def baixar_pdf(id: int, db: Session = Depends(get_db)):
         media_type="application/pdf",
         headers={"Content-Disposition": f'attachment; filename="{orc.numero}.pdf"'},
     )
+
+
+# ── Rotas Públicas (Aceite Digital) ──────────────────────────────────────────
+
+@app.get("/p/{uuid}")
+def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.uuid_publico == uuid).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Proposta não encontrada")
+    
+    orc_dict = _orc_to_dict(orc)
+    
+    valor_subtotal = sum(
+        item["valor_total"]
+        for cat in orc_dict.get("categorias", [])
+        for item in cat.get("itens", [])
+    )
+    desconto_percent = float(orc_dict.get("desconto_percent") or 0)
+    valor_desconto = valor_subtotal * desconto_percent / 100 if desconto_percent else 0
+    valor_total_geral = valor_subtotal - valor_desconto
+    
+    return templates.TemplateResponse("proposta_publica.html", {
+        "request": request, 
+        "orc": orc_dict,
+        "valor_subtotal": valor_subtotal,
+        "desconto_percent": desconto_percent,
+        "valor_desconto": valor_desconto,
+        "valor_total_geral": valor_total_geral,
+    })
+
+class AceiteInput(BaseModel):
+    assinatura_nome: str
+
+@app.post("/api/p/{uuid}/aceitar")
+def aceitar_proposta(uuid: str, data: AceiteInput, request: Request, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.uuid_publico == uuid).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Proposta não encontrada")
+    
+    orc.status = "Aprovado"
+    orc.aceito_em = datetime.utcnow()
+    orc.aceito_ip = request.client.host if request.client else None
+    orc.assinatura_nome = data.assinatura_nome
+    db.commit()
+    return {"ok": True}
+
+@app.post("/api/p/{uuid}/recusar")
+def recusar_proposta(uuid: str, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.uuid_publico == uuid).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Proposta não encontrada")
+    
+    orc.status = "Recusado"
+    db.commit()
+    return {"ok": True}
 
 
 static_dir = Path(__file__).parent / "static"

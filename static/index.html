@@ -709,16 +709,36 @@
     const pdfUrl = `/orcamentos/${orc.id}/pdf`;
     document.getElementById('btn-baixar-pdf').href = pdfUrl;
 
+    const publicUrl = `${window.location.origin}/p/${orc.uuid_publico}`;
+
     const tel = (dados.cliente_telefone || '').replace(/\D/g,'');
     const num = tel ? (tel.startsWith('55') ? tel : '55' + tel) : '';
     const msg = encodeURIComponent(
       `Olá ${dados.cliente_contato}! Segue nossa proposta comercial:\n\n` +
       `*Orçamento Nº:* ${orc.numero}\n` +
       `*Valor Total:* ${moeda(total)}\n\n` +
+      `Acesse a proposta interativa para visualização e aceite digital pelo link abaixo:\n` +
+      `${publicUrl}\n\n` +
       `Em caso de dúvidas, estamos à disposição.\n\nAtenciosamente,\nRC Suporte — (11) 95653-4963`
     );
     document.getElementById('btn-whatsapp').href =
       num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
+
+    // Add a Copy Link button dynamically if it doesn't exist
+    let btnCopy = document.getElementById('btn-copiar-link');
+    if (!btnCopy) {
+      btnCopy = document.createElement('button');
+      btnCopy.id = 'btn-copiar-link';
+      btnCopy.className = 'block text-center w-full bg-gray-100 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-200 transition';
+      const container = document.querySelector('#modal-sucesso .flex.flex-col.gap-3');
+      container.insertBefore(btnCopy, document.getElementById('btn-whatsapp'));
+    }
+    btnCopy.textContent = 'Copiar Link Público';
+    btnCopy.onclick = () => {
+      navigator.clipboard.writeText(publicUrl);
+      btnCopy.textContent = 'Link copiado!';
+      setTimeout(() => btnCopy.textContent = 'Copiar Link Público', 2000);
+    };
 
     document.getElementById('modal-sucesso').classList.remove('hidden');
   }

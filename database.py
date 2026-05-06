@@ -27,6 +27,10 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN desconto_percent REAL DEFAULT 0.0",
         "ALTER TABLE orcamentos ADD COLUMN observacoes_json TEXT",
         "ALTER TABLE orcamentos ADD COLUMN status TEXT DEFAULT 'Aguardando'",
+        "ALTER TABLE orcamentos ADD COLUMN uuid_publico TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN aceito_em DATETIME",
+        "ALTER TABLE orcamentos ADD COLUMN aceito_ip TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN assinatura_nome TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

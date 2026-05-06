@@ -27,6 +27,12 @@ class Orcamento(Base):
     observacoes_json = Column(Text, nullable=True)
     status = Column(String, default="Aguardando", nullable=True)
     dados_json = Column(Text, nullable=True)
+    
+    # Campos para Link Público e Aceite
+    uuid_publico = Column(String, unique=True, index=True, nullable=True)
+    aceito_em = Column(DateTime, nullable=True)
+    aceito_ip = Column(String, nullable=True)
+    assinatura_nome = Column(String, nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"
@@ -121,6 +127,9 @@ class OrcamentoOutput(BaseModel):
     validade_dias: int = 7
     desconto_percent: float = 0.0
     status: str = "Aguardando"
+    uuid_publico: Optional[str] = None
+    aceito_em: Optional[datetime] = None
+    assinatura_nome: Optional[str] = None
     categorias: List[CategoriaOutput]
 
     model_config = {"from_attributes": True}
@@ -133,5 +142,7 @@ class OrcamentoListItem(BaseModel):
     cliente_nome: str
     status: str = "Aguardando"
     valor_total: float = 0.0
+    uuid_publico: Optional[str] = None
+    assinatura_nome: Optional[str] = None
 
     model_config = {"from_attributes": True}

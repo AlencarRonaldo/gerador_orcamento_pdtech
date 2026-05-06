@@ -51,6 +51,7 @@
           <th class="text-left px-4 py-3 font-semibold">Cliente</th>
           <th class="text-left px-4 py-3 font-semibold">Data</th>
           <th class="text-right px-4 py-3 font-semibold">Valor Total</th>
+          <th class="text-left px-4 py-3 font-semibold">Aprovado Por</th>
           <th class="text-center px-4 py-3 font-semibold">Status</th>
           <th class="px-4 py-3"></th>
         </tr>
@@ -113,6 +114,7 @@
         <td class="px-4 py-3 text-gray-700">${orc.cliente_nome}</td>
         <td class="px-4 py-3 text-gray-500">${formatarData(orc.criado_em)}</td>
         <td class="px-4 py-3 text-right font-semibold text-gray-800">${moeda(orc.valor_total)}</td>
+        <td class="px-4 py-3 text-gray-600 text-sm italic">${orc.status === 'Aprovado' && orc.assinatura_nome ? orc.assinatura_nome : '-'}</td>
         <td class="px-4 py-3 text-center">
           <select onchange="atualizarStatus(${orc.id}, this.value)"
             class="text-xs font-semibold rounded-full px-2 py-1 border-0 badge-${orc.status} cursor-pointer focus:outline-none">
@@ -124,6 +126,10 @@
         </td>
         <td class="px-4 py-3 text-right">
           <div class="flex gap-2 justify-end">
+            <button onclick="copiarLinkPublico('${orc.uuid_publico}')"
+              class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition" title="Copiar Link Público">
+              Copiar Link
+            </button>
             <button onclick="duplicar(${orc.id})"
               class="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">
               Duplicar
@@ -167,6 +173,19 @@
       const {id: novoId} = await resp.json();
       window.location.href = `/?from=${novoId}`;
     } catch(e) { alert('Erro ao duplicar orçamento.'); }
+  }
+
+  function copiarLinkPublico(uuid) {
+    if (!uuid || uuid === 'null' || uuid === 'undefined') {
+      alert('Link público não disponível para este orçamento antigo.');
+      return;
+    }
+    const url = `${window.location.origin}/p/${uuid}`;
+    navigator.clipboard.writeText(url).then(() => {
+      alert('Link público copiado: ' + url);
+    }).catch(() => {
+      prompt('Copie o link abaixo:', url);
+    });
   }
 
   async function carregarHistorico() {
