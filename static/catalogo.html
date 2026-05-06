@@ -1,366 +1,681 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo de Itens — Sistema de Orçamentos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .badge-ativo { background:#dcfce7; color:#166534; }
-    .badge-inativo { background:#f3f4f6; color:#6b7280; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo — SaaS Budgets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/shared.css">
+    <style>
+        /* ── Search & Filters ─────────────────────────────────── */
+        .toolbar {
+            display: flex; gap: 12px; align-items: center;
+            margin-bottom: 28px; flex-wrap: wrap;
+        }
+        .search-wrap {
+            flex: 1; min-width: 200px; position: relative;
+        }
+        .search-wrap i {
+            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+            color: var(--text-muted); pointer-events: none;
+        }
+        .search-wrap input {
+            width: 100%; padding: 11px 14px 11px 40px;
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: 12px; color: var(--text-main); outline: none;
+            transition: border-color 0.2s;
+        }
+        .search-wrap input:focus { border-color: var(--primary); }
+
+        .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; }
+        .pill {
+            padding: 8px 16px; border-radius: 99px; border: 1px solid var(--glass-border);
+            background: transparent; color: var(--text-muted); font-size: 13px;
+            font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;
+            font-family: 'Outfit', sans-serif;
+        }
+        .pill.active, .pill:hover {
+            background: var(--primary); color: #fff; border-color: var(--primary);
+        }
+
+        /* ── Category Section ─────────────────────────────────── */
+        .cat-section { margin-bottom: 36px; }
+        .cat-header {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 16px; padding-bottom: 12px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .cat-icon {
+            width: 36px; height: 36px; border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; flex-shrink: 0;
+        }
+        .cat-name { font-size: 16px; font-weight: 700; flex: 1; }
+        .cat-count {
+            font-size: 12px; padding: 3px 10px; border-radius: 99px;
+            background: var(--glass-border); color: var(--text-muted); font-weight: 600;
+        }
+
+        /* ── Item Cards ───────────────────────────────────────── */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 14px;
+        }
+        .item-card {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: 16px; padding: 18px; display: flex; flex-direction: column;
+            gap: 12px; transition: border-color 0.2s, transform 0.15s;
+            position: relative; overflow: hidden;
+        }
+        .item-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+        .item-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+            background: var(--cat-color, var(--primary));
+        }
+        .item-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+        .item-desc { font-weight: 700; font-size: 14px; line-height: 1.4; flex: 1; }
+        .item-actions { display: flex; gap: 4px; flex-shrink: 0; opacity: 0; transition: opacity 0.2s; }
+        .item-card:hover .item-actions { opacity: 1; }
+        .item-btn {
+            width: 30px; height: 30px; border-radius: 8px; border: none;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; cursor: pointer; transition: all 0.15s;
+        }
+        .item-btn.edit { background: rgba(58,123,213,0.12); color: var(--primary); }
+        .item-btn.edit:hover { background: var(--primary); color: #fff; }
+        .item-btn.del  { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .item-btn.del:hover { background: #ef4444; color: #fff; }
+
+        .item-bottom { display: flex; align-items: center; justify-content: space-between; }
+        .item-garantia { font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 5px; }
+        .item-preco { font-size: 18px; font-weight: 800; color: #10b981; }
+
+        .empty-cat {
+            grid-column: 1/-1; text-align: center; padding: 30px;
+            color: var(--text-muted); font-size: 14px;
+        }
+
+        /* ── Drawer ───────────────────────────────────────────── */
+        .drawer-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px); z-index: 2000;
+            opacity: 0; pointer-events: none; transition: opacity 0.25s;
+        }
+        .drawer-overlay.active { opacity: 1; pointer-events: all; }
+
+        .drawer {
+            position: fixed; top: 0; right: 0; bottom: 0; width: 420px; max-width: 95vw;
+            background: var(--bg-sidebar); border-left: 1px solid var(--glass-border);
+            z-index: 2001; display: flex; flex-direction: column;
+            transform: translateX(110%); transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+            box-shadow: -20px 0 60px rgba(0,0,0,0.4);
+        }
+        .drawer.active { transform: translateX(0); }
+
+        .drawer-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 24px 28px; border-bottom: 1px solid var(--glass-border);
+            flex-shrink: 0;
+        }
+        .drawer-header h2 { font-size: 18px; font-weight: 800; }
+        .drawer-close {
+            width: 36px; height: 36px; border-radius: 10px; border: none;
+            background: var(--glass-border); color: var(--text-muted); font-size: 18px;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s;
+        }
+        .drawer-close:hover { background: #ef4444; color: #fff; }
+
+        .drawer-body { flex: 1; overflow-y: auto; padding: 28px; display: flex; flex-direction: column; gap: 18px; }
+        .drawer-footer {
+            padding: 20px 28px; border-top: 1px solid var(--glass-border);
+            display: flex; gap: 10px; flex-shrink: 0;
+        }
+        .drawer-footer button { flex: 1; padding: 13px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: 'Outfit', sans-serif; }
+        .drawer-footer .btn-cancel { background: var(--glass-border); color: var(--text-muted); }
+        .drawer-footer .btn-cancel:hover { color: var(--text-main); }
+        .drawer-footer .btn-save { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: #fff; }
+
+        /* ── Form inside drawer ───────────────────────────────── */
+        .dform-label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 7px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dform-input, .dform-select {
+            width: 100%; padding: 12px 14px;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            border-radius: 12px; color: var(--text-main); outline: none;
+            font-size: 14px; font-family: 'Outfit', sans-serif; transition: border-color 0.2s;
+        }
+        .dform-input:focus, .dform-select:focus { border-color: var(--primary); }
+        .dform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .price-prefix {
+            display: flex; align-items: center;
+            background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border);
+            border-radius: 12px; overflow: hidden; transition: border-color 0.2s;
+        }
+        .price-prefix:focus-within { border-color: var(--primary); }
+        .price-prefix span {
+            padding: 0 14px; color: var(--text-muted); font-weight: 700;
+            border-right: 1px solid var(--glass-border); white-space: nowrap;
+            background: rgba(255,255,255,0.02);
+        }
+        .price-prefix input {
+            flex: 1; padding: 12px 14px; background: transparent;
+            border: none; color: var(--text-main); outline: none;
+            font-size: 15px; font-weight: 700; font-family: 'Outfit', sans-serif;
+        }
+
+        /* ── Cat combo ────────────────────────────────────────── */
+        .cat-combo { position: relative; }
+        .cat-combo-input { width: 100%; padding: 12px 14px; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-main); outline: none; font-size: 14px; font-family: 'Outfit', sans-serif; transition: border-color 0.2s; }
+        .cat-combo-input:focus { border-color: var(--primary); }
+        .cat-suggestions {
+            position: absolute; top: calc(100% + 6px); left: 0; right: 0;
+            background: var(--bg-sidebar); border: 1px solid var(--glass-border);
+            border-radius: 12px; z-index: 100; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            overflow: hidden; display: none;
+        }
+        .cat-suggestions.open { display: block; }
+        .cat-sug-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; cursor: pointer; font-size: 13px; font-weight: 600;
+            transition: background 0.15s;
+        }
+        .cat-sug-item:hover { background: rgba(58,123,213,0.1); }
+        .cat-sug-item .sug-icon { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; flex-shrink: 0; }
+        .cat-sug-new { color: var(--primary); font-style: italic; }
+
+        /* ── Quick-select chips ────────────────────────────────── */
+        .cat-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+        .cat-quick-chip {
+            padding: 4px 12px; border-radius: 99px; font-size: 12px; font-weight: 600;
+            cursor: pointer; border: 1px solid var(--glass-border);
+            background: transparent; color: var(--text-muted); transition: all 0.15s;
+            font-family: 'Outfit', sans-serif;
+        }
+        .cat-quick-chip:hover, .cat-quick-chip.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* ── Cat preview chip ─────────────────────────────────── */
+        .cat-chip {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+        }
+
+        /* ── Toast ────────────────────────────────────────────── */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { padding: 12px 20px; border-radius: 12px; color: #fff; font-weight: 600; font-size: 14px; max-width: 320px; animation: toastIn 0.3s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
+        .toast.success { background: #10b981; }
+        .toast.error   { background: #ef4444; }
+        .toast.info    { background: var(--primary); }
+        @keyframes toastIn { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        /* ── Empty state ──────────────────────────────────────── */
+        .empty-state { text-align: center; padding: 80px 20px; color: var(--text-muted); }
+        .empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; display: block; }
+        .empty-state p { font-size: 16px; }
+        
+        /* ── Responsive ─────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .items-grid { grid-template-columns: 1fr; }
+            .toolbar { flex-direction: column; align-items: stretch; }
+            .search-wrap { min-width: 100%; }
+            header { flex-direction: column; align-items: flex-start !important; gap: 12px !important; }
+            h1 { font-size: 20px; }
+            .btn-primary { width: 100%; justify-content: center; }
+            .drawer { width: 100%; max-width: 100%; }
+            .dform-row { grid-template-columns: 1fr; }
+            .cat-section { margin-bottom: 24px; }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; }
+            .glass-panel { padding: 12px; }
+            .toolbar { gap: 8px; }
+            .cat-header { flex-wrap: wrap; }
+            .cat-name { font-size: 14px; }
+            .item-card { padding: 14px; }
+            .item-desc { font-size: 13px; }
+            .item-preco { font-size: 16px; }
+            .drawer-body { padding: 16px; }
+            .drawer-header, .drawer-footer { padding: 16px; }
+            .pill { padding: 6px 12px; font-size: 12px; }
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="dark-mode">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<nav class="text-white px-6 py-3 flex items-center justify-between shadow" id="nav" style="background:#0097b2">
-  <span class="font-bold text-lg tracking-wide">📦 Catálogo de Itens</span>
-  <div class="flex gap-3 text-sm">
-    <a href="/configuracoes.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">⚙️ Configurações</a>
-    <a href="/historico.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📋 Histórico</a>
-    <a href="/" class="bg-white font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 transition" id="nav-link-orc" style="color:#0097b2">+ Orçamento</a>
-  </div>
-</nav>
-
-<!-- Modal Novo/Editar Item -->
-<div id="modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md">
-    <h3 id="modal-titulo" class="text-lg font-bold text-gray-800 mb-4">Novo Item</h3>
-    <input type="hidden" id="item-id">
-    <div class="space-y-3">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Categoria <span class="text-red-500">*</span></label>
-        <div class="flex gap-2">
-          <select id="item-categoria-sel" onchange="mudouCategoriaSelect()"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-            <option value="">-- Selecione ou crie nova --</option>
-            <option value="__nova__">+ Nova categoria...</option>
-          </select>
-          <input id="item-categoria-nova" type="text" placeholder="Nome da nova categoria"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2] hidden">
+    <div class="sidebar" id="sidebar">
+        <div class="logo"><i class="fas fa-bolt"></i> <span>SaaS Budgets</span></div>
+        <a href="/" class="nav-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="/novo_orcamento.html" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Orçamento</a>
+        <a href="/historico.html" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+        <a href="/clientes.html" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
+        <a href="/catalogo.html" class="nav-link active"><i class="fas fa-box-open"></i> Catálogo</a>
+        <div style="margin-top: auto;">
+            <button class="nav-link" onclick="toggleTheme()" style="width:100%;border:none;background:transparent;cursor:pointer;">
+                <i class="fas fa-adjust" id="theme-icon"></i> <span id="theme-text">Modo Claro</span>
+            </button>
+            <a href="javascript:void(0)" class="nav-link" onclick="logout()" style="color:#ef4444;">
+                <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
+            </a>
+            <a href="/configuracoes.html" class="nav-link"><i class="fas fa-cog"></i> Configurações</a>
         </div>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Descrição <span class="text-red-500">*</span></label>
-        <input id="item-descricao" type="text" placeholder="Ex: Instalação câmera IP/Analógica"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Preço (R$) <span class="text-red-500">*</span></label>
-          <input id="item-preco" type="number" step="0.01" min="0" placeholder="0,00"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+    </div>
+
+    <div class="mobile-header">
+        <div class="logo" style="margin:0"><i class="fas fa-bolt"></i></div>
+        <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <main class="main-content">
+        <header style="display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h1 style="font-size:26px;font-weight:800;">Catálogo de Itens</h1>
+                <p style="color:var(--text-muted);font-size:14px;margin-top:3px;">Produtos, serviços e mão de obra disponíveis para orçamentos.</p>
+            </div>
+            <button class="btn btn-primary" onclick="openDrawer()">
+                <i class="fas fa-plus"></i> Novo Item
+            </button>
+        </header>
+
+        <!-- Toolbar: search + filters -->
+        <div class="toolbar">
+            <div class="search-wrap">
+                <i class="fas fa-search"></i>
+                <input type="text" id="search-input" placeholder="Buscar por descrição..." oninput="renderCatalogo()">
+            </div>
+            <div class="filter-pills" id="filter-pills">
+                <button class="pill active" data-cat="all" onclick="setFilter('all', this)">Todos</button>
+            </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Garantia Padrão</label>
-          <input id="item-garantia" type="text" placeholder="Ex: 12 Meses"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+
+        <!-- Content -->
+        <div id="catalogo-content">
+            <div class="empty-state">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Carregando catálogo...</p>
+            </div>
         </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input type="checkbox" id="item-ativo" checked class="w-4 h-4 text-[#0097b2] rounded">
-        <label for="item-ativo" class="text-sm text-gray-600">Item ativo (aparece nas sugestões ao criar orçamento)</label>
-      </div>
-    </div>
-    <div class="flex gap-3 mt-5">
-      <button onclick="fecharModal()" class="flex-1 border border-gray-300 text-gray-600 font-semibold py-2 rounded-xl hover:bg-gray-50">Cancelar</button>
-      <button onclick="salvarItem()" class="flex-1 bg-[#0097b2] text-white font-semibold py-2 rounded-xl hover:bg-[#007d96] transition">Salvar</button>
-    </div>
-  </div>
-</div>
+    </main>
 
-<!-- Modal Confirmar exclusão -->
-<div id="modal-excluir" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-  <div class="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm text-center">
-    <div class="text-4xl mb-3">🗑️</div>
-    <h3 class="text-lg font-bold text-gray-800 mb-2">Excluir item?</h3>
-    <p id="modal-excluir-desc" class="text-sm text-gray-500 mb-5"></p>
-    <div class="flex gap-3">
-      <button onclick="document.getElementById('modal-excluir').classList.add('hidden')" class="flex-1 border border-gray-300 text-gray-600 py-2 rounded-xl font-semibold hover:bg-gray-50">Cancelar</button>
-      <button id="btn-confirmar-excluir" class="flex-1 bg-red-500 text-white py-2 rounded-xl font-semibold hover:bg-red-600">Excluir</button>
-    </div>
-  </div>
-</div>
+    <!-- Drawer Overlay -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 
-<!-- Toast -->
-<div id="toast" class="hidden fixed top-5 right-5 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm">
-  ✅ <span id="toast-msg">Salvo!</span>
-</div>
-
-<main class="max-w-6xl mx-auto p-6">
-  <div class="flex items-center justify-between mb-6">
-    <div>
-      <h1 class="text-2xl font-bold text-gray-700">Catálogo de Itens</h1>
-      <p class="text-sm text-gray-400 mt-1">Gerencie os produtos, serviços e mão de obra que aparecem nos orçamentos.</p>
-    </div>
-    <div class="flex gap-3">
-      <input id="busca" type="text" placeholder="🔍 Buscar item..." oninput="filtrarExibicao()"
-        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2] w-48">
-      <button onclick="abrirModalNovo()"
-        class="bg-[#0097b2] text-white font-semibold px-5 py-2 rounded-xl hover:bg-[#007d96] transition shadow">
-        + Novo Item
-      </button>
-    </div>
-  </div>
-
-  <div id="vazio" class="hidden text-center py-16 text-gray-400">
-    <div class="text-5xl mb-4">📦</div>
-    <p class="text-lg font-medium">Catálogo vazio</p>
-    <p class="text-sm mt-1">Adicione seus serviços, produtos e mão de obra.</p>
-    <button onclick="abrirModalNovo()" class="mt-4 bg-[#0097b2] text-white px-6 py-2 rounded-xl font-semibold hover:bg-[#007d96] transition">
-      + Adicionar primeiro item
-    </button>
-  </div>
-
-  <div id="loading" class="text-gray-400 text-sm">Carregando catálogo...</div>
-  <div id="catalogo-container"></div>
-</main>
-
-<script>
-  let catalogoData = {}; // { categoria: [itens] }
-  let categoriasDisponiveis = [];
-
-  // ── Formatação ────────────────────────────────────────────────────────────
-  function moeda(val) {
-    return 'R$ ' + (val||0).toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-
-  // ── Carregar catálogo ─────────────────────────────────────────────────────
-  async function carregarCatalogo() {
-    try {
-      const resp = await fetch('/api/catalogo');
-      catalogoData = await resp.json();
-      document.getElementById('loading').classList.add('hidden');
-      atualizarSelectCategorias();
-      renderizarCatalogo();
-    } catch(e) {
-      document.getElementById('loading').textContent = 'Erro ao carregar catálogo.';
-    }
-  }
-
-  function atualizarSelectCategorias() {
-    categoriasDisponiveis = Object.keys(catalogoData).sort();
-    const sel = document.getElementById('item-categoria-sel');
-    const valorAtual = sel.value;
-    sel.innerHTML = '<option value="">-- Selecione ou crie nova --</option>';
-    categoriasDisponiveis.forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat;
-      opt.textContent = cat;
-      sel.appendChild(opt);
-    });
-    const optNova = document.createElement('option');
-    optNova.value = '__nova__';
-    optNova.textContent = '+ Nova categoria...';
-    sel.appendChild(optNova);
-    if (valorAtual && valorAtual !== '__nova__') sel.value = valorAtual;
-  }
-
-  function renderizarCatalogo() {
-    const container = document.getElementById('catalogo-container');
-    const busca = document.getElementById('busca').value.toLowerCase();
-    container.innerHTML = '';
-
-    const categorias = Object.keys(catalogoData).sort();
-    let totalItens = 0;
-
-    categorias.forEach(cat => {
-      let itens = catalogoData[cat];
-      if (busca) {
-        itens = itens.filter(i => i.descricao.toLowerCase().includes(busca) || i.categoria.toLowerCase().includes(busca));
-      }
-      if (itens.length === 0) return;
-      totalItens += itens.length;
-
-      const section = document.createElement('div');
-      section.className = 'mb-6';
-      section.innerHTML = `
-        <div class="flex items-center gap-3 mb-3">
-          <h2 class="text-base font-semibold text-gray-700 uppercase tracking-wide">${cat}</h2>
-          <span class="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">${itens.length} iten${itens.length !== 1 ? 's' : ''}</span>
+    <!-- Drawer Form -->
+    <div class="drawer" id="drawer">
+        <div class="drawer-header">
+            <h2 id="drawer-title">Novo Item</h2>
+            <button class="drawer-close" onclick="closeDrawer()"><i class="fas fa-times"></i></button>
         </div>
-        <div class="bg-white rounded-xl shadow overflow-hidden">
-          <table class="w-full text-sm">
-            <thead class="bg-[#e8f7fa] text-[#0097b2]">
-              <tr>
-                <th class="text-left px-4 py-3 font-semibold">Descrição</th>
-                <th class="text-right px-4 py-3 font-semibold w-32">Preço</th>
-                <th class="text-center px-4 py-3 font-semibold w-28">Garantia</th>
-                <th class="text-center px-4 py-3 font-semibold w-20">Status</th>
-                <th class="px-4 py-3 w-24"></th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itens.map((item, i) => `
-                <tr class="${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'} hover:bg-blue-50 transition">
-                  <td class="px-4 py-3 text-gray-800 font-medium">${item.descricao}</td>
-                  <td class="px-4 py-3 text-right font-semibold text-[#0097b2]">${moeda(item.preco)}</td>
-                  <td class="px-4 py-3 text-center text-gray-500">${item.garantia}</td>
-                  <td class="px-4 py-3 text-center">
-                    <span class="text-xs font-semibold px-2 py-0.5 rounded-full ${item.ativo ? 'badge-ativo' : 'badge-inativo'}">
-                      ${item.ativo ? 'Ativo' : 'Inativo'}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3">
-                    <div class="flex gap-1 justify-end">
-                      <button onclick="abrirModalEditar(${JSON.stringify(item).replace(/"/g,'&quot;')})"
-                        class="bg-gray-100 text-gray-600 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-gray-200 transition">Editar</button>
-                      <button onclick="confirmarExcluir(${item.id}, '${item.descricao.replace(/'/g,'\\\'')}')"
-                        class="bg-red-50 text-red-500 text-xs font-semibold px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition">✕</button>
+
+        <div class="drawer-body">
+            <input type="hidden" id="item-id">
+
+            <div>
+                <label class="dform-label">Descrição do Item *</label>
+                <input class="dform-input" type="text" id="item-descricao" placeholder="Ex: Câmera IP 4MP Varifocal Intelbras" required>
+            </div>
+
+            <div>
+                <label class="dform-label">Categoria * <span style="font-weight:400;text-transform:none;font-size:11px;opacity:0.6;">— escolha uma existente ou escreva uma nova</span></label>
+                <div class="cat-combo" id="cat-combo">
+                    <input class="cat-combo-input" type="text" id="item-categoria"
+                        placeholder="Ex: Equipamentos, Mão de Obra..."
+                        autocomplete="off"
+                        oninput="onCatInput()"
+                        onfocus="openCatSuggestions()"
+                        onblur="setTimeout(closeCatSuggestions, 150)">
+                    <div class="cat-suggestions" id="cat-suggestions"></div>
+                </div>
+                <div class="cat-quick" id="cat-quick-chips"></div>
+            </div>
+
+            <div class="dform-row">
+                <div>
+                    <label class="dform-label">Garantia</label>
+                    <input class="dform-input" type="text" id="item-garantia" placeholder="Ex: 12 meses">
+                </div>
+                <div>
+                    <label class="dform-label">Preço Unitário *</label>
+                    <div class="price-prefix">
+                        <span>R$</span>
+                        <input type="number" id="item-preco" step="0.01" min="0" placeholder="0,00" required>
                     </div>
-                  </td>
-                </tr>
-              `).join('')}
-            </tbody>
-          </table>
+                </div>
+            </div>
+
+            <!-- Preview chip -->
+            <div id="cat-preview" style="padding-top:4px;"></div>
         </div>
-      `;
-      container.appendChild(section);
-    });
 
-    document.getElementById('vazio').classList.toggle('hidden', totalItens > 0 || busca !== '');
-  }
+        <div class="drawer-footer">
+            <button type="button" class="btn-cancel" onclick="closeDrawer()">Cancelar</button>
+            <button type="button" class="btn-save" onclick="saveItem()">
+                <i class="fas fa-save" style="margin-right:6px;"></i> Salvar Item
+            </button>
+        </div>
+    </div>
 
-  function filtrarExibicao() { renderizarCatalogo(); }
+    <!-- Toasts -->
+    <div class="toast-container" id="toast-container"></div>
 
-  // ── Modal ─────────────────────────────────────────────────────────────────
-  function abrirModalNovo() {
-    document.getElementById('modal-titulo').textContent = 'Novo Item';
-    document.getElementById('item-id').value = '';
-    document.getElementById('item-categoria-sel').value = '';
-    document.getElementById('item-categoria-nova').value = '';
-    document.getElementById('item-categoria-nova').classList.add('hidden');
-    document.getElementById('item-descricao').value = '';
-    document.getElementById('item-preco').value = '';
-    document.getElementById('item-garantia').value = '12 Meses';
-    document.getElementById('item-ativo').checked = true;
-    document.getElementById('modal').classList.remove('hidden');
-    setTimeout(() => document.getElementById('item-descricao').focus(), 50);
-  }
+    <script src="/shared.js?v=1.2"></script>
+    <script>
+        // ── Config de categorias ──────────────────────────────────────────
+        const CAT_CFG = {
+            'equipamentos':   { icon: 'fa-server',        color: '#3a7bd5', bg: 'rgba(58,123,213,0.12)'  },
+            'mão de obra':    { icon: 'fa-hard-hat',      color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
+            'mao de obra':    { icon: 'fa-hard-hat',      color: '#f59e0b', bg: 'rgba(245,158,11,0.12)'  },
+            'serviços':       { icon: 'fa-tools',         color: '#10b981', bg: 'rgba(16,185,129,0.12)'  },
+            'servicos':       { icon: 'fa-tools',         color: '#10b981', bg: 'rgba(16,185,129,0.12)'  },
+            'infraestrutura': { icon: 'fa-network-wired', color: '#8b5cf6', bg: 'rgba(139,92,246,0.12)'  },
+            'software':       { icon: 'fa-code',          color: '#00d2ff', bg: 'rgba(0,210,255,0.12)'   },
+        };
 
-  function abrirModalEditar(item) {
-    document.getElementById('modal-titulo').textContent = 'Editar Item';
-    document.getElementById('item-id').value = item.id;
-    atualizarSelectCategorias();
-    document.getElementById('item-categoria-sel').value = item.categoria;
-    document.getElementById('item-categoria-nova').classList.add('hidden');
-    document.getElementById('item-descricao').value = item.descricao;
-    document.getElementById('item-preco').value = item.preco;
-    document.getElementById('item-garantia').value = item.garantia;
-    document.getElementById('item-ativo').checked = item.ativo;
-    document.getElementById('modal').classList.remove('hidden');
-  }
+        function getCat(name) {
+            return CAT_CFG[(name||'').toLowerCase()] ||
+                   { icon: 'fa-tag', color: '#94a3b8', bg: 'rgba(148,163,184,0.1)' };
+        }
 
-  function fecharModal() {
-    document.getElementById('modal').classList.add('hidden');
-  }
+        // ── State ─────────────────────────────────────────────────────────
+        let catalogoGroups = {};   // { Cat: [items] }
+        let activeFilter   = 'all';
 
-  function mudouCategoriaSelect() {
-    const val = document.getElementById('item-categoria-sel').value;
-    const novaInput = document.getElementById('item-categoria-nova');
-    if (val === '__nova__') {
-      novaInput.classList.remove('hidden');
-      novaInput.focus();
-    } else {
-      novaInput.classList.add('hidden');
-    }
-  }
+        // ── Toast ─────────────────────────────────────────────────────────
+        function showToast(msg, type = 'info') {
+            const c = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            t.textContent = msg;
+            c.appendChild(t);
+            setTimeout(() => { t.style.transition='opacity 0.3s'; t.style.opacity='0'; setTimeout(()=>t.remove(),300); }, 3000);
+        }
 
-  function obterCategoria() {
-    const sel = document.getElementById('item-categoria-sel').value;
-    if (sel === '__nova__') {
-      return document.getElementById('item-categoria-nova').value.trim();
-    }
-    return sel;
-  }
+        // ── Filters ───────────────────────────────────────────────────────
+        function setFilter(cat, el) {
+            activeFilter = cat;
+            document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+            el.classList.add('active');
+            renderCatalogo();
+        }
 
-  async function salvarItem() {
-    const id = document.getElementById('item-id').value;
-    const categoria = obterCategoria();
-    const descricao = document.getElementById('item-descricao').value.trim();
-    const preco = parseFloat(document.getElementById('item-preco').value) || 0;
-    const garantia = document.getElementById('item-garantia').value.trim() || '12 Meses';
-    const ativo = document.getElementById('item-ativo').checked;
+        function buildPills(groups) {
+            const wrap = document.getElementById('filter-pills');
+            const cats = Object.keys(groups);
+            // Remove old category pills, keep "Todos"
+            wrap.innerHTML = `<button class="pill ${activeFilter==='all'?'active':''}" data-cat="all" onclick="setFilter('all',this)">Todos</button>`;
+            cats.forEach(cat => {
+                const cfg = getCat(cat);
+                const active = activeFilter === cat ? 'active' : '';
+                wrap.innerHTML += `<button class="pill ${active}" data-cat="${cat}" onclick="setFilter('${cat.replace(/'/g,"\\'")}',this)">${cat}</button>`;
+            });
+        }
 
-    if (!categoria) { alert('Selecione ou crie uma categoria.'); return; }
-    if (!descricao) { alert('Preencha a descrição do item.'); return; }
-    if (preco < 0) { alert('O preço não pode ser negativo.'); return; }
+        // ── Render ────────────────────────────────────────────────────────
+        function renderCatalogo() {
+            const q = (document.getElementById('search-input').value || '').toLowerCase().trim();
+            const content = document.getElementById('catalogo-content');
 
-    const payload = { categoria, descricao, preco, garantia, ativo, ordem: 0 };
+            const groups = activeFilter === 'all' ? catalogoGroups
+                : Object.fromEntries(Object.entries(catalogoGroups).filter(([k]) => k === activeFilter));
 
-    try {
-      const url = id ? `/api/catalogo/${id}` : '/api/catalogo';
-      const method = id ? 'PUT' : 'POST';
-      const resp = await fetch(url, {
-        method,
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      fecharModal();
-      await carregarCatalogo();
-      mostrarToast(id ? 'Item atualizado!' : 'Item adicionado!');
-    } catch(e) {
-      alert('Erro ao salvar item: ' + e.message);
-    }
-  }
+            let totalVisible = 0;
+            let html = '';
 
-  // ── Excluir ───────────────────────────────────────────────────────────────
-  function confirmarExcluir(id, descricao) {
-    document.getElementById('modal-excluir-desc').textContent = `"${descricao}"`;
-    document.getElementById('btn-confirmar-excluir').onclick = () => excluirItem(id);
-    document.getElementById('modal-excluir').classList.remove('hidden');
-  }
+            for (const [cat, items] of Object.entries(groups)) {
+                const filtered = q ? items.filter(i => i.descricao.toLowerCase().includes(q)) : items;
+                if (!filtered.length) continue;
+                totalVisible += filtered.length;
 
-  async function excluirItem(id) {
-    try {
-      const resp = await fetch(`/api/catalogo/${id}`, { method: 'DELETE' });
-      if (!resp.ok) throw new Error();
-      document.getElementById('modal-excluir').classList.add('hidden');
-      await carregarCatalogo();
-      mostrarToast('Item excluído.');
-    } catch(e) {
-      alert('Erro ao excluir item.');
-    }
-  }
+                const cfg = getCat(cat);
+                html += `
+                <div class="cat-section">
+                    <div class="cat-header">
+                        <div class="cat-icon" style="background:${cfg.bg};color:${cfg.color};">
+                            <i class="fas ${cfg.icon}"></i>
+                        </div>
+                        <span class="cat-name">${cat}</span>
+                        <span class="cat-count">${filtered.length} ${filtered.length === 1 ? 'item' : 'itens'}</span>
+                    </div>
+                    <div class="items-grid">
+                        ${filtered.map(item => renderCard(item, cfg)).join('')}
+                    </div>
+                </div>`;
+            }
 
-  // ── Toast ─────────────────────────────────────────────────────────────────
-  function mostrarToast(msg) {
-    const toast = document.getElementById('toast');
-    document.getElementById('toast-msg').textContent = msg;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 2500);
-  }
+            if (!totalVisible) {
+                html = `<div class="empty-state">
+                    <i class="fas fa-box-open"></i>
+                    <p>${q ? 'Nenhum item encontrado para "<strong>' + q + '</strong>".' : 'Nenhum item cadastrado ainda.'}</p>
+                    ${!q ? '<button class="btn btn-primary" style="margin-top:20px;" onclick="openDrawer()"><i class="fas fa-plus"></i> Adicionar primeiro item</button>' : ''}
+                </div>`;
+            }
 
-  // ── Cor dinâmica da nav ───────────────────────────────────────────────────
-  async function aplicarCorDaConfig() {
-    try {
-      const cfg = await (await fetch('/api/config')).json();
-      const cor = cfg.cor_primaria || '#0097b2';
-      document.getElementById('nav').style.backgroundColor = cor;
-      document.getElementById('nav-link-orc').style.color = cor;
-      document.querySelector('style').textContent += `
-        .focus\\:ring-\\[\\#0097b2\\]:focus { --tw-ring-color: ${cor}; }
-        .text-\\[\\#0097b2\\] { color: ${cor}; }
-        .bg-\\[\\#0097b2\\] { background-color: ${cor}; }
-        thead.bg-\\[\\#e8f7fa\\] { background-color: ${cor}20; }
-      `;
-    } catch(e) {}
-  }
+            content.innerHTML = html;
+        }
 
-  // ── Init ──────────────────────────────────────────────────────────────────
-  carregarCatalogo();
-  aplicarCorDaConfig();
+        function renderCard(item, cfg) {
+            const preco = item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            const garantia = item.garantia || '-';
+            return `
+            <div class="item-card" style="--cat-color:${cfg.color};">
+                <div class="item-top">
+                    <span class="item-desc">${item.descricao}</span>
+                    <div class="item-actions">
+                        <button class="item-btn edit" title="Editar" onclick="editItem(${item.id})">
+                            <i class="fas fa-pencil-alt"></i>
+                        </button>
+                        <button class="item-btn del" title="Excluir" onclick="deleteItem(${item.id})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="item-bottom">
+                    <span class="item-garantia">
+                        <i class="fas fa-shield-alt" style="color:${cfg.color};opacity:.7;"></i>
+                        ${garantia}
+                    </span>
+                    <span class="item-preco">${preco}</span>
+                </div>
+            </div>`;
+        }
 
-  // Fechar modal com ESC
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') {
-      fecharModal();
-      document.getElementById('modal-excluir').classList.add('hidden');
-    }
-  });
-</script>
+        // ── Load ──────────────────────────────────────────────────────────
+        async function loadCatalogo() {
+            const res = await apiFetch('/api/catalogo');
+            if (!res) return;
+            catalogoGroups = await res.json();
+            buildPills(catalogoGroups);
+            renderCatalogo();
+        }
+
+        // ── Category combo ────────────────────────────────────────────────
+        // Categorias padrão sempre sugeridas (mesmo sem itens no banco)
+        const DEFAULT_CATS = ['Equipamentos', 'Mão de Obra', 'Serviços', 'Infraestrutura', 'Software'];
+
+        function getAllCats() {
+            const fromDB = Object.keys(catalogoGroups);
+            const merged = [...new Set([...DEFAULT_CATS, ...fromDB])];
+            return merged;
+        }
+
+        function renderCatSuggestions(filter = '') {
+            const box = document.getElementById('cat-suggestions');
+            const all = getAllCats();
+            const q   = filter.trim().toLowerCase();
+            const filtered = q ? all.filter(c => c.toLowerCase().includes(q)) : all;
+
+            let html = filtered.map(cat => {
+                const cfg = getCat(cat);
+                return `<div class="cat-sug-item" onmousedown="selectCat('${cat.replace(/'/g,"\\'")}')">
+                    <div class="sug-icon" style="background:${cfg.bg};color:${cfg.color};"><i class="fas ${cfg.icon}"></i></div>
+                    <span>${cat}</span>
+                </div>`;
+            }).join('');
+
+            // Opção de criar nova se não existir exatamente
+            const exactExists = all.some(c => c.toLowerCase() === q);
+            if (q && !exactExists) {
+                html += `<div class="cat-sug-item cat-sug-new" onmousedown="selectCat('${filter.trim().replace(/'/g,"\\'")}')">
+                    <div class="sug-icon" style="background:rgba(58,123,213,0.1);color:var(--primary);"><i class="fas fa-plus"></i></div>
+                    <span>Criar "<strong>${filter.trim()}</strong>"</span>
+                </div>`;
+            }
+
+            box.innerHTML = html || `<div class="cat-sug-item" style="opacity:.5;cursor:default;">Nenhuma categoria encontrada.</div>`;
+        }
+
+        function buildQuickChips() {
+            const all  = getAllCats();
+            const cur  = document.getElementById('item-categoria').value.trim();
+            const wrap = document.getElementById('cat-quick-chips');
+            wrap.innerHTML = all.map(cat => {
+                const sel = cat === cur ? 'selected' : '';
+                return `<button type="button" class="cat-quick-chip ${sel}" onmousedown="selectCat('${cat.replace(/'/g,"\\'")}')">
+                    ${cat}
+                </button>`;
+            }).join('');
+        }
+
+        function selectCat(cat) {
+            document.getElementById('item-categoria').value = cat;
+            closeCatSuggestions();
+            updateCatPreview();
+            buildQuickChips();
+        }
+
+        function onCatInput() {
+            const val = document.getElementById('item-categoria').value;
+            renderCatSuggestions(val);
+            document.getElementById('cat-suggestions').classList.add('open');
+            updateCatPreview();
+            buildQuickChips();
+        }
+
+        function openCatSuggestions() {
+            renderCatSuggestions(document.getElementById('item-categoria').value);
+            document.getElementById('cat-suggestions').classList.add('open');
+            buildQuickChips();
+        }
+
+        function closeCatSuggestions() {
+            document.getElementById('cat-suggestions').classList.remove('open');
+        }
+
+        function updateCatPreview() {
+            const cat = document.getElementById('item-categoria').value.trim() || 'Categoria';
+            const cfg = getCat(cat);
+            document.getElementById('cat-preview').innerHTML =
+                `<div class="cat-chip" style="background:${cfg.bg};color:${cfg.color};">
+                    <i class="fas ${cfg.icon}"></i> ${cat}
+                 </div>`;
+        }
+
+        // ── Drawer ────────────────────────────────────────────────────────
+        function openDrawer(editData = null) {
+            const drawer  = document.getElementById('drawer');
+            const overlay = document.getElementById('drawer-overlay');
+
+            if (editData) {
+                document.getElementById('drawer-title').textContent = 'Editar Item';
+                document.getElementById('item-id').value        = editData.id;
+                document.getElementById('item-descricao').value = editData.descricao;
+                document.getElementById('item-garantia').value  = editData.garantia || '';
+                document.getElementById('item-preco').value     = editData.preco;
+                document.getElementById('item-categoria').value = editData.categoria || '';
+            } else {
+                document.getElementById('drawer-title').textContent = 'Novo Item';
+                document.getElementById('item-id').value        = '';
+                document.getElementById('item-descricao').value = '';
+                document.getElementById('item-garantia').value  = '';
+                document.getElementById('item-preco').value     = '';
+                document.getElementById('item-categoria').value = '';
+            }
+
+            updateCatPreview();
+            buildQuickChips();
+            drawer.classList.add('active');
+            overlay.classList.add('active');
+            document.getElementById('item-descricao').focus();
+        }
+
+        function closeDrawer() {
+            document.getElementById('drawer').classList.remove('active');
+            document.getElementById('drawer-overlay').classList.remove('active');
+            closeCatSuggestions();
+        }
+
+        // ── Save ──────────────────────────────────────────────────────────
+        async function saveItem() {
+            const id       = document.getElementById('item-id').value;
+            const desc     = document.getElementById('item-descricao').value.trim();
+            const preco    = parseFloat(document.getElementById('item-preco').value);
+            const garantia = document.getElementById('item-garantia').value.trim();
+            const cat      = document.getElementById('item-categoria').value.trim();
+
+            if (!desc) { showToast('Informe a descrição do item.', 'error'); return; }
+            if (!cat || cat === '__custom__') { showToast('Informe o nome da categoria.', 'error'); return; }
+            if (isNaN(preco) || preco < 0) { showToast('Informe um preço válido.', 'error'); return; }
+
+            const payload = { descricao: desc, categoria: cat, garantia, preco, ativo: true, ordem: 0 };
+
+            const url    = id ? `/api/catalogo/${id}` : '/api/catalogo';
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await apiFetch(url, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (res && res.ok) {
+                showToast(id ? 'Item atualizado!' : 'Item adicionado ao catálogo!', 'success');
+                closeDrawer();
+                loadCatalogo();
+            } else {
+                showToast('Erro ao salvar item.', 'error');
+            }
+        }
+
+        // ── Edit ──────────────────────────────────────────────────────────
+        function editItem(id) {
+            for (const items of Object.values(catalogoGroups)) {
+                const found = items.find(i => i.id === id);
+                if (found) { openDrawer(found); return; }
+            }
+        }
+
+        // ── Delete ────────────────────────────────────────────────────────
+        async function deleteItem(id) {
+            // Find item name for feedback
+            let nome = 'este item';
+            for (const items of Object.values(catalogoGroups)) {
+                const found = items.find(i => i.id === id);
+                if (found) { nome = found.descricao; break; }
+            }
+
+            const res = await apiFetch(`/api/catalogo/${id}`, { method: 'DELETE' });
+            if (res && res.ok) {
+                showToast(`"${nome}" removido.`, 'info');
+                loadCatalogo();
+            } else {
+                showToast('Erro ao remover item.', 'error');
+            }
+        }
+
+        // ── Keyboard: Esc closes drawer ───────────────────────────────────
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeDrawer();
+            if (e.key === 'Enter' && document.getElementById('drawer').classList.contains('active')
+                && e.target.tagName !== 'SELECT') {
+                e.preventDefault();
+                saveItem();
+            }
+        });
+
+        loadCatalogo();
+    </script>
 </body>
 </html>

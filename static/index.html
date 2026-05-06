@@ -1,677 +1,453 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novo Orçamento</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard — SaaS Budgets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/shared.css">
+    <style>
+        /* ── KPI Cards ───────────────────────────────────────────────── */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        @media (max-width: 1200px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px)  { .kpi-grid { grid-template-columns: 1fr; } }
+
+        .kpi-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 22px;
+            backdrop-filter: blur(12px);
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            position: relative;
+            overflow: hidden;
+            animation: fadeUp 0.5s ease both;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--kpi-accent, var(--primary));
+            border-radius: 20px 20px 0 0;
+        }
+        .kpi-card:nth-child(1) { --kpi-accent: #3a7bd5; animation-delay: 0.05s; }
+        .kpi-card:nth-child(2) { --kpi-accent: #10b981; animation-delay: 0.10s; }
+        .kpi-card:nth-child(3) { --kpi-accent: #8b5cf6; animation-delay: 0.15s; }
+        .kpi-card:nth-child(4) { --kpi-accent: #f59e0b; animation-delay: 0.20s; }
+
+        .kpi-icon {
+            width: 54px; height: 54px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+            background: color-mix(in srgb, var(--kpi-accent) 15%, transparent);
+            color: var(--kpi-accent);
+        }
+        .kpi-info { flex: 1; min-width: 0; }
+        .kpi-label { display: block; font-size: 12px; color: var(--text-muted); font-weight: 500; margin-bottom: 4px; }
+        .kpi-value { display: block; font-size: 28px; font-weight: 800; line-height: 1; color: var(--text-main); }
+        .kpi-sub   { display: block; font-size: 12px; margin-top: 6px; color: var(--text-muted); }
+        .kpi-sub.up   { color: #10b981; }
+        .kpi-sub.down { color: #ef4444; }
+
+        /* ── Main Grid ───────────────────────────────────────────────── */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 20px;
+        }
+        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
+
+        /* ── Status donut ────────────────────────────────────────────── */
+        .donut-wrap {
+            position: relative;
+            width: 180px; height: 180px;
+            margin: 0 auto 24px;
+        }
+        .donut-center {
+            position: absolute;
+            inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            pointer-events: none;
+        }
+        .donut-total   { font-size: 28px; font-weight: 800; line-height: 1; }
+        .donut-caption { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .status-legend { display: flex; flex-direction: column; gap: 10px; }
+        .legend-item {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 10px;
+        }
+        .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .legend-label { font-size: 13px; flex: 1; }
+        .legend-count { font-weight: 700; font-size: 13px; }
+        .legend-bar-wrap { flex: 1; height: 5px; border-radius: 99px; background: var(--glass-border); overflow: hidden; }
+        .legend-bar { height: 100%; border-radius: 99px; transition: width 0.8s ease; }
+
+        /* ── Conversion bar ──────────────────────────────────────────── */
+        .conv-bar-wrap {
+            height: 10px; border-radius: 99px;
+            background: var(--glass-border); overflow: hidden; margin-top: 8px;
+        }
+        .conv-bar {
+            height: 100%; border-radius: 99px;
+            background: linear-gradient(90deg, #10b981, #00d2ff);
+            transition: width 1s ease;
+        }
+
+        /* ── Activity feed ───────────────────────────────────────────── */
+        .activity-list { display: flex; flex-direction: column; gap: 10px; }
+        .activity-item {
+            display: flex; align-items: center; gap: 14px;
+            padding: 12px 14px; border-radius: 14px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            transition: background 0.2s;
+            text-decoration: none; color: inherit;
+        }
+        .activity-item:hover { background: rgba(58,123,213,0.06); }
+        .activity-avatar {
+            width: 40px; height: 40px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 800; font-size: 14px; flex-shrink: 0;
+            background: rgba(58,123,213,0.12); color: var(--primary);
+        }
+        .activity-info { flex: 1; min-width: 0; }
+        .activity-name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .activity-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+        .activity-right { text-align: right; flex-shrink: 0; }
+        .activity-val { font-weight: 700; font-size: 13px; }
+        .activity-date { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+        .badge {
+            display: inline-block; font-size: 10px; padding: 3px 9px;
+            border-radius: 6px; font-weight: 700; text-transform: uppercase; white-space: nowrap;
+        }
+
+        /* ── Animations ──────────────────────────────────────────────── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .glass-panel { animation: fadeUp 0.5s ease both; }
+        .glass-panel:nth-child(1) { animation-delay: 0.25s; }
+        .glass-panel:nth-child(2) { animation-delay: 0.35s; }
+        
+        /* ── Responsive ─────────────────────────────────────── */
+        @media (max-width: 1024px) {
+            .main-grid { grid-template-columns: 1fr; }
+        }
+        
+        @media (max-width: 768px) {
+            header { flex-direction: column; align-items: flex-start !important; gap: 15px !important; }
+            h1 { font-size: 20px; }
+            #greeting { font-size: 22px; }
+            .btn-primary { width: 100%; justify-content: center; }
+            .glass-panel { padding: 15px; }
+            .donut-wrap { width: 140px; height: 140px; }
+            .activity-item { padding: 10px 12px; }
+            .activity-avatar { width: 34px; height: 34px; font-size: 12px; }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; }
+            .kpi-card { padding: 14px; }
+            .kpi-icon { width: 42px; height: 42px; font-size: 18px; }
+            .kpi-value { font-size: 22px; }
+            .kpi-label, .kpi-sub { font-size: 11px; }
+            .donut-wrap { width: 120px; height: 120px; }
+            .donut-total { font-size: 22px; }
+            .status-legend { gap: 6px; }
+            .legend-item { flex-wrap: wrap; }
+            .conv-bar-wrap { margin-top: 12px; }
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="dark-mode">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
 
-<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow" id="nav">
-  <span class="font-bold text-lg tracking-wide" id="nav-empresa">Gerador de Orçamentos</span>
-  <div class="flex gap-3 text-sm">
-    <a href="/catalogo.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📦 Catálogo</a>
-    <a href="/configuracoes.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">⚙️ Config</a>
-    <a href="/historico.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">Ver Histórico →</a>
-  </div>
-</nav>
-
-<!-- Modal sucesso -->
-<div id="modal-sucesso" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
-  <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full mx-4">
-    <div class="text-center mb-4">
-      <div class="text-4xl mb-2">✅</div>
-      <h2 class="text-xl font-bold text-gray-800">Orçamento gerado!</h2>
-      <p id="modal-numero" class="text-[#0097b2] font-mono font-bold text-lg mt-1"></p>
-      <p id="modal-cliente" class="text-gray-600 text-sm mt-1"></p>
-      <p id="modal-total" class="text-gray-800 font-bold text-lg mt-2"></p>
-    </div>
-    <div class="flex flex-col gap-3 mt-4">
-      <a id="btn-baixar-pdf" href="#" target="_blank"
-        class="block text-center bg-[#0097b2] text-white font-semibold py-2.5 rounded-lg hover:bg-[#007d96] transition">
-        Baixar PDF
-      </a>
-      <a id="btn-whatsapp" href="#" target="_blank"
-        class="block text-center bg-[#25D366] text-white font-semibold py-2.5 rounded-lg hover:bg-[#1ebe5c] transition">
-        Enviar pelo WhatsApp
-      </a>
-      <button onclick="novoOrcamento()"
-        class="text-gray-500 hover:text-gray-700 text-sm underline">
-        Criar novo orçamento
-      </button>
-    </div>
-  </div>
-</div>
-
-<main class="max-w-6xl mx-auto p-6">
-  <h1 class="text-2xl font-bold text-gray-700 mb-6" id="titulo-pagina">Novo Orçamento</h1>
-
-  <!-- Dados do Cliente -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <h2 class="text-base font-semibold text-[#0097b2] uppercase">Dados do Cliente</h2>
-      <select id="autocomplete-cliente" onchange="preencherCliente()"
-        class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-        <option value="">Selecionar cliente anterior...</option>
-      </select>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Nome da Empresa <span class="text-red-500">*</span></label>
-        <input id="cliente_nome" type="text" placeholder="Ex: Hospital Ipiranga"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">A/C (Contato) <span class="text-red-500">*</span></label>
-        <input id="cliente_contato" type="text" placeholder="Ex: Sr. Eduardo Nobuo"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">CNPJ / CPF</label>
-        <div class="flex gap-2">
-          <input id="cliente_cnpj" type="text" placeholder="Ex: 43.260.654/0001-67"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]"
-            onkeydown="if(event.key==='Enter'){event.preventDefault();buscarCNPJ();}">
-          <button type="button" onclick="buscarCNPJ()"
-            class="bg-[#0097b2] text-white text-xs font-semibold px-3 py-2 rounded-lg hover:bg-[#007d96] whitespace-nowrap">
-            Buscar
-          </button>
+    <div class="sidebar" id="sidebar">
+        <div class="logo"><i class="fas fa-bolt"></i> <span>SaaS Budgets</span></div>
+        <a href="/" class="nav-link active"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="/novo_orcamento.html" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Orçamento</a>
+        <a href="/historico.html" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+        <a href="/clientes.html" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
+        <a href="/catalogo.html" class="nav-link"><i class="fas fa-box-open"></i> Catálogo</a>
+        <div style="margin-top: auto;">
+            <button class="nav-link" onclick="toggleTheme()" style="width: 100%; border: none; background: transparent; cursor: pointer;">
+                <i class="fas fa-adjust" id="theme-icon"></i> <span id="theme-text">Modo Claro</span>
+            </button>
+            <a href="javascript:void(0)" class="nav-link" onclick="logout()" style="color: #ef4444;">
+                <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
+            </a>
+            <a href="/configuracoes.html" class="nav-link"><i class="fas fa-cog"></i> Configurações</a>
         </div>
-        <p id="cnpj-status" class="text-xs mt-1 hidden"></p>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Telefone / WhatsApp</label>
-        <input id="cliente_telefone" type="text" placeholder="Ex: (11) 98765-4321"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Endereço <span class="text-red-500">*</span></label>
-        <input id="cliente_endereco" type="text" placeholder="Ex: R. da Bica, 120 – São Bernardo do Campo - SP"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-600 mb-1">E-mail</label>
-        <input id="cliente_email" type="email" placeholder="Ex: contato@empresa.com.br"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
     </div>
-  </section>
 
-  <!-- Dados da Proposta -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">Dados da Proposta</h2>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Descrição / Referência</label>
-        <input id="descricao_intro" type="text" placeholder="Ex: instalação de câmeras IP e cabeamento Cat6"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Condição de Pagamento (Opção 2)</label>
-        <input id="condicao_pagto" type="text" value="até 28 dias"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Validade (dias)</label>
-        <input id="validade_dias" type="number" value="7" min="1" max="60"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Desconto Geral (%)</label>
-        <input id="desconto_percent" type="number" value="0" min="0" max="100" step="0.5"
-          oninput="recalcularComDesconto()"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
+    <div class="mobile-header">
+        <div class="logo" style="margin:0"><i class="fas fa-bolt"></i></div>
+        <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     </div>
-  </section>
 
-  <!-- Itens -->
-  <section class="mb-6">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-base font-semibold text-[#0097b2] uppercase">Itens do Orçamento</h2>
-      <button onclick="adicionarCategoria()"
-        class="bg-[#0097b2] text-white text-sm px-4 py-2 rounded-lg hover:bg-[#007d96] transition">
-        + Adicionar Categoria
-      </button>
-    </div>
-    <div id="categorias-container"></div>
-  </section>
+    <main class="main-content">
 
-  <!-- Total -->
-  <div id="total-geral" class="hidden mb-6">
-    <div class="bg-white rounded-xl shadow p-4 text-right">
-      <div id="linha-subtotal" class="text-sm text-gray-500 hidden">Subtotal: <span id="subtotal-valor"></span></div>
-      <div id="linha-desconto" class="text-sm text-red-500 font-semibold hidden">Desconto (<span id="desconto-pct"></span>%): - <span id="desconto-valor"></span></div>
-      <div class="font-bold text-[#0097b2] text-lg mt-1">VALOR TOTAL: <span id="total-valor"></span></div>
-    </div>
-  </div>
+        <!-- Header -->
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px; flex-wrap:wrap; gap:12px;">
+            <div>
+                <h1 style="font-size:26px; font-weight:800;" id="greeting">Olá 👋</h1>
+                <p style="color:var(--text-muted); font-size:14px; margin-top:3px;" id="current-date"></p>
+            </div>
+            <a href="/novo_orcamento.html" class="btn btn-primary"><i class="fas fa-plus"></i> Novo Orçamento</a>
+        </header>
 
-  <!-- Observações -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-3">
-      <h2 class="text-base font-semibold text-[#0097b2] uppercase">Observações</h2>
-      <button onclick="adicionarObs()"
-        class="text-sm text-[#0097b2] hover:underline">+ Adicionar</button>
-    </div>
-    <p class="text-xs text-gray-400 mb-3">A validade da proposta é adicionada automaticamente. Edite as demais conforme necessário.</p>
-    <div id="obs-container" class="space-y-2"></div>
-  </section>
+        <!-- KPIs -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Orçamentos no Mês</span>
+                    <span class="kpi-value" id="kpi-total">—</span>
+                    <span class="kpi-sub" id="kpi-total-sub"></span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Aprovados no Mês</span>
+                    <span class="kpi-value" id="kpi-aprovados">—</span>
+                    <span class="kpi-sub up" id="kpi-conversao-label"></span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Receita Aprovada</span>
+                    <span class="kpi-value" id="kpi-aprovado-val">—</span>
+                    <span class="kpi-sub" id="kpi-total-val-sub"></span>
+                </div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="kpi-info">
+                    <span class="kpi-label">Taxa de Conversão</span>
+                    <span class="kpi-value" id="kpi-taxa">—</span>
+                    <div class="conv-bar-wrap" style="margin-top:8px;">
+                        <div class="conv-bar" id="conv-bar" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-  <div class="flex justify-end">
-    <button onclick="salvarEGerarPDF()" id="btn-gerar"
-      class="bg-green-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-700 transition shadow">
-      Salvar e Gerar PDF
-    </button>
-  </div>
-</main>
+        <!-- Main Grid -->
+        <div class="main-grid">
 
-<script>
-  const CAT_DISPLAY = {}; // preenchido via API
-  let catalogoAPI = {};   // { categoria: [{descricao, preco, garantia}] }
-  let configEmpresa = {};
-  let categoriaCount = 0;
-  let clientesDB = [];
+            <!-- Status breakdown -->
+            <div class="glass-panel">
+                <h2 style="font-size:16px; font-weight:700; margin-bottom:22px;">
+                    <i class="fas fa-chart-donut" style="color:var(--primary); margin-right:8px;"></i>
+                    Distribuição por Status
+                </h2>
 
-  // ── Carregar config + catálogo da API ──────────────────────────────────────
-  async function carregarConfigECatalogo() {
-    try {
-      const [cfgResp, catResp] = await Promise.all([
-        fetch('/api/config'),
-        fetch('/api/catalogo'),
-      ]);
-      configEmpresa = await cfgResp.json();
-      catalogoAPI = await catResp.json();
+                <div class="donut-wrap">
+                    <canvas id="donutChart"></canvas>
+                    <div class="donut-center">
+                        <span class="donut-total" id="donut-total">0</span>
+                        <span class="donut-caption">total</span>
+                    </div>
+                </div>
 
-      const nome = configEmpresa.empresa_nome || 'Gerador de Orçamentos';
-      document.getElementById('nav-empresa').textContent = nome;
-      if (configEmpresa.cor_primaria) {
-        document.getElementById('nav').style.backgroundColor = configEmpresa.cor_primaria;
-      }
-    } catch(e) { console.warn('Erro ao carregar config/catálogo:', e); }
-  }
+                <div class="status-legend" id="status-legend"></div>
 
-  // ── Clientes anteriores ──────────────────────────────────────────────────
-  async function carregarClientes() {
-    try {
-      clientesDB = await (await fetch('/clientes')).json();
-      const sel = document.getElementById('autocomplete-cliente');
-      clientesDB.forEach((c, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = c.nome;
-        sel.appendChild(opt);
-      });
-    } catch(e) {}
-  }
+                <div style="margin-top:24px; padding-top:18px; border-top:1px solid var(--glass-border);">
+                    <div style="display:flex; justify-content:space-between; font-size:13px; color:var(--text-muted); margin-bottom:6px;">
+                        <span><i class="fas fa-percent" style="margin-right:5px;"></i>Conversão do Mês</span>
+                        <span id="conv-pct-label" style="font-weight:700; color:var(--text-main);"></span>
+                    </div>
+                    <div class="conv-bar-wrap" style="height:8px;">
+                        <div class="conv-bar" id="conv-bar-2" style="width:0%"></div>
+                    </div>
+                </div>
+            </div>
 
-  function preencherCliente() {
-    const idx = document.getElementById('autocomplete-cliente').value;
-    if (idx === '') return;
-    const c = clientesDB[parseInt(idx)];
-    if (!c) return;
-    document.getElementById('cliente_nome').value = c.nome || '';
-    document.getElementById('cliente_contato').value = c.contato || '';
-    document.getElementById('cliente_endereco').value = c.endereco || '';
-    document.getElementById('cliente_cnpj').value = c.cnpj || '';
-    document.getElementById('cliente_email').value = c.email || '';
-    document.getElementById('cliente_telefone').value = c.telefone || '';
-  }
+            <!-- Atividade Recente -->
+            <div class="glass-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:8px;">
+                    <h2 style="font-size:16px; font-weight:700;">
+                        <i class="fas fa-clock" style="color:var(--primary); margin-right:8px;"></i>
+                        Atividade Recente
+                    </h2>
+                    <a href="/historico.html" style="font-size:12px; color:var(--primary); text-decoration:none; font-weight:600;">
+                        Ver todos <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="activity-list" id="activity-list">
+                    <div style="text-align:center; padding:40px; color:var(--text-muted);">
+                        <i class="fas fa-spinner fa-spin" style="font-size:24px;"></i>
+                    </div>
+                </div>
+            </div>
 
-  // ── Busca de CNPJ ────────────────────────────────────────────────────────
-  async function buscarCNPJ() {
-    const cnpj = document.getElementById('cliente_cnpj').value.replace(/\D/g, '');
-    const status = document.getElementById('cnpj-status');
-    if (cnpj.length !== 14) {
-      status.textContent = 'CNPJ deve ter 14 dígitos.';
-      status.className = 'text-xs mt-1 text-red-500';
-      status.classList.remove('hidden');
-      return;
-    }
-    status.textContent = 'Buscando...';
-    status.className = 'text-xs mt-1 text-gray-400';
-    status.classList.remove('hidden');
-    try {
-      const res = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpj}`);
-      if (!res.ok) throw new Error();
-      const d = await res.json();
-      document.getElementById('cliente_nome').value = d.razao_social || '';
-      const end = [d.logradouro, d.numero, d.bairro, d.municipio, d.uf]
-        .filter(Boolean).join(', ');
-      if (end) document.getElementById('cliente_endereco').value = end;
-      if (d.email) document.getElementById('cliente_email').value = d.email;
-      if (d.ddd_telefone_1)
-        document.getElementById('cliente_telefone').value = d.ddd_telefone_1.trim();
-      status.textContent = '✓ Dados preenchidos automaticamente.';
-      status.className = 'text-xs mt-1 text-green-600';
-    } catch(e) {
-      console.error('Erro ao buscar CNPJ:', e);
-      status.textContent = 'CNPJ não encontrado ou serviço indisponível.';
-      status.className = 'text-xs mt-1 text-red-500';
-    }
-  }
+        </div>
+    </main>
 
-  // ── Pré-preenchimento (duplicar) ─────────────────────────────────────────
-  async function carregarOrcamento(id) {
-    try {
-      const orc = await (await fetch(`/orcamentos/${id}`)).json();
-      document.getElementById('titulo-pagina').textContent = 'Duplicar Orçamento';
-      document.getElementById('cliente_nome').value = orc.cliente_nome || '';
-      document.getElementById('cliente_contato').value = orc.cliente_contato || '';
-      document.getElementById('cliente_endereco').value = orc.cliente_endereco || '';
-      document.getElementById('cliente_cnpj').value = orc.cliente_cnpj || '';
-      document.getElementById('cliente_email').value = orc.cliente_email || '';
-      document.getElementById('cliente_telefone').value = orc.cliente_telefone || '';
-      document.getElementById('condicao_pagto').value = orc.condicao_pagto || 'até 28 dias';
-      document.getElementById('descricao_intro').value = orc.descricao_intro || '';
-      document.getElementById('validade_dias').value = orc.validade_dias || 7;
-      document.getElementById('desconto_percent').value = orc.desconto_percent || 0;
+    <script src="/shared.js?v=1.2"></script>
+    <script>
+        // ── Helpers ──────────────────────────────────────────────────────────
+        const STATUS_COLORS = {
+            'Aprovado':    { bg: 'rgba(16,185,129,0.15)',  color: '#10b981',  dot: '#10b981',  chart: '#10b981' },
+            'Aguardando':  { bg: 'rgba(245,158,11,0.15)',  color: '#f59e0b',  dot: '#f59e0b',  chart: '#f59e0b' },
+            'Recusado':    { bg: 'rgba(239,68,68,0.15)',   color: '#ef4444',  dot: '#ef4444',  chart: '#ef4444' },
+            'Visualizado': { bg: 'rgba(0,210,255,0.15)',   color: '#00d2ff',  dot: '#00d2ff',  chart: '#00d2ff' },
+        };
 
-      // Limpar categorias padrão
-      document.getElementById('categorias-container').innerHTML = '';
-      categoriaCount = 0;
+        function badge(status) {
+            const s = STATUS_COLORS[status] || { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8' };
+            return `<span class="badge" style="background:${s.bg};color:${s.color};">${status}</span>`;
+        }
 
-      for (const cat of (orc.categorias || [])) {
-        adicionarCategoriaPersonalizada(
-          CAT_DISPLAY[cat.titulo] || cat.titulo,
-          cat.itens || []
-        );
-      }
+        function moeda(v) {
+            return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
 
-      // Observações
-      if (orc.observacoes_custom) {
-        document.getElementById('obs-container').innerHTML = '';
-        orc.observacoes_custom.forEach(txt => adicionarObs(txt));
-      }
+        function initials(nome) {
+            return (nome || '?').split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+        }
 
-      recalcularTotal();
-    } catch(e) { console.error(e); }
-  }
+        function avatarColor(nome) {
+            const colors = ['#3a7bd5','#10b981','#8b5cf6','#f59e0b','#ef4444','#00d2ff','#ec4899'];
+            let h = 0;
+            for (const c of nome) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+            return colors[h % colors.length];
+        }
 
-  // ── Observações ──────────────────────────────────────────────────────────────
-  // OBS_DEFAULT é carregado via API (configEmpresa.obs_padrao)
+        // ── Date / Greeting ──────────────────────────────────────────────────
+        (function () {
+            const h = new Date().getHours();
+            const g = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
+            document.getElementById('greeting').textContent = `${g} 👋`;
+            document.getElementById('current-date').textContent =
+                new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+        })();
 
-  function adicionarObs(texto = '') {
-    const container = document.getElementById('obs-container');
-    const id = Date.now();
-    const div = document.createElement('div');
-    div.id = `obs-${id}`;
-    div.className = 'flex gap-2 items-center';
-    div.innerHTML = `
-      <span class="text-[#0097b2] font-bold">•</span>
-      <input type="text" value="${texto.replace(/"/g, '&quot;')}" placeholder="Observação..."
-        class="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]"
-        id="obs-txt-${id}">
-      <button onclick="document.getElementById('obs-${id}').remove()"
-        class="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
-    `;
-    container.appendChild(div);
-  }
+        // ── Donut Chart ──────────────────────────────────────────────────────
+        let donutChart = null;
 
-  function coletarObs() {
-    return Array.from(document.querySelectorAll('[id^="obs-txt-"]'))
-      .map(el => el.value.trim()).filter(Boolean);
-  }
+        function buildDonut(porStatus) {
+            const labels = Object.keys(porStatus);
+            const values = Object.values(porStatus);
+            const colors = labels.map(l => (STATUS_COLORS[l] || { chart: '#94a3b8' }).chart);
+            const total  = values.reduce((a, b) => a + b, 0);
 
-  // ── Categorias ───────────────────────────────────────────────────────────
-  function adicionarCategoria() {
-    const id = categoriaCount++;
-    const container = document.getElementById('categorias-container');
-    const div = document.createElement('div');
-    div.className = 'bg-white rounded-xl shadow p-5 mb-4';
-    div.id = `cat-${id}`;
-    div.innerHTML = `
-      <div class="flex items-center gap-3 mb-4 flex-wrap">
-        <select id="cat-tipo-${id}" onchange="mudouTipoCategoria(${id})"
-          class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-          <option value="">-- Selecione a Categoria --</option>
-          ${Object.keys(catalogoAPI).sort().map(cat =>
-            `<option value="${cat}">${cat}</option>`
-          ).join('')}
-          <option value="PERSONALIZADO">PERSONALIZADO</option>
-        </select>
-        <input type="text" placeholder="Nome da Categoria"
-          class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-[#0097b2] hidden"
-          id="cat-titulo-personalizado-${id}">
-        <button onclick="document.getElementById('cat-${id}').remove(); recalcularTotal()"
-          class="text-red-400 hover:text-red-600 text-sm ml-auto">Remover Categoria</button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
-          <thead>
-            <tr class="bg-[#e8f7fa] text-[#0097b2]">
-              <th class="border border-gray-200 px-2 py-2 text-center w-8">#</th>
-              <th class="border border-gray-200 px-2 py-2 text-left">Item</th>
-              <th class="border border-gray-200 px-2 py-2 text-left w-24">Garantia</th>
-              <th class="border border-gray-200 px-2 py-2 text-center w-14">Qtd</th>
-              <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Unit.</th>
-              <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Total</th>
-              <th class="border border-gray-200 px-2 py-2 w-8"></th>
-            </tr>
-          </thead>
-          <tbody id="itens-${id}"></tbody>
-        </table>
-      </div>
-      <button onclick="adicionarItem(${id})" class="mt-3 text-sm text-[#0097b2] hover:underline">+ Adicionar Item</button>
-    `;
-    container.appendChild(div);
-  }
+            document.getElementById('donut-total').textContent = total;
 
-  function adicionarCategoriaPersonalizada(titulo, itens) {
-    const id = categoriaCount++;
-    const container = document.getElementById('categorias-container');
-    const div = document.createElement('div');
-    div.className = 'bg-white rounded-xl shadow p-5 mb-4';
-    div.id = `cat-${id}`;
-    div.innerHTML = `
-      <div class="flex items-center gap-3 mb-4 flex-wrap">
-        <select id="cat-tipo-${id}" onchange="mudouTipoCategoria(${id})"
-          class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0097b2] w-48">
-          <option value="PERSONALIZADO" selected>PERSONALIZADO</option>
-        </select>
-        <input type="text" value="${titulo.replace(/"/g,'&quot;')}" placeholder="Nome da Categoria"
-          class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-[#0097b2]"
-          id="cat-titulo-personalizado-${id}">
-        <button onclick="document.getElementById('cat-${id}').remove(); recalcularTotal()"
-          class="text-red-400 hover:text-red-600 text-sm ml-auto">Remover Categoria</button>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm border-collapse">
-          <thead>
-            <tr class="bg-[#e8f7fa] text-[#0097b2]">
-              <th class="border border-gray-200 px-2 py-2 text-center w-8">#</th>
-              <th class="border border-gray-200 px-2 py-2 text-left">Item</th>
-              <th class="border border-gray-200 px-2 py-2 text-left w-24">Garantia</th>
-              <th class="border border-gray-200 px-2 py-2 text-center w-14">Qtd</th>
-              <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Unit.</th>
-              <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Total</th>
-              <th class="border border-gray-200 px-2 py-2 w-8"></th>
-            </tr>
-          </thead>
-          <tbody id="itens-${id}"></tbody>
-        </table>
-      </div>
-      <button onclick="adicionarItem(${id})" class="mt-3 text-sm text-[#0097b2] hover:underline">+ Adicionar Item</button>
-    `;
-    container.appendChild(div);
-    itens.forEach(item => adicionarItemComValores(id, item.descricao, item.garantia, item.quantidade, item.valor_unitario));
-  }
+            const isDark = document.body.classList.contains('dark-mode');
+            const ctx = document.getElementById('donutChart').getContext('2d');
 
-  function mudouTipoCategoria(catId) {
-    const select = document.getElementById(`cat-tipo-${catId}`);
-    const inputP = document.getElementById(`cat-titulo-personalizado-${catId}`);
-    if (select.value === 'PERSONALIZADO') {
-      inputP.classList.remove('hidden');
-      select.classList.add('w-48'); select.classList.remove('flex-1');
-    } else {
-      inputP.classList.add('hidden');
-      select.classList.remove('w-48'); select.classList.add('flex-1');
-    }
-    document.getElementById(`itens-${catId}`).innerHTML = '';
-  }
+            if (donutChart) donutChart.destroy();
+            donutChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }] },
+                options: {
+                    cutout: '72%',
+                    plugins: { legend: { display: false }, tooltip: {
+                        callbacks: {
+                            label: ctx => ` ${ctx.label}: ${ctx.parsed} (${total ? Math.round(ctx.parsed/total*100) : 0}%)`
+                        }
+                    }},
+                    animation: { animateRotate: true, duration: 800 },
+                }
+            });
 
-  function adicionarItem(catId) {
-    const tipo = document.getElementById(`cat-tipo-${catId}`)?.value;
-    if (!tipo) { alert('Selecione primeiro a categoria!'); return; }
-    const lista = tipo === 'PERSONALIZADO' ? [] : (catalogoAPI[tipo] || []);
-    const options = lista.map((item,i) =>
-      `<option value="${i}" data-preco="${item.preco}" data-desc="${item.descricao}" data-gar="${item.garantia||'12 Meses'}">${item.descricao}</option>`
-    ).join('');
-    const rowId = Date.now() + Math.random();
-    const tr = document.createElement('tr');
-    tr.id = `item-${rowId}`;
-    tr.innerHTML = `
-      <td class="border border-gray-200 px-1 py-1 text-center text-gray-400 text-xs" id="num-${rowId}">1</td>
-      <td class="border border-gray-200 px-1 py-1">
-        ${tipo==='PERSONALIZADO'
-          ? `<input type="text" placeholder="Descrição do item" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="desc-${rowId}">`
-          : `<select class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="desc-${rowId}" onchange="mudouItem(${rowId},${catId})">
-              <option value="">-- Selecione --</option>${options}</select>`}
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="text" value="12 Meses" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="gar-${rowId}">
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="number" value="1" min="1" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-center" id="qtd-${rowId}" oninput="calcularLinha(${rowId})">
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="number" value="0" step="0.01" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-right" id="vun-${rowId}" oninput="calcularLinha(${rowId})">
-      </td>
-      <td class="border border-gray-200 px-1 py-1 text-right font-semibold text-sm pr-2 text-[#0097b2]" id="vtot-${rowId}">R$ 0,00</td>
-      <td class="border border-gray-200 px-1 py-1 text-center">
-        <button onclick="removerItem(${rowId},${catId})" class="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
-      </td>`;
-    document.getElementById(`itens-${catId}`).appendChild(tr);
-    renumerar(catId);
-  }
+            // Legend
+            const legend = document.getElementById('status-legend');
+            legend.innerHTML = labels.map((l, i) => {
+                const pct = total ? Math.round(values[i] / total * 100) : 0;
+                const c = (STATUS_COLORS[l] || { dot: '#94a3b8', color: '#94a3b8' });
+                return `
+                <div class="legend-item">
+                    <span class="legend-dot" style="background:${c.dot};"></span>
+                    <span class="legend-label">${l}</span>
+                    <div class="legend-bar-wrap">
+                        <div class="legend-bar" style="width:${pct}%; background:${c.dot};"></div>
+                    </div>
+                    <span class="legend-count" style="color:${c.color};">${values[i]}</span>
+                </div>`;
+            }).join('');
+        }
 
-  function adicionarItemComValores(catId, descricao, garantia, quantidade, valorUnitario) {
-    const rowId = Date.now() + Math.random();
-    const tr = document.createElement('tr');
-    tr.id = `item-${rowId}`;
-    tr.innerHTML = `
-      <td class="border border-gray-200 px-1 py-1 text-center text-gray-400 text-xs" id="num-${rowId}">1</td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="text" value="${(descricao||'').replace(/"/g,'&quot;')}" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="desc-${rowId}">
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="text" value="${(garantia||'12 Meses').replace(/"/g,'&quot;')}" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="gar-${rowId}">
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="number" value="${quantidade||1}" min="1" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-center" id="qtd-${rowId}" oninput="calcularLinha(${rowId})">
-      </td>
-      <td class="border border-gray-200 px-1 py-1">
-        <input type="number" value="${valorUnitario||0}" step="0.01" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-right" id="vun-${rowId}" oninput="calcularLinha(${rowId})">
-      </td>
-      <td class="border border-gray-200 px-1 py-1 text-right font-semibold text-sm pr-2 text-[#0097b2]" id="vtot-${rowId}">R$ 0,00</td>
-      <td class="border border-gray-200 px-1 py-1 text-center">
-        <button onclick="removerItem(${rowId},${catId})" class="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
-      </td>`;
-    document.getElementById(`itens-${catId}`).appendChild(tr);
-    calcularLinha(rowId);
-    renumerar(catId);
-  }
+        // ── Activity Feed ────────────────────────────────────────────────────
+        function buildActivity(recentes) {
+            const list = document.getElementById('activity-list');
+            if (!recentes.length) {
+                list.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);">Nenhuma atividade ainda.</div>`;
+                return;
+            }
+            list.innerHTML = recentes.map(orc => {
+                const color = avatarColor(orc.cliente);
+                return `
+                <a class="activity-item" href="/historico.html">
+                    <div class="activity-avatar" style="background:${color}22; color:${color};">
+                        ${initials(orc.cliente)}
+                    </div>
+                    <div class="activity-info">
+                        <div class="activity-name">${orc.cliente}</div>
+                        <div class="activity-meta">${orc.numero} &nbsp;·&nbsp; ${badge(orc.status)}</div>
+                    </div>
+                    <div class="activity-right">
+                        <div class="activity-val">${moeda(orc.valor)}</div>
+                        <div class="activity-date">${orc.data}</div>
+                    </div>
+                </a>`;
+            }).join('');
+        }
 
-  function removerItem(rowId, catId) {
-    document.getElementById(`item-${rowId}`)?.remove();
-    recalcularTotal(); renumerar(catId);
-  }
+        // ── Load ─────────────────────────────────────────────────────────────
+        async function loadData() {
+            const res = await apiFetch('/api/dashboard/stats');
+            if (!res) return;
+            const d = await res.json();
 
-  function renumerar(catId) {
-    let num = 1;
-    document.getElementById(`itens-${catId}`)?.querySelectorAll('tr').forEach(tr => {
-      const el = document.getElementById(`num-${tr.id.replace('item-','')}`);
-      if (el) el.textContent = num++;
-    });
-  }
+            // KPIs
+            document.getElementById('kpi-total').textContent     = d.total_orcados;
+            document.getElementById('kpi-total-sub').textContent = `R$ ${(d.valor_total_mes||0).toLocaleString('pt-BR', {minimumFractionDigits:2})} em propostas`;
+            document.getElementById('kpi-aprovados').textContent = d.total_aprovados;
+            document.getElementById('kpi-conversao-label').textContent = `${d.taxa_conversao}% de conversão`;
+            document.getElementById('kpi-aprovado-val').textContent = moeda(d.valor_aprovado_mes || 0);
+            document.getElementById('kpi-total-val-sub').textContent =
+                d.valor_total_mes ? `${Math.round((d.valor_aprovado_mes||0) / d.valor_total_mes * 100)}% do total orçado` : '';
+            document.getElementById('kpi-taxa').textContent = `${d.taxa_conversao}%`;
 
-  function mudouItem(rowId, catId) {
-    const sel = document.getElementById(`desc-${rowId}`);
-    const opt = sel.options[sel.selectedIndex];
-    document.getElementById(`vun-${rowId}`).value =
-      parseFloat(opt?.dataset?.preco || 0).toFixed(2);
-    // Preenche garantia do catálogo se disponível
-    const gar = opt?.dataset?.gar;
-    if (gar) document.getElementById(`gar-${rowId}`).value = gar;
-    calcularLinha(rowId);
-  }
+            // Conversion bars
+            const pct = Math.min(d.taxa_conversao, 100);
+            document.getElementById('conv-bar').style.width   = pct + '%';
+            document.getElementById('conv-bar-2').style.width = pct + '%';
+            document.getElementById('conv-pct-label').textContent = `${d.taxa_conversao}%`;
 
-  function calcularLinha(rowId) {
-    const qtd = parseFloat(document.getElementById(`qtd-${rowId}`)?.value) || 0;
-    const vun = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
-    document.getElementById(`vtot-${rowId}`).textContent = moeda(qtd * vun);
-    recalcularTotal();
-  }
+            // Donut
+            if (d.por_status && Object.keys(d.por_status).length) {
+                buildDonut(d.por_status);
+            }
 
-  function recalcularTotal() {
-    let sub = 0;
-    document.querySelectorAll('[id^="vtot-"]').forEach(el => {
-      sub += parseFloat(el.textContent.replace('R$ ','').replace(/\./g,'').replace(',','.')) || 0;
-    });
-    const desc = parseFloat(document.getElementById('desconto_percent')?.value) || 0;
-    const valDesc = sub * desc / 100;
-    const total = sub - valDesc;
-    const el = document.getElementById('total-geral');
-    el.classList.toggle('hidden', sub === 0);
-    document.getElementById('total-valor').textContent = moeda(total);
-    const linhaDesc = document.getElementById('linha-desconto');
-    const linhaSub = document.getElementById('linha-subtotal');
-    if (desc > 0 && sub > 0) {
-      linhaSub.classList.remove('hidden');
-      linhaDesc.classList.remove('hidden');
-      document.getElementById('subtotal-valor').textContent = moeda(sub);
-      document.getElementById('desconto-pct').textContent = desc;
-      document.getElementById('desconto-valor').textContent = moeda(valDesc);
-    } else {
-      linhaSub.classList.add('hidden');
-      linhaDesc.classList.add('hidden');
-    }
-  }
+            // Activity
+            buildActivity(d.recentes || []);
+        }
 
-  function recalcularComDesconto() { recalcularTotal(); }
+        window.addEventListener('themeChanged', () => {
+            if (donutChart) { donutChart.destroy(); donutChart = null; }
+            loadData();
+        });
 
-  function moeda(val) {
-    return 'R$ ' + val.toLocaleString('pt-BR', {minimumFractionDigits:2, maximumFractionDigits:2});
-  }
-
-  // ── Coletar dados ────────────────────────────────────────────────────────
-  function coletarDados() {
-    const categorias = [];
-    document.querySelectorAll('[id^="cat-"]').forEach(catEl => {
-      const catId = catEl.id.replace('cat-','');
-      const tipo = document.getElementById(`cat-tipo-${catId}`)?.value;
-      let titulo = tipo === 'PERSONALIZADO'
-        ? document.getElementById(`cat-titulo-personalizado-${catId}`)?.value?.trim()
-        : tipo;
-      if (!titulo) return;
-      const itens = [];
-      catEl.querySelectorAll('tbody tr').forEach(tr => {
-        const rowId = tr.id.replace('item-','');
-        const garantia = document.getElementById(`gar-${rowId}`)?.value?.trim() || '';
-        const descInput = document.getElementById(`desc-${rowId}`);
-        const descricao = descInput?.tagName === 'SELECT'
-          ? (descInput.options[descInput.selectedIndex]?.dataset?.desc || '')
-          : (descInput?.value?.trim() || '');
-        const quantidade = parseInt(document.getElementById(`qtd-${rowId}`)?.value) || 0;
-        const valor_unitario = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
-        if (descricao && quantidade > 0) itens.push({garantia, descricao, quantidade, valor_unitario});
-      });
-      if (itens.length) categorias.push({titulo, itens});
-    });
-    return {
-      cliente_nome: document.getElementById('cliente_nome').value.trim(),
-      cliente_contato: document.getElementById('cliente_contato').value.trim(),
-      cliente_endereco: document.getElementById('cliente_endereco').value.trim(),
-      cliente_cnpj: document.getElementById('cliente_cnpj').value.trim() || null,
-      cliente_email: document.getElementById('cliente_email').value.trim() || null,
-      cliente_telefone: document.getElementById('cliente_telefone').value.trim() || null,
-      condicao_pagto: document.getElementById('condicao_pagto').value.trim(),
-      descricao_intro: document.getElementById('descricao_intro').value.trim(),
-      validade_dias: parseInt(document.getElementById('validade_dias').value) || 7,
-      desconto_percent: parseFloat(document.getElementById('desconto_percent').value) || 0,
-      observacoes_custom: coletarObs(),
-      categorias,
-    };
-  }
-
-  // ── Gerar PDF ────────────────────────────────────────────────────────────
-  async function salvarEGerarPDF() {
-    const dados = coletarDados();
-    if (!dados.cliente_nome || !dados.categorias.length) {
-      alert('Preencha o nome do cliente e adicione pelo menos uma categoria com itens.');
-      return;
-    }
-    const btn = document.getElementById('btn-gerar');
-    btn.textContent = 'Gerando PDF...'; btn.disabled = true;
-    try {
-      const resp = await fetch('/orcamentos', {
-        method: 'POST', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(dados),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      const orc = await resp.json();
-      mostrarModal(orc, dados);
-    } catch(err) {
-      alert('Erro ao gerar orçamento: ' + err.message);
-      btn.textContent = 'Salvar e Gerar PDF'; btn.disabled = false;
-    }
-  }
-
-  function mostrarModal(orc, dados) {
-    const sub = dados.categorias.flatMap(c => c.itens)
-      .reduce((s, i) => s + i.quantidade * i.valor_unitario, 0);
-    const desc = dados.desconto_percent || 0;
-    const total = sub * (1 - desc / 100);
-
-    document.getElementById('modal-numero').textContent = orc.numero;
-    document.getElementById('modal-cliente').textContent = dados.cliente_nome;
-    document.getElementById('modal-total').textContent = moeda(total);
-
-    const pdfUrl = `/orcamentos/${orc.id}/pdf`;
-    document.getElementById('btn-baixar-pdf').href = pdfUrl;
-
-    const publicUrl = `${window.location.origin}/p/${orc.uuid_publico}`;
-
-    const tel = (dados.cliente_telefone || '').replace(/\D/g,'');
-    const num = tel ? (tel.startsWith('55') ? tel : '55' + tel) : '';
-    const empresaNome = configEmpresa.empresa_nome || 'nossa empresa';
-    const empresaTel = configEmpresa.empresa_telefone || '';
-    const assinatura = empresaTel ? `\n\nAtenciosamente,\n${empresaNome} — ${empresaTel}` : `\n\nAtenciosamente,\n${empresaNome}`;
-    const msg = encodeURIComponent(
-      `Olá ${dados.cliente_contato}! Segue nossa proposta comercial:\n\n` +
-      `*Orçamento Nº:* ${orc.numero}\n` +
-      `*Valor Total:* ${moeda(total)}\n\n` +
-      `Acesse a proposta interativa para visualização e aceite digital pelo link abaixo:\n` +
-      `${publicUrl}${assinatura}`
-    );
-    document.getElementById('btn-whatsapp').href =
-      num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
-
-    // Add a Copy Link button dynamically if it doesn't exist
-    let btnCopy = document.getElementById('btn-copiar-link');
-    if (!btnCopy) {
-      btnCopy = document.createElement('button');
-      btnCopy.id = 'btn-copiar-link';
-      btnCopy.className = 'block text-center w-full bg-gray-100 text-gray-700 font-semibold py-2.5 rounded-lg hover:bg-gray-200 transition';
-      const container = document.querySelector('#modal-sucesso .flex.flex-col.gap-3');
-      container.insertBefore(btnCopy, document.getElementById('btn-whatsapp'));
-    }
-    btnCopy.textContent = 'Copiar Link Público';
-    btnCopy.onclick = () => {
-      navigator.clipboard.writeText(publicUrl);
-      btnCopy.textContent = 'Link copiado!';
-      setTimeout(() => btnCopy.textContent = 'Copiar Link Público', 2000);
-    };
-
-    document.getElementById('modal-sucesso').classList.remove('hidden');
-  }
-
-  function novoOrcamento() {
-    document.getElementById('modal-sucesso').classList.add('hidden');
-    document.getElementById('btn-gerar').textContent = 'Salvar e Gerar PDF';
-    document.getElementById('btn-gerar').disabled = false;
-  }
-
-  // Init: espera a config carregar para popular obs e categoria
-  carregarConfigECatalogo().then(() => {
-    const obs = configEmpresa.obs_padrao || [
-      "Instalação: mediante orçamento adicional",
-      "Garantia: fabricante (equipamentos) + 12 meses (mão de obra)",
-      "Suporte pós-venda: 30 dias após a conclusão dos serviços",
-    ];
-    obs.forEach(txt => adicionarObs(txt));
-    adicionarCategoria();
-
-    const fromId = new URLSearchParams(window.location.search).get('from');
-    if (fromId) {
-      document.getElementById('obs-container').innerHTML = '';
-      document.getElementById('categorias-container').innerHTML = '';
-      categoriaCount = 0;
-      carregarOrcamento(fromId);
-    }
-  });
-  carregarClientes();
-
-</script>
+        loadData();
+    </script>
 </body>
 </html>

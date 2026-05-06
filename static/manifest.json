@@ -1,0 +1,17 @@
+{
+  "name": "SaaS Gerador de Orçamentos",
+  "short_name": "SaaS Budgets",
+  "description": "Sistema profissional para geração e gestão de orçamentos e propostas comerciais.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0a0f18",
+  "theme_color": "#3a7bd5",
+  "icons": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

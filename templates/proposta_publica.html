@@ -60,6 +60,7 @@
     }
     .status-aguardando { background: #fef3c7; color: #d97706; }
     .status-aprovado { background: #d1fae5; color: var(--success); }
+    .status-visualizado { background: #dbeafe; color: #1d4ed8; }
     .status-recusado { background: #fee2e2; color: var(--danger); }
 
     .company-details h1 { font-size: 24px; color: var(--primary); margin-bottom: 4px; }
@@ -168,8 +169,8 @@
     .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
     .modal-actions .btn { padding: 10px 20px; }
 
-    /* Esconder barra se não estiver aguardando */
-    {% if orc.status != 'Aguardando' %}
+    /* Esconder barra se não estiver aguardando ou visualizado */
+    {% if orc.status not in ['Aguardando', 'Visualizado'] %}
     .sticky-bar { display: none; }
     {% endif %}
   </style>
@@ -262,7 +263,13 @@
       
       {% if orc.aceito_em %}
       <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: var(--text-muted);">
-        <p>✅ Aceito digitalmente por <strong>{{ orc.assinatura_nome }}</strong> em {{ orc.aceito_em }}</p>
+        <p style="font-weight: 600; color: var(--success); margin-bottom: 8px;">✅ Assinatura Eletrônica Avançada Confirmada</p>
+        <p><strong>Assinante:</strong> {{ orc.assinatura_nome }}</p>
+        {% if orc.assinatura_cpf %}<p><strong>CPF:</strong> {{ orc.assinatura_cpf }}</p>{% endif %}
+        {% if orc.assinatura_telefone %}<p><strong>Telefone:</strong> {{ orc.assinatura_telefone }}</p>{% endif %}
+        <p><strong>Data/Hora:</strong> {{ orc.aceito_em }}</p>
+        <p><strong>IP:</strong> {{ orc.aceito_ip }}</p>
+        {% if orc.assinatura_hash %}<p style="margin-top: 8px; font-size: 11px; color: #94a3b8;">Hash: {{ orc.assinatura_hash }}</p>{% endif %}
       </div>
       {% endif %}
     </div>
@@ -275,9 +282,32 @@
 
   <div class="modal-overlay" id="modalAceite">
     <div class="modal">
-      <h3>Assinatura Eletrônica</h3>
-      <p>Para aprovar esta proposta, por favor informe seu nome completo. Isso registrará sua concordância com os valores e termos apresentados.</p>
-      <input type="text" id="assinaturaNome" placeholder="Seu nome completo" required>
+      <h3>Assinatura Eletrônica Avançada</h3>
+      <p>Para aprovar esta proposta, confirme seus dados. Isso注册ará sua concordância com os valores e termos apresentados com valor jurídico (Lei 14.063/2020).</p>
+      
+      <div style="margin-bottom: 16px;">
+        <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Nome Completo *</label>
+        <input type="text" id="assinaturaNome" placeholder="Seu nome completo" required style="margin-bottom: 0;">
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+        <div>
+          <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">CPF *</label>
+          <input type="text" id="assinaturaCPF" placeholder="000.000.000-00" required>
+        </div>
+        <div>
+          <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Telefone *</label>
+          <input type="text" id="assinaturaTelefone" placeholder="(00) 00000-0000" required>
+        </div>
+      </div>
+      
+      <div style="margin-bottom: 24px; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 12px; color: var(--text-muted);">
+        <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
+          <input type="checkbox" id="aceiteTermos" style="margin-top: 3px;">
+          <span>Eu, {{ orc.cliente_nome }}, declaro que li e concordo com os termos desta proposta comercial, seus valores e condições de pagamento, e autorizo a aprovaçãoDigital deste documento.</span>
+        </label>
+      </div>
+      
       <div class="modal-actions">
         <button class="btn btn-reject" onclick="fecharModal()">Cancelar</button>
         <button class="btn btn-approve" onclick="confirmarAceite()" id="btnConfirmar">Assinar e Aprovar</button>
@@ -287,6 +317,22 @@
 
   <script>
     const uuid = '{{ orc.uuid_publico }}';
+    const signatureData = {};
+
+    // Masks
+    document.getElementById('assinaturaCPF').addEventListener('input', function(e) {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/^(\d{3})(\d)/, '$1.$2').replace(/\.(\d{3})(\d)/, '.$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
+      e.target.value = v;
+    });
+
+    document.getElementById('assinaturaTelefone').addEventListener('input', function(e) {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      if (v.length > 10) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
+      else if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
+      else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
+      e.target.value = v;
+    });
 
     function abrirModalAceite() {
       document.getElementById('modalAceite').classList.add('active');
@@ -298,7 +344,14 @@
 
     async function confirmarAceite() {
       const nome = document.getElementById('assinaturaNome').value.trim();
-      if (!nome) return alert('Por favor, digite seu nome.');
+      const cpf = document.getElementById('assinaturaCPF').value.replace(/\D/g, '');
+      const telefone = document.getElementById('assinaturaTelefone').value.replace(/\D/g, '');
+      const aceiteTermos = document.getElementById('aceiteTermos').checked;
+
+      if (!nome) return alert('Por favor, digite seu nome completo.');
+      if (cpf.length !== 11) return alert('Por favor, digite um CPF válido.');
+      if (telefone.length < 10) return alert('Por favor, digite um telefone válido.');
+      if (!aceiteTermos) return alert('Você precisa concordar com os termos para aprovar.');
 
       const btn = document.getElementById('btnConfirmar');
       btn.disabled = true;
@@ -308,7 +361,11 @@
         const res = await fetch(`/api/p/${uuid}/aceitar`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ assinatura_nome: nome })
+          body: JSON.stringify({ 
+            assinatura_nome: nome,
+            assinatura_cpf: cpf,
+            assinatura_telefone: telefone
+          })
         });
         if (res.ok) window.location.reload();
         else alert('Erro ao aprovar proposta.');

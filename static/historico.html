@@ -1,215 +1,243 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico — Sistema de Orçamentos</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico — SaaS Budgets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/shared.css">
+    <style>
+        .btn-icon i { pointer-events: none; }
+        .toast-container {
+            position: fixed; bottom: 24px; right: 24px;
+            z-index: 9999; display: flex; flex-direction: column; gap: 10px;
+        }
+        .toast {
+            padding: 12px 20px; border-radius: 12px;
+            color: white; font-weight: 600; font-size: 14px;
+            animation: toastIn 0.3s ease; max-width: 320px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+        .toast.success { background: #10b981; }
+        .toast.error   { background: #ef4444; }
+        .toast.info    { background: var(--primary, #3a7bd5); }
+        @keyframes toastIn {
+            from { transform: translateX(110%); opacity: 0; }
+            to   { transform: translateX(0);    opacity: 1; }
+        }
+        .badge-status { display: inline-block; }
+        
+        @media (max-width: 768px) {
+            header { flex-direction: column !important; align-items: flex-start !important; gap: 15px !important; }
+            h1 { font-size: 20px; }
+            table { font-size: 13px; }
+            th, td { padding: 10px 8px; }
+            .table-container { margin: 0 -15px; padding: 0 15px; overflow-x: auto; }
+            div[style*="display: flex"] { justify-content: flex-end !important; }
+        }
+        
+        @media (max-width: 480px) {
+            .main-content { padding: 10px; }
+            .glass-panel { padding: 12px; }
+            .btn-icon { width: 32px; height: 32px; }
+            h1 { font-size: 18px; }
+        }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-
-<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow" id="nav">
-  <span class="font-bold text-lg tracking-wide" id="nav-empresa">Gerador de Orçamentos</span>
-  <div class="flex gap-3 text-sm">
-    <a href="/catalogo.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📦 Catálogo</a>
-    <a href="/configuracoes.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">⚙️ Config</a>
-    <a href="/" class="bg-white text-[#0097b2] font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">+ Novo Orçamento</a>
-  </div>
-</nav>
-
-<main class="max-w-6xl mx-auto p-6">
-  <div class="flex items-center justify-between mb-4">
-    <h1 class="text-2xl font-bold text-gray-700">Histórico de Orçamentos</h1>
-    <div class="flex gap-2 items-center flex-wrap">
-      <input id="filtro-cliente" type="text" placeholder="Filtrar por cliente..."
-        oninput="filtrar()"
-        class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      <div class="flex gap-1 flex-wrap" id="filtro-status">
-        <button onclick="setFiltroStatus('')" data-status="" class="filtro-btn ativo px-3 py-1.5 rounded-lg text-xs font-semibold border">Todos</button>
-        <button onclick="setFiltroStatus('Aguardando')" data-status="Aguardando" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Aguardando</button>
-        <button onclick="setFiltroStatus('Aprovado')" data-status="Aprovado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Aprovado</button>
-        <button onclick="setFiltroStatus('Reprovado')" data-status="Reprovado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Reprovado</button>
-        <button onclick="setFiltroStatus('Expirado')" data-status="Expirado" class="filtro-btn px-3 py-1.5 rounded-lg text-xs font-semibold border">Expirado</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="loading" class="text-gray-400 text-sm">Carregando...</div>
-  <div id="vazio" class="hidden text-gray-400 text-sm">Nenhum orçamento encontrado.</div>
-
-  <!-- Totalizador -->
-  <div id="totalizador" class="hidden bg-white rounded-xl shadow p-4 mb-4 flex gap-6 flex-wrap text-sm">
-    <div><span class="text-gray-500">Total de orçamentos:</span> <strong id="tot-count">0</strong></div>
-    <div><span class="text-gray-500">Aprovados:</span> <strong id="tot-aprovados" class="text-green-600">0</strong></div>
-    <div><span class="text-gray-500">Aguardando:</span> <strong id="tot-aguardando" class="text-yellow-600">0</strong></div>
-    <div><span class="text-gray-500">Valor total aprovado:</span> <strong id="tot-valor" class="text-[#0097b2]"></strong></div>
-  </div>
-
-  <div class="bg-white rounded-xl shadow overflow-hidden hidden" id="tabela-wrapper">
-    <table class="w-full text-sm">
-      <thead class="bg-[#e8f7fa] text-[#0097b2]">
-        <tr>
-          <th class="text-left px-4 py-3 font-semibold">Número</th>
-          <th class="text-left px-4 py-3 font-semibold">Cliente</th>
-          <th class="text-left px-4 py-3 font-semibold">Data</th>
-          <th class="text-right px-4 py-3 font-semibold">Valor Total</th>
-          <th class="text-left px-4 py-3 font-semibold">Aprovado Por</th>
-          <th class="text-center px-4 py-3 font-semibold">Status</th>
-          <th class="px-4 py-3"></th>
-        </tr>
-      </thead>
-      <tbody id="lista"></tbody>
-    </table>
-  </div>
-</main>
-
-<style>
-  .filtro-btn { background: white; color: #555; }
-  .filtro-btn.ativo { background: #0097b2; color: white; border-color: #0097b2; }
-  .badge-Aguardando { background:#fef9c3; color:#92400e; }
-  .badge-Aprovado   { background:#dcfce7; color:#166534; }
-  .badge-Reprovado  { background:#fee2e2; color:#991b1b; }
-  .badge-Expirado   { background:#f3f4f6; color:#6b7280; }
-</style>
-
-<script>
-  let todosOrcamentos = [];
-  let filtroStatus = '';
-
-  function moeda(val) {
-    return 'R$ ' + (val||0).toLocaleString('pt-BR', {minimumFractionDigits:2,maximumFractionDigits:2});
-  }
-
-  function formatarData(iso) {
-    return new Date(iso).toLocaleDateString('pt-BR');
-  }
-
-  function setFiltroStatus(s) {
-    filtroStatus = s;
-    document.querySelectorAll('.filtro-btn').forEach(btn => {
-      btn.classList.toggle('ativo', btn.dataset.status === s);
-    });
-    renderizar();
-  }
-
-  function filtrar() { renderizar(); }
-
-  function renderizar() {
-    const termoBusca = document.getElementById('filtro-cliente').value.toLowerCase();
-    const lista = todosOrcamentos.filter(o => {
-      const matchStatus = !filtroStatus || o.status === filtroStatus;
-      const matchCliente = !termoBusca || o.cliente_nome.toLowerCase().includes(termoBusca);
-      return matchStatus && matchCliente;
-    });
-
-    const tbody = document.getElementById('lista');
-    tbody.innerHTML = '';
-
-    document.getElementById('vazio').classList.toggle('hidden', lista.length > 0);
-    document.getElementById('tabela-wrapper').classList.toggle('hidden', lista.length === 0);
-
-    lista.forEach((orc, i) => {
-      const tr = document.createElement('tr');
-      tr.className = i % 2 === 0 ? 'bg-white hover:bg-gray-50' : 'bg-gray-50 hover:bg-gray-100';
-      tr.innerHTML = `
-        <td class="px-4 py-3 font-mono font-semibold text-gray-700">${orc.numero}</td>
-        <td class="px-4 py-3 text-gray-700">${orc.cliente_nome}</td>
-        <td class="px-4 py-3 text-gray-500">${formatarData(orc.criado_em)}</td>
-        <td class="px-4 py-3 text-right font-semibold text-gray-800">${moeda(orc.valor_total)}</td>
-        <td class="px-4 py-3 text-gray-600 text-sm italic">${orc.status === 'Aprovado' && orc.assinatura_nome ? orc.assinatura_nome : '-'}</td>
-        <td class="px-4 py-3 text-center">
-          <select onchange="atualizarStatus(${orc.id}, this.value)"
-            class="text-xs font-semibold rounded-full px-2 py-1 border-0 badge-${orc.status} cursor-pointer focus:outline-none">
-            <option value="Aguardando" ${orc.status==='Aguardando'?'selected':''}>Aguardando</option>
-            <option value="Aprovado"   ${orc.status==='Aprovado'  ?'selected':''}>Aprovado</option>
-            <option value="Reprovado"  ${orc.status==='Reprovado' ?'selected':''}>Reprovado</option>
-            <option value="Expirado"   ${orc.status==='Expirado'  ?'selected':''}>Expirado</option>
-          </select>
-        </td>
-        <td class="px-4 py-3 text-right">
-          <div class="flex gap-2 justify-end">
-            <button onclick="copiarLinkPublico('${orc.uuid_publico}')"
-              class="bg-blue-50 text-blue-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-100 transition" title="Copiar Link Público">
-              Copiar Link
+<body class="dark-mode">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="logo"><i class="fas fa-bolt"></i> <span>SaaS Budgets</span></div>
+        <a href="/" class="nav-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="/novo_orcamento.html" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Orçamento</a>
+        <a href="/historico.html" class="nav-link active"><i class="fas fa-history"></i> Histórico</a>
+        <a href="/clientes.html" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
+        <a href="/catalogo.html" class="nav-link"><i class="fas fa-box-open"></i> Catálogo</a>
+        <div style="margin-top: auto;">
+            <button class="nav-link" onclick="toggleTheme()" style="width: 100%; border: none; background: transparent; cursor: pointer;">
+                <i class="fas fa-adjust" id="theme-icon"></i> <span id="theme-text">Modo Claro</span>
             </button>
-            <button onclick="duplicar(${orc.id})"
-              class="bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-200 transition">
-              Duplicar
-            </button>
-            <a href="/orcamentos/${orc.id}/pdf" target="_blank"
-              class="inline-block bg-[#0097b2] text-white text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-[#007d96] transition">
-              Baixar PDF
+            <a href="javascript:void(0)" class="nav-link" onclick="logout()" style="color: #ef4444;">
+                <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
             </a>
-          </div>
-        </td>`;
-      tbody.appendChild(tr);
-    });
+            <a href="/configuracoes.html" class="nav-link"><i class="fas fa-cog"></i> Configurações</a>
+        </div>
+    </div>
 
-    // Totalizador
-    const aprovados = todosOrcamentos.filter(o => o.status === 'Aprovado');
-    const aguardando = todosOrcamentos.filter(o => o.status === 'Aguardando');
-    const valorAprovado = aprovados.reduce((s, o) => s + (o.valor_total || 0), 0);
-    document.getElementById('tot-count').textContent = todosOrcamentos.length;
-    document.getElementById('tot-aprovados').textContent = aprovados.length;
-    document.getElementById('tot-aguardando').textContent = aguardando.length;
-    document.getElementById('tot-valor').textContent = moeda(valorAprovado);
-    document.getElementById('totalizador').classList.toggle('hidden', todosOrcamentos.length === 0);
-  }
+    <div class="mobile-header">
+        <div class="logo" style="margin:0"><i class="fas fa-bolt"></i></div>
+        <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+    </div>
 
-  async function atualizarStatus(id, status) {
-    try {
-      await fetch(`/orcamentos/${id}/status`, {
-        method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({status}),
-      });
-      const orc = todosOrcamentos.find(o => o.id === id);
-      if (orc) { orc.status = status; renderizar(); }
-    } catch(e) { alert('Erro ao atualizar status.'); }
-  }
+    <main class="main-content">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+            <h1>Histórico de Orçamentos</h1>
+            <a href="/novo_orcamento.html" class="btn btn-primary">+ Novo</a>
+        </header>
 
-  async function duplicar(id) {
-    try {
-      const resp = await fetch(`/orcamentos/${id}/duplicar`, {method: 'POST'});
-      if (!resp.ok) throw new Error();
-      const {id: novoId} = await resp.json();
-      window.location.href = `/?from=${novoId}`;
-    } catch(e) { alert('Erro ao duplicar orçamento.'); }
-  }
+        <div class="glass-panel">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nº Orçamento</th>
+                            <th>Data</th>
+                            <th>Cliente</th>
+                            <th>Valor Total</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="orcamento-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </main>
 
-  function copiarLinkPublico(uuid) {
-    if (!uuid || uuid === 'null' || uuid === 'undefined') {
-      alert('Link público não disponível para este orçamento antigo.');
-      return;
-    }
-    const url = `${window.location.origin}/p/${uuid}`;
-    navigator.clipboard.writeText(url).then(() => {
-      alert('Link público copiado: ' + url);
-    }).catch(() => {
-      prompt('Copie o link abaixo:', url);
-    });
-  }
+    <div class="toast-container" id="toast-container"></div>
 
-  async function carregarHistorico() {
-    try {
-      todosOrcamentos = await (await fetch('/orcamentos')).json();
-      document.getElementById('loading').classList.add('hidden');
-      renderizar();
-    } catch(e) {
-      document.getElementById('loading').textContent = 'Erro ao carregar histórico.';
-    }
-  }
+    <script src="/shared.js?v=1.2"></script>
+    <script>
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
 
-  carregarHistorico();
+        async function loadHistorico() {
+            const res = await apiFetch('/api/orcamentos');
+            if (!res) return;
+            const data = await res.json();
+            document.getElementById('orcamento-list').innerHTML = data.map(orc => {
+                const uuid = orc.uuid_publico || '';
+                const statusBadge = getStatusBadge(orc.status);
+                return `
+                <tr>
+                    <td style="font-weight: 700; color: var(--primary);">${orc.numero}</td>
+                    <td>${orc.data || '-'}</td>
+                    <td style="font-weight: 500;">${orc.cliente_nome}</td>
+                    <td style="font-weight: 600;">${orc.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
+                    <td>${statusBadge(orc.status)}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
+                            <button class="btn-icon" title="Aprovar" onclick="updateStatus(${orc.id}, 'Aprovado')" style="color: #10b981;"><i class="fas fa-check"></i></button>
+                            <button class="btn-icon" title="Recusar" onclick="updateStatus(${orc.id}, 'Recusado')" style="color: #ef4444;"><i class="fas fa-times"></i></button>
+                            <button class="btn-icon" title="Aguardando" onclick="updateStatus(${orc.id}, 'Aguardando')" style="color: #f59e0b;"><i class="fas fa-clock"></i></button>
+                            <button class="btn-icon" title="Enviar WhatsApp" onclick="sendWhatsApp('${uuid}', '${orc.cliente_telefone || ''}', '${orc.cliente_nome}')" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
+                            <button class="btn-icon" title="Copiar Link Público" onclick="copyLink('${uuid}')"><i class="fas fa-link"></i></button>
+                            <button class="btn-icon" title="Abrir Link Público" onclick="abrirLink('${uuid}')" style="color: var(--primary);"><i class="fas fa-external-link-alt"></i></button>
+                            <button class="btn-icon" title="Ver PDF" onclick="window.open('/orcamentos/${orc.id}/pdf')"><i class="fas fa-file-pdf"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('') || '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum orçamento encontrado.</td></tr>';
+        }
 
-  // Carrega nome/cor da empresa
-  fetch('/api/config').then(r => r.json()).then(cfg => {
-    const nome = cfg.empresa_nome || 'Gerador de Orçamentos';
-    document.getElementById('nav-empresa').textContent = nome;
-    if (cfg.cor_primaria) {
-      document.getElementById('nav').style.backgroundColor = cfg.cor_primaria;
-    }
-  }).catch(() => {});
-</script>
+        function getStatusBadge(status) {
+            return function(s) {
+                const map = {
+                    'aprovado':   ['rgba(16,185,129,0.15)',  '#10b981'],
+                    'recusado':   ['rgba(239,68,68,0.15)',   '#ef4444'],
+                    'visualizado':['rgba(58,123,213,0.15)',  'var(--primary)'],
+                    'aguardando': ['rgba(245,158,11,0.15)',  '#f59e0b'],
+                };
+                const key = (s || '').toLowerCase();
+                const [bg, color] = map[key] || ['rgba(148,163,184,0.1)', '#94a3b8'];
+                return `<span style="background:${bg};color:${color};font-size:11px;padding:4px 10px;border-radius:6px;font-weight:700;text-transform:uppercase;display:inline-block;">${s}</span>`;
+            };
+        }
+
+        async function updateStatus(id, newStatus) {
+            try {
+                const res = await apiFetch(`/api/orcamentos/${id}/status`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus })
+                });
+                if (res && res.ok) {
+                    showToast(`Status alterado para "${newStatus}"`, 'success');
+                    loadHistorico();
+                } else {
+                    const text = res ? await res.text() : 'sem resposta';
+                    console.error('Erro status:', text);
+                    showToast('Erro ao atualizar status', 'error');
+                }
+            } catch (e) {
+                console.error('Erro na requisição:', e);
+                showToast('Falha na conexão', 'error');
+            }
+        }
+
+        function copyLink(uuid) {
+            if (!uuid) {
+                showToast('Link não disponível para este orçamento', 'error');
+                return;
+            }
+            const link = `${window.location.origin}/p/${uuid}`;
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(link)
+                    .then(() => showToast('Link copiado!', 'success'))
+                    .catch(() => copyFallback(link));
+            } else {
+                copyFallback(link);
+            }
+        }
+
+        function copyFallback(link) {
+            const ta = document.createElement('textarea');
+            ta.value = link;
+            ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0;';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast('Link copiado!', 'success');
+            } catch (e) {
+                showToast('Não foi possível copiar. Abra o link manualmente.', 'error');
+            }
+            document.body.removeChild(ta);
+        }
+
+        function abrirLink(uuid) {
+            if (!uuid) { showToast('Link não disponível', 'error'); return; }
+            window.open(`${window.location.origin}/p/${uuid}`, '_blank');
+        }
+
+        function sendWhatsApp(uuid, telefone, nome) {
+            if (!uuid) { showToast('Link não disponível', 'error'); return; }
+            
+            let telefoneLimpo = telefone.replace(/\D/g, '');
+            if (!telefoneLimpo || telefoneLimpo.length < 10) {
+                showToast('Telefone não cadastrado para este cliente', 'error');
+                return;
+            }
+            
+            if (telefoneLimpo.length === 10) {
+                telefoneLimpo = '55' + telefoneLimpo;
+            }
+            
+            const linkOrcamento = `${window.location.origin}/p/${uuid}`;
+            const empresa = localStorage.getItem('empresa_nome') || 'Nossa Empresa';
+            const mensagem = `Olá ${nome}! 👋%0A%0A${empresa} enviou uma proposta comercial para você.%0A%0APode visualizar e aprovar diretamente pelo link:%0A${linkOrcamento}%0A%0AQualquer dúvida, me avisa aqui!`;
+            
+            const waLink = `https://wa.me/${telefoneLimpo}?text=${mensagem}`;
+            
+            window.open(waLink, '_blank');
+            showToast('WhatsApp aberto!', 'success');
+        }
+
+        loadHistorico();
+    </script>
 </body>
 </html>

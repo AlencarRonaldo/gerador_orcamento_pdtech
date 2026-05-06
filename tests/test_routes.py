@@ -59,8 +59,11 @@ def client():
 
 PAYLOAD = {
     "cliente_nome": "Empresa Teste",
+    "cliente_cnpj": "12.345.678/0001-00",
     "cliente_contato": "Sr. Teste",
     "cliente_endereco": "Rua Teste, 123 – SBC – SP",
+    "cliente_email": "teste@empresa.com.br",
+    "cliente_telefone": "(11) 99999-9999",
     "condicao_pagto": "até 28 dias",
     "descricao_intro": "orçamento de equipamentos de teste",
     "categorias": [

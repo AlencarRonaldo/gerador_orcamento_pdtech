@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -6,6 +6,10 @@ from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, St
 from sqlalchemy.orm import relationship
 
 from base import Base
+
+
+def _utc_now():
+    return datetime.now(timezone.utc)
 
 
 class ConfigEmpresa(Base):
@@ -31,7 +35,23 @@ class ConfigEmpresa(Base):
     licenca_chave = Column(String, nullable=True)
     licenca_ativa = Column(Boolean, default=False)
     numero_base = Column(Integer, default=0)
-    atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    atualizado_em = Column(DateTime, default=_utc_now, onupdate=_utc_now)
+
+
+class Cliente(Base):
+    __tablename__ = "clientes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nome = Column(String, nullable=False)
+    contato = Column(String)
+    email = Column(String)
+    telefone = Column(String)
+    cnpj_cpf = Column(String)
+    endereco = Column(String)
+    cidade = Column(String)
+    criado_em = Column(DateTime, default=_utc_now)
+
+    orcamentos = relationship("Orcamento", back_populates="cliente_reg")
 
 
 class CatalogoItem(Base):
@@ -44,15 +64,16 @@ class CatalogoItem(Base):
     garantia = Column(String, default="12 Meses")
     ativo = Column(Boolean, default=True)
     ordem = Column(Integer, default=0)
-    criado_em = Column(DateTime, default=datetime.utcnow)
+    criado_em = Column(DateTime, default=_utc_now)
 
 
 class Orcamento(Base):
     __tablename__ = "orcamentos"
 
     id = Column(Integer, primary_key=True, index=True)
+    cliente_id = Column(Integer, ForeignKey("clientes.id"), nullable=True)
     numero = Column(String, unique=True, index=True)
-    criado_em = Column(DateTime, default=datetime.utcnow)
+    criado_em = Column(DateTime, default=_utc_now)
     cliente_nome = Column(String, nullable=False)
     cliente_contato = Column(String, nullable=False)
     cliente_endereco = Column(String, nullable=False)
@@ -67,15 +88,19 @@ class Orcamento(Base):
     status = Column(String, default="Aguardando", nullable=True)
     dados_json = Column(Text, nullable=True)
     
-    # Campos para Link Público e Aceite
     uuid_publico = Column(String, unique=True, index=True, nullable=True)
     aceito_em = Column(DateTime, nullable=True)
     aceito_ip = Column(String, nullable=True)
     assinatura_nome = Column(String, nullable=True)
+    assinatura_cpf = Column(String, nullable=True)
+    assinatura_telefone = Column(String, nullable=True)
+    assinatura_hash = Column(String, nullable=True)
+    assinatura_termos = Column(Boolean, default=False, nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"
     )
+    cliente_reg = relationship("Cliente", back_populates="orcamentos")
 
 
 class Categoria(Base):
@@ -118,17 +143,35 @@ class CategoriaInput(BaseModel):
 
 class OrcamentoInput(BaseModel):
     cliente_nome: str
-    cliente_contato: str
-    cliente_endereco: str
-    cliente_cnpj: Optional[str] = None
-    cliente_email: Optional[str] = None
-    cliente_telefone: Optional[str] = None
+    cliente_cnpj: str  # CPF ou CNPJ obrigatório
+    cliente_contato: Optional[str] = ""
+    cliente_endereco: Optional[str] = ""
+    cliente_email: str
+    cliente_telefone: str
     condicao_pagto: str
-    descricao_intro: str
+    descricao_intro: Optional[str] = ""
     validade_dias: int = 7
     desconto_percent: float = 0.0
     observacoes_custom: Optional[List[str]] = None
+    cliente_id: Optional[int] = None
     categorias: List[CategoriaInput]
+
+
+class ClienteInput(BaseModel):
+    nome: str
+    contato: Optional[str] = ""
+    email: Optional[str] = ""
+    telefone: Optional[str] = ""
+    cnpj_cpf: Optional[str] = ""
+    endereco: Optional[str] = ""
+    cidade: Optional[str] = ""
+
+
+class ClienteOutput(ClienteInput):
+    id: int
+    criado_em: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class ItemOutput(BaseModel):
@@ -169,6 +212,8 @@ class OrcamentoOutput(BaseModel):
     uuid_publico: Optional[str] = None
     aceito_em: Optional[datetime] = None
     assinatura_nome: Optional[str] = None
+    assinatura_cpf: Optional[str] = None
+    assinatura_telefone: Optional[str] = None
     categorias: List[CategoriaOutput]
 
     model_config = {"from_attributes": True}

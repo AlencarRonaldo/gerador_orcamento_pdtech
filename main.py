@@ -4,9 +4,10 @@ import hmac
 import json
 import secrets
 import subprocess
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request
@@ -30,9 +31,35 @@ from models import (
     Orcamento,
     OrcamentoInput,
     OrcamentoOutput,
+    OrcamentoListItem,
+    Cliente,
+    ClienteInput,
+    ClienteOutput,
 )
 
-app = FastAPI(title="Gerador de Orçamentos")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    create_tables()
+    from database import SessionLocal
+    db = SessionLocal()
+    try:
+        cfg = db.query(ConfigEmpresa).first()
+        if not cfg:
+            cfg = ConfigEmpresa(
+                id=1,
+                empresa_nome="Minha Empresa",
+                login_email="admin@admin.com",
+                login_senha="admin123",
+                cor_primaria="#0097b2",
+            )
+            db.add(cfg)
+            db.commit()
+    finally:
+        db.close()
+    yield
+
+
+app = FastAPI(title="Gerador de Orçamentos", lifespan=lifespan)
 templates = Jinja2Templates(directory="templates")
 
 def _formatar_moeda(valor):
@@ -137,14 +164,14 @@ def logout_api(response: Response):
 ROTAS_PUBLICAS = {
     "/login.html", "/api/login", "/favicon.ico",
     "/ativacao.html", "/api/licenca/status", "/api/licenca/ativar",
+    "/manifest.json", "/api/dashboard/stats",
 }
 
 
 @app.get("/login.html")
 def login_page(request: Request, db: Session = Depends(get_db)):
     cfg = _get_config(db)
-    return templates.TemplateResponse("login.html", {
-        "request": request,
+    return templates.TemplateResponse(request, "login.html", {
         "config": _config_to_dict(cfg)
     })
 
@@ -220,27 +247,6 @@ class SessaoMiddleware(BaseHTTPMiddleware):
 app.add_middleware(SessaoMiddleware)
 app.add_middleware(LicencaMiddleware)
 
-@app.on_event("startup")
-def startup():
-    create_tables()
-    from database import SessionLocal
-    db = SessionLocal()
-    try:
-        cfg = db.query(ConfigEmpresa).first()
-        if not cfg:
-            # Primeira execução: semeia com dados da instalação atual
-            cfg = ConfigEmpresa(
-                id=1,
-                empresa_nome="Minha Empresa",
-                login_email="admin@admin.com",
-                login_senha="admin123",
-                cor_primaria="#0097b2",
-            )
-            db.add(cfg)
-            db.commit()
-    finally:
-        db.close()
-
 
 def _gerar_numero(db: Session) -> str:
     cfg = _get_config(db)
@@ -249,13 +255,102 @@ def _gerar_numero(db: Session) -> str:
     count = db.query(Orcamento).count() + 1 + base
     return f"ORC-{ano}-{count:03d}"
 
+# --- DASHBOARD ---
 
-def _orc_to_dict(orc: Orcamento) -> dict:
+@app.get("/api/dashboard/stats")
+def get_dashboard_stats(db: Session = Depends(get_db)):
+    now = datetime.now(timezone.utc)
+    inicio_mes = datetime(now.year, now.month, 1)
+
+    orcamentos_mes = db.query(Orcamento).filter(Orcamento.criado_em >= inicio_mes).all()
+    total_orcados = len(orcamentos_mes)
+    total_aprovados = sum(1 for o in orcamentos_mes if o.status == "Aprovado")
+
+    def _valor(orc):
+        return sum(item.valor_total for cat in orc.categorias for item in cat.itens)
+
+    valor_total_mes = sum(_valor(o) for o in orcamentos_mes)
+    valor_aprovado_mes = sum(_valor(o) for o in orcamentos_mes if o.status == "Aprovado")
+
+    # Contagem por status (todos os registros)
+    todos = db.query(Orcamento).all()
+    por_status: dict = {}
+    for orc in todos:
+        s = orc.status or "Aguardando"
+        por_status[s] = por_status.get(s, 0) + 1
+
+    conversao = round(total_aprovados / total_orcados * 100, 1) if total_orcados > 0 else 0.0
+
+    recentes_orm = db.query(Orcamento).order_by(Orcamento.criado_em.desc()).limit(6).all()
+    recentes = [
+        {
+            "id": o.id,
+            "numero": o.numero,
+            "cliente": o.cliente_nome,
+            "status": o.status or "Aguardando",
+            "valor": _valor(o),
+            "data": o.criado_em.strftime("%d/%m"),
+        }
+        for o in recentes_orm
+    ]
+
+    return {
+        "total_orcados": total_orcados,
+        "total_aprovados": total_aprovados,
+        "valor_total_mes": valor_total_mes,
+        "valor_aprovado_mes": valor_aprovado_mes,
+        "taxa_conversao": conversao,
+        "por_status": por_status,
+        "recentes": recentes,
+    }
+
+# --- CRM (CLIENTES) ---
+
+@app.get("/api/clientes", response_model=List[ClienteOutput])
+def list_clientes(db: Session = Depends(get_db)):
+    return db.query(Cliente).order_by(Cliente.nome).all()
+
+@app.post("/api/clientes", response_model=ClienteOutput)
+def create_cliente(data: ClienteInput, db: Session = Depends(get_db)):
+    cliente = Cliente(**data.model_dump())
+    db.add(cliente)
+    db.commit()
+    db.refresh(cliente)
+    return cliente
+
+@app.put("/api/clientes/{cliente_id}", response_model=ClienteOutput)
+def update_cliente(cliente_id: int, data: ClienteInput, db: Session = Depends(get_db)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    for key, value in data.model_dump().items():
+        setattr(cliente, key, value)
+    db.commit()
+    db.refresh(cliente)
+    return cliente
+
+@app.delete("/api/clientes/{cliente_id}")
+def delete_cliente(cliente_id: int, db: Session = Depends(get_db)):
+    cliente = db.query(Cliente).filter(Cliente.id == cliente_id).first()
+    if not cliente:
+        raise HTTPException(status_code=404, detail="Cliente não encontrado")
+    db.delete(cliente)
+    db.commit()
+    return {"ok": True}
+
+
+def _orc_to_dict(orc: Orcamento, db: Session = None) -> dict:
     """Converte ORM para dict incluindo campos calculados."""
+    if not orc.uuid_publico:
+        orc.uuid_publico = secrets.token_urlsafe(16)
+        if db:
+            db.commit()
+            
     obs = json.loads(orc.observacoes_json) if orc.observacoes_json else None
     return {
         "id": orc.id,
         "numero": orc.numero,
+        "data": orc.criado_em.strftime("%d/%m/%Y"),
         "criado_em": orc.criado_em.isoformat(),
         "cliente_nome": orc.cliente_nome,
         "cliente_contato": orc.cliente_contato,
@@ -318,8 +413,39 @@ def _criar_categorias(db: Session, orcamento_id: int, categorias_data):
 
 @app.post("/orcamentos")
 def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
+    cliente_id = data.cliente_id
+    
+    # Se tem cliente_id, nothing to do
+    # Se não tem, procurar pelo CNPJ primeiro
+    if not cliente_id and data.cliente_cnpj:
+        cliente_existente = db.query(Cliente).filter(Cliente.cnpj_cpf == data.cliente_cnpj).first()
+        if cliente_existente:
+            cliente_id = cliente_existente.id
+    
+    # Se ainda não tem cliente, criar novo pelo nome
+    if not cliente_id and data.cliente_nome:
+        # Verificar se já existe cliente com mesmo nome
+        cliente_existente = db.query(Cliente).filter(Cliente.nome == data.cliente_nome).first()
+        if cliente_existente:
+            cliente_id = cliente_existente.id
+        else:
+            # Criar novo cliente automaticamente
+            novo_cliente = Cliente(
+                nome=data.cliente_nome,
+                cnpj_cpf=data.cliente_cnpj or "",
+                email=data.cliente_email or "",
+                telefone=data.cliente_telefone or "",
+                contato=data.cliente_contato or "",
+                endereco=data.cliente_endereco or "",
+            )
+            db.add(novo_cliente)
+            db.flush()
+            cliente_id = novo_cliente.id
+            print(f"DEBUG: Novo cliente criado: {novo_cliente.id} - {novo_cliente.nome}")
+    
     orcamento = Orcamento(
         numero=_gerar_numero(db),
+        cliente_id=cliente_id,
         uuid_publico=secrets.token_urlsafe(16),
         cliente_nome=data.cliente_nome,
         cliente_contato=data.cliente_contato,
@@ -343,22 +469,32 @@ def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
 
 # ── Listar orçamentos ────────────────────────────────────────────────────────
 
-@app.get("/orcamentos")
+@app.get("/api/orcamentos")
+@app.get("/orcamentos")  # Alias para compatibilidade
 def listar_orcamentos(db: Session = Depends(get_db)):
     orcamentos = db.query(Orcamento).order_by(Orcamento.criado_em.desc()).all()
     result = []
+    has_changes = False
     for orc in orcamentos:
+        if not orc.uuid_publico:
+            orc.uuid_publico = secrets.token_urlsafe(16)
+            has_changes = True
+            
         total = sum(item.valor_total for cat in orc.categorias for item in cat.itens)
         result.append({
             "id": orc.id,
             "numero": orc.numero,
-            "criado_em": orc.criado_em.isoformat(),
+            "data": orc.criado_em.strftime("%d/%m/%Y"),
             "cliente_nome": orc.cliente_nome,
             "status": orc.status or "Aguardando",
             "valor_total": total,
             "uuid_publico": orc.uuid_publico,
             "assinatura_nome": orc.assinatura_nome,
         })
+    
+    if has_changes:
+        db.commit()
+        
     return result
 
 
@@ -369,22 +505,30 @@ def obter_orcamento(id: int, db: Session = Depends(get_db)):
     orc = db.query(Orcamento).filter(Orcamento.id == id).first()
     if not orc:
         raise HTTPException(status_code=404, detail="Orçamento não encontrado")
-    return _orc_to_dict(orc)
+    return _orc_to_dict(orc, db)
 
 
-# ── Atualizar status ─────────────────────────────────────────────────────────
+class StatusUpdate(BaseModel):
+    status: str
 
-@app.patch("/orcamentos/{id}/status")
-def atualizar_status(id: int, body: dict, db: Session = Depends(get_db)):
-    orc = db.query(Orcamento).filter(Orcamento.id == id).first()
-    if not orc:
-        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
-    status = body.get("status", "Aguardando")
-    if status not in ("Aguardando", "Aprovado", "Reprovado", "Expirado"):
-        raise HTTPException(status_code=400, detail="Status inválido")
-    orc.status = status
-    db.commit()
-    return {"ok": True}
+@app.post("/api/orcamentos/{id}/status")
+def atualizar_status(id: int, data: StatusUpdate, db: Session = Depends(get_db)):
+    try:
+        print(f"DEBUG: Recebida atualização de status para ID {id}: {data.status}")
+        orc = db.query(Orcamento).filter(Orcamento.id == id).first()
+        if not orc:
+            raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+        
+        if data.status not in ("Aguardando", "Aprovado", "Recusado", "Expirado", "Visualizado"):
+            raise HTTPException(status_code=400, detail="Status inválido")
+            
+        orc.status = data.status
+        db.commit()
+        return {"ok": True}
+    except Exception as e:
+        print(f"ERROR: Falha ao atualizar status: {str(e)}")
+        db.rollback()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 # ── Duplicar orçamento ───────────────────────────────────────────────────────
@@ -494,7 +638,13 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     if not orc:
         raise HTTPException(status_code=404, detail="Proposta não encontrada")
     
-    orc_dict = _orc_to_dict(orc)
+    # Atualiza status para 'Visualizado' se ainda estiver 'Aguardando'
+    if orc.status == "Aguardando":
+        orc.status = "Visualizado"
+        db.commit()
+        db.refresh(orc)
+
+    orc_dict = _orc_to_dict(orc, db)
     cfg = _get_config(db)
     config_dict = _config_to_dict(cfg)
     
@@ -507,8 +657,7 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     valor_desconto = valor_subtotal * desconto_percent / 100 if desconto_percent else 0
     valor_total_geral = valor_subtotal - valor_desconto
     
-    return templates.TemplateResponse("proposta_publica.html", {
-        "request": request, 
+    return templates.TemplateResponse(request, "proposta_publica.html", {
         "orc": orc_dict,
         "config": config_dict,
         "valor_subtotal": valor_subtotal,
@@ -519,17 +668,46 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
 
 class AceiteInput(BaseModel):
     assinatura_nome: str
+    assinatura_cpf: Optional[str] = None
+    assinatura_telefone: Optional[str] = None
+
+
+def _gerar_hash_assinatura(uuid: str, nome: str, cpf: str, timestamp: str) -> str:
+    """Gera hash de validação para assinatura eletrônica avançada."""
+    dados = f"{uuid}|{nome}|{cpf}|{timestamp}"
+    return hashlib.sha256(dados.encode()).hexdigest()[:32]
+
 
 @app.post("/api/p/{uuid}/aceitar")
 def aceitar_proposta(uuid: str, data: AceiteInput, request: Request, db: Session = Depends(get_db)):
     orc = db.query(Orcamento).filter(Orcamento.uuid_publico == uuid).first()
     if not orc:
         raise HTTPException(status_code=404, detail="Proposta não encontrada")
+    if orc.status == "Aprovado":
+        return {"ok": True, "message": "Proposta já aprovada"}
+    
+    timestamp = datetime.now(timezone.utc).isoformat()
     
     orc.status = "Aprovado"
     orc.aceito_em = datetime.now(timezone.utc)
     orc.aceito_ip = request.client.host if request.client else None
     orc.assinatura_nome = data.assinatura_nome
+    
+    # Campos de assinatura eletrônica avançada
+    if data.assinatura_cpf:
+        orc.assinatura_cpf = data.assinatura_cpf
+    if data.assinatura_telefone:
+        orc.assinatura_telefone = data.assinatura_telefone
+    
+    # Gerar hash de validação
+    hash_dados = _gerar_hash_assinatura(
+        uuid, 
+        data.assinatura_nome, 
+        data.assinatura_cpf or '',
+        timestamp
+    )
+    orc.assinatura_hash = hash_dados
+    
     db.commit()
     return {"ok": True}
 
@@ -538,7 +716,6 @@ def recusar_proposta(uuid: str, db: Session = Depends(get_db)):
     orc = db.query(Orcamento).filter(Orcamento.uuid_publico == uuid).first()
     if not orc:
         raise HTTPException(status_code=404, detail="Proposta não encontrada")
-    
     orc.status = "Recusado"
     db.commit()
     return {"ok": True}

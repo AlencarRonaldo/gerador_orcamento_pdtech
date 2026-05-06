@@ -96,8 +96,11 @@ def test_workflow_orcamento_completo(client):
     # Criar orçamento com TODOS os campos obrigatórios
     payload = {
         "cliente_nome": "Empresa Teste",
+        "cliente_cnpj": "12.345.678/0001-00",
         "cliente_contato": "Sr. Teste",
         "cliente_endereco": "Rua dos Testes, 123",
+        "cliente_email": "teste@teste.com.br",
+        "cliente_telefone": "(11) 99999-9999",
         "condicao_pagto": "30 dias",
         "descricao_intro": "Apresentação do teste",
         "categorias": [
@@ -125,7 +128,7 @@ def test_workflow_orcamento_completo(client):
     assert "Empresa Teste" in res.text
     
     # Aceite público
-    res = public_client.post(f"/api/p/{orc_uuid}/aceitar", json={"assinatura_nome": "Assinatura de Teste"})
+    res = public_client.post(f"/api/p/{orc_uuid}/aceitar", json={"assinatura_nome": "Assinatura de Teste", "assinatura_cpf": "12345678901", "assinatura_telefone": "11999999999"})
     assert res.status_code == 200
     
     # Verificar no admin (com o cliente logado)

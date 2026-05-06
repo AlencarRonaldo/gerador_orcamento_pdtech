@@ -1,354 +1,174 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Configurações — Sistema de Orçamentos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    body { font-family: 'Inter', sans-serif; }
-    .section-card { @apply bg-white rounded-xl shadow p-6 mb-6; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configurações — SaaS Budgets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/shared.css">
+    <style>
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 13px; color: var(--text-muted); }
+        .form-group input {
+            width: 100%; background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border); padding: 12px;
+            border-radius: 12px; color: var(--text-main); outline: none; transition: border-color 0.2s;
+        }
+        .form-group input:focus { border-color: var(--primary); }
+        
+        /* Logo Upload Style */
+        .logo-upload-box {
+            border: 2px dashed var(--glass-border); border-radius: 20px;
+            padding: 30px; text-align: center; cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.01); margin-bottom: 25px;
+        }
+        .logo-upload-box:hover { border-color: var(--primary); background: rgba(58, 123, 213, 0.05); }
+        .logo-preview { max-height: 80px; margin-bottom: 15px; border-radius: 10px; display: none; }
+        
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+    </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
-
-<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow" id="nav">
-  <span class="font-bold text-lg tracking-wide" id="nav-empresa">⚙️ Configurações</span>
-  <div class="flex gap-3 text-sm">
-    <a href="/catalogo.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📦 Catálogo</a>
-    <a href="/historico.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📋 Histórico</a>
-    <a href="/" class="bg-white text-[#0097b2] font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">+ Orçamento</a>
-  </div>
-</nav>
-
-<!-- Toast -->
-<div id="toast" class="hidden fixed top-5 right-5 z-50 bg-green-600 text-white px-5 py-3 rounded-xl shadow-lg font-medium text-sm flex items-center gap-2 transition-all">
-  ✅ <span id="toast-msg">Salvo com sucesso!</span>
-</div>
-
-<main class="max-w-3xl mx-auto p-6">
-  <h1 class="text-2xl font-bold text-gray-700 mb-1">Configurações da Empresa</h1>
-  <p class="text-sm text-gray-400 mb-6">Essas informações aparecem no PDF, na proposta pública e no sistema.</p>
-
-  <!-- ── Identidade da Empresa ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">🏢 Identidade da Empresa</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Nome da Empresa <span class="text-red-500">*</span></label>
-        <input id="empresa_nome" type="text" placeholder="Ex: RC Suporte Informática e Telecom"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">CNPJ</label>
-        <input id="empresa_cnpj" type="text" placeholder="Ex: 43.260.654/0001-67"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Telefone / WhatsApp</label>
-        <input id="empresa_telefone" type="text" placeholder="Ex: (11) 95653-4963"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">E-mail</label>
-        <input id="empresa_email" type="email" placeholder="Ex: contato@rcsuporte.tec.br"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Cidade / Estado</label>
-        <input id="empresa_cidade" type="text" placeholder="Ex: São Bernardo do Campo – SP"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div class="md:col-span-2">
-        <label class="block text-sm font-medium text-gray-600 mb-1">Endereço</label>
-        <input id="empresa_endereco" type="text" placeholder="Ex: Rua das Flores, 100 – Centro"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Logo e Cor ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">🎨 Logo e Cor</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-2">Logo da Empresa</label>
-        <div class="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center cursor-pointer hover:border-[#0097b2] transition" onclick="document.getElementById('logo-input').click()">
-          <img id="logo-preview" src="" alt="" class="hidden h-16 mx-auto mb-2 object-contain">
-          <p id="logo-placeholder" class="text-gray-400 text-sm">Clique para carregar o logo<br><span class="text-xs">PNG, JPG ou SVG</span></p>
-          <input type="file" id="logo-input" accept="image/*" class="hidden" onchange="carregarLogo(this)">
+<body class="dark-mode">
+    <div class="sidebar-overlay" id="overlay" onclick="toggleSidebar()"></div>
+    
+    <div class="sidebar" id="sidebar">
+        <div class="logo" id="sidebar-logo-container">
+            <i class="fas fa-bolt"></i> <span>SaaS Budgets</span>
         </div>
-        <button onclick="removerLogo()" id="btn-remover-logo" class="hidden mt-2 text-xs text-red-500 hover:underline">Remover logo</button>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-2">Cor Principal</label>
-        <div class="flex items-center gap-3">
-          <input type="color" id="cor_primaria" value="#0097b2"
-            class="w-14 h-14 rounded-xl border border-gray-200 cursor-pointer p-1">
-          <div>
-            <p class="text-sm text-gray-600">Esta cor aparece na proposta pública, PDF e rodapé.</p>
-            <p class="text-xs text-gray-400 mt-1" id="cor-hex">#0097b2</p>
-          </div>
+        <a href="/" class="nav-link"><i class="fas fa-chart-pie"></i> Dashboard</a>
+        <a href="/novo_orcamento.html" class="nav-link"><i class="fas fa-plus-circle"></i> Novo Orçamento</a>
+        <a href="/historico.html" class="nav-link"><i class="fas fa-history"></i> Histórico</a>
+        <a href="/clientes.html" class="nav-link"><i class="fas fa-users"></i> Clientes</a>
+        <a href="/catalogo.html" class="nav-link"><i class="fas fa-box-open"></i> Catálogo</a>
+        <div style="margin-top: auto;">
+            <button class="nav-link" onclick="toggleTheme()" style="width: 100%; border: none; background: transparent; cursor: pointer;">
+                <i class="fas fa-adjust" id="theme-icon"></i> <span id="theme-text">Modo Claro</span>
+            </button>
+            <a href="javascript:void(0)" class="nav-link" onclick="logout()" style="color: #ef4444;">
+                <i class="fas fa-sign-out-alt"></i> <span>Sair</span>
+            </a>
+            <a href="/configuracoes.html" class="nav-link active"><i class="fas fa-cog"></i> Configurações</a>
         </div>
-      </div>
     </div>
-  </section>
 
-  <!-- ── Texto do PDF ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">📄 Texto do PDF</h2>
-    <div class="space-y-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Slogan / Apresentação</label>
-        <p class="text-xs text-gray-400 mb-2">Aparece na carta de apresentação do PDF, após "agradece a oportunidade..."</p>
-        <textarea id="empresa_slogan" rows="2" placeholder="Ex: Nosso objetivo é oferecer a melhor solução em infraestrutura de redes, TI e segurança eletrônica."
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2] resize-none"></textarea>
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Diferenciais</label>
-        <p class="text-xs text-gray-400 mb-2">Aparece na barra de diferenciais do PDF. Separe com " | "</p>
-        <input id="empresa_diferenciais" type="text" placeholder="Ex: Profissional certificado  |  Garantia 12 meses  |  +10 anos no mercado"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
+    <div class="mobile-header">
+        <div class="logo" id="mobile-logo-container"><i class="fas fa-bolt"></i></div>
+        <button class="btn-icon" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
     </div>
-  </section>
 
-  <!-- ── Condições de Pagamento Padrão ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">💳 Condições de Pagamento Padrão</h2>
-    <p class="text-xs text-gray-400 mb-4">Essas condições aparecem no rodapé do PDF. Cada orçamento pode ter a Opção 2 personalizada.</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Opção 1</label>
-        <input id="cond_pagto_opcao1" type="text" placeholder="Ex: 50% de entrada + 50% em 30 dias"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Desconto Opção À Vista (Opção 3)</label>
-        <input id="cond_pagto_opcao3_desconto" type="text" placeholder="Ex: 5%"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-    </div>
-  </section>
+    <main class="main-content">
+        <header style="margin-bottom: 40px;">
+            <h1>Configurações da Empresa</h1>
+            <p style="color: var(--text-muted);">Defina sua identidade visual e dados de contato.</p>
+        </header>
 
-  <!-- ── Numeração de Orçamentos ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">🔢 Numeração de Orçamentos</h2>
-    <p class="text-xs text-gray-400 mb-4">O número base é somado à contagem de orçamentos para gerar a sequência (ex: se base = 35 e há 1 orçamento, o próximo será ORC-2026-037).</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Número Base da Sequência</label>
-        <input id="numero_base" type="number" min="0" value="0" placeholder="0"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-    </div>
-  </section>
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-image"></i> Identidade Visual</h2>
+            <div class="logo-upload-box" onclick="document.getElementById('logo-input').click()">
+                <img id="logo-preview" class="logo-preview">
+                <div id="logo-placeholder">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 30px; margin-bottom: 10px; opacity: 0.5;"></i>
+                    <p style="font-size: 14px; font-weight: 600;">Clique para carregar seu Logo</p>
+                    <p style="font-size: 12px; color: var(--text-muted);">Formatos aceitos: PNG, JPG ou SVG</p>
+                </div>
+                <input type="file" id="logo-input" accept="image/*" style="display: none;" onchange="handleLogoUpload(this)">
+            </div>
+            <button class="btn" style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 100%; font-size: 12px;" onclick="removeLogo()">Remover Logo Atual</button>
+        </div>
 
-  <!-- ── Observações Padrão ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <div class="flex items-center justify-between mb-3">
-      <div>
-        <h2 class="text-base font-semibold text-[#0097b2] uppercase">📝 Observações Padrão</h2>
-        <p class="text-xs text-gray-400 mt-1">Aparecem automaticamente em todos os orçamentos (podem ser editadas por orçamento).</p>
-      </div>
-      <button onclick="adicionarObs()" class="text-sm text-[#0097b2] hover:underline">+ Adicionar</button>
-    </div>
-    <div id="obs-container" class="space-y-2"></div>
-  </section>
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-building"></i> Dados Corporativos</h2>
+            <div class="form-group">
+                <label>Nome da Empresa (Razão Social)</label>
+                <input type="text" id="empresa_nome">
+            </div>
+            <div class="grid-2">
+                <div class="form-group"><label>CNPJ</label><input type="text" id="empresa_cnpj"></div>
+                <div class="form-group"><label>E-mail Público</label><input type="email" id="empresa_email"></div>
+            </div>
+            <div class="form-group"><label>Slogan da Empresa</label><input type="text" id="empresa_slogan"></div>
+        </div>
 
-  <!-- ── Acesso ao Sistema ── -->
-  <section class="bg-white rounded-xl shadow p-6 mb-6">
-    <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">🔐 Acesso ao Sistema</h2>
-    <p class="text-xs text-gray-400 mb-4">Credenciais usadas para entrar no sistema. Após alterar, você precisará fazer login novamente.</p>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">E-mail de Login</label>
-        <input id="login_email" type="email" placeholder="Ex: admin@admin.com"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-      <div>
-        <label class="block text-sm font-medium text-gray-600 mb-1">Nova Senha</label>
-        <input id="login_senha" type="password" placeholder="Deixe em branco para não alterar"
-          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      </div>
-    </div>
-  </section>
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent);"><i class="fas fa-lock"></i> Acesso ao Sistema</h2>
+            <div class="form-group"><label>E-mail de Login</label><input type="email" id="login_email"></div>
+            <div class="form-group"><label>Nova Senha (opcional)</label><input type="password" id="login_senha"></div>
+        </div>
 
-  <div class="flex justify-end gap-3">
-    <a href="/" class="px-6 py-3 rounded-xl border border-gray-300 text-gray-600 text-sm font-medium hover:bg-gray-50">Cancelar</a>
-    <button onclick="salvarConfig()" id="btn-salvar"
-      class="bg-green-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-700 transition shadow">
-      Salvar Configurações
-    </button>
-  </div>
-</main>
+        <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 18px; font-size: 16px;" onclick="salvarConfig()">
+            <i class="fas fa-save"></i> SALVAR CONFIGURAÇÕES
+        </button>
+    </main>
 
-<script>
-  let logoBase64 = '';
+    <div id="toast" style="display: none; position: fixed; top: 30px; right: 30px; background: #10b981; color: white; padding: 15px 25px; border-radius: 12px; z-index: 3000;">✅ Alterações salvas!</div>
 
-  // ── Logo ──────────────────────────────────────────────────────────────────
-  function carregarLogo(input) {
-    const file = input.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = e => {
-      logoBase64 = e.target.result.split(',')[1]; // só o base64 sem o prefixo
-      const img = document.getElementById('logo-preview');
-      img.src = e.target.result;
-      img.classList.remove('hidden');
-      document.getElementById('logo-placeholder').classList.add('hidden');
-      document.getElementById('btn-remover-logo').classList.remove('hidden');
-    };
-    reader.readAsDataURL(file);
-  }
+    <script src="/shared.js?v=1.2"></script>
+    <script>
+        let logoBase64 = null;
 
-  function removerLogo() {
-    logoBase64 = '__REMOVER__';
-    document.getElementById('logo-preview').src = '';
-    document.getElementById('logo-preview').classList.add('hidden');
-    document.getElementById('logo-placeholder').classList.remove('hidden');
-    document.getElementById('btn-remover-logo').classList.add('hidden');
-  }
+        async function loadConfig() {
+            const res = await apiFetch('/api/config');
+            if (!res) return;
+            const data = await res.json();
+            document.getElementById('empresa_nome').value = data.empresa_nome || '';
+            document.getElementById('empresa_cnpj').value = data.empresa_cnpj || '';
+            document.getElementById('empresa_email').value = data.empresa_email || '';
+            document.getElementById('empresa_slogan').value = data.empresa_slogan || '';
+            document.getElementById('login_email').value = data.login_email || '';
+            
+            if (data.empresa_logo_b64) {
+                showPreview(data.empresa_logo_b64);
+                logoBase64 = data.empresa_logo_b64;
+            }
+        }
 
-  // ── Cor ───────────────────────────────────────────────────────────────────
-  document.getElementById('cor_primaria').addEventListener('input', function() {
-    document.getElementById('cor-hex').textContent = this.value;
-    document.getElementById('nav').style.backgroundColor = this.value;
-  });
+        function handleLogoUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const b64 = e.target.result;
+                logoBase64 = b64;
+                showPreview(b64);
+            };
+            reader.readAsDataURL(file);
+        }
 
-  // ── Observações ──────────────────────────────────────────────────────────
-  function adicionarObs(texto = '') {
-    const container = document.getElementById('obs-container');
-    const id = Date.now();
-    const div = document.createElement('div');
-    div.id = `obs-${id}`;
-    div.className = 'flex gap-2 items-center';
-    div.innerHTML = `
-      <span class="text-[#0097b2] font-bold">•</span>
-      <input type="text" value="${texto.replace(/"/g, '&quot;')}" placeholder="Ex: Garantia: 12 meses (mão de obra)"
-        class="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-      <button onclick="document.getElementById('obs-${id}').remove()"
-        class="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
-    `;
-    container.appendChild(div);
-  }
+        function showPreview(b64) {
+            const img = document.getElementById('logo-preview');
+            img.src = b64;
+            img.style.display = 'inline-block';
+            document.getElementById('logo-placeholder').style.display = 'none';
+        }
 
-  function coletarObs() {
-    return Array.from(document.querySelectorAll('#obs-container input'))
-      .map(el => el.value.trim()).filter(Boolean);
-  }
+        function removeLogo() {
+            logoBase64 = null;
+            document.getElementById('logo-preview').style.display = 'none';
+            document.getElementById('logo-placeholder').style.display = 'block';
+        }
 
-  // ── Carregar config atual ─────────────────────────────────────────────────
-  async function carregarConfig() {
-    try {
-      const cfg = await (await fetch('/api/config')).json();
-      document.getElementById('empresa_nome').value = cfg.empresa_nome || '';
-      document.getElementById('empresa_cnpj').value = cfg.empresa_cnpj || '';
-      document.getElementById('empresa_telefone').value = cfg.empresa_telefone || '';
-      document.getElementById('empresa_email').value = cfg.empresa_email || '';
-      document.getElementById('empresa_cidade').value = cfg.empresa_cidade || '';
-      document.getElementById('empresa_endereco').value = cfg.empresa_endereco || '';
-      document.getElementById('empresa_slogan').value = cfg.empresa_slogan || '';
-      document.getElementById('empresa_diferenciais').value = cfg.empresa_diferenciais || '';
-      document.getElementById('cond_pagto_opcao1').value = cfg.cond_pagto_opcao1 || '';
-      document.getElementById('cond_pagto_opcao3_desconto').value = cfg.cond_pagto_opcao3_desconto || '';
-      document.getElementById('login_email').value = cfg.login_email || '';
-      document.getElementById('numero_base').value = cfg.numero_base ?? 0;
-
-      const cor = cfg.cor_primaria || '#0097b2';
-      document.getElementById('cor_primaria').value = cor;
-      document.getElementById('cor-hex').textContent = cor;
-      document.getElementById('nav').style.backgroundColor = cor;
-
-      if (cfg.empresa_logo_b64) {
-        logoBase64 = cfg.empresa_logo_b64;
-        const img = document.getElementById('logo-preview');
-        img.src = 'data:image/png;base64,' + cfg.empresa_logo_b64;
-        img.classList.remove('hidden');
-        document.getElementById('logo-placeholder').classList.add('hidden');
-        document.getElementById('btn-remover-logo').classList.remove('hidden');
-      }
-
-      // Obs padrão
-      const obsContainer = document.getElementById('obs-container');
-      obsContainer.innerHTML = '';
-      (cfg.obs_padrao || []).forEach(txt => adicionarObs(txt));
-
-      document.getElementById('nav-empresa').textContent = '⚙️ ' + (cfg.empresa_nome || 'Configurações');
-    } catch(e) { console.error('Erro ao carregar config:', e); }
-  }
-
-  // ── Salvar ────────────────────────────────────────────────────────────────
-  async function salvarConfig() {
-    const btn = document.getElementById('btn-salvar');
-    btn.textContent = 'Salvando...';
-    btn.disabled = true;
-
-    const obs = coletarObs();
-    const senhaVal = document.getElementById('login_senha').value.trim();
-
-    const payload = {
-      empresa_nome: document.getElementById('empresa_nome').value.trim(),
-      empresa_cnpj: document.getElementById('empresa_cnpj').value.trim() || null,
-      empresa_telefone: document.getElementById('empresa_telefone').value.trim() || null,
-      empresa_email: document.getElementById('empresa_email').value.trim() || null,
-      empresa_cidade: document.getElementById('empresa_cidade').value.trim() || null,
-      empresa_endereco: document.getElementById('empresa_endereco').value.trim() || null,
-      empresa_slogan: document.getElementById('empresa_slogan').value.trim() || null,
-      empresa_diferenciais: document.getElementById('empresa_diferenciais').value.trim() || null,
-      cor_primaria: document.getElementById('cor_primaria').value,
-      obs_padrao_json: JSON.stringify(obs),
-      cond_pagto_opcao1: document.getElementById('cond_pagto_opcao1').value.trim() || null,
-      cond_pagto_opcao3_desconto: document.getElementById('cond_pagto_opcao3_desconto').value.trim() || null,
-      login_email: document.getElementById('login_email').value.trim() || null,
-      numero_base: parseInt(document.getElementById('numero_base').value) || 0,
-    };
-
-    // Logo
-    if (logoBase64 === '__REMOVER__') {
-      payload.empresa_logo_b64 = '';
-    } else if (logoBase64) {
-      payload.empresa_logo_b64 = logoBase64;
-    }
-
-    // Senha só inclui se preenchida
-    if (senhaVal) {
-      payload.login_senha = senhaVal;
-    }
-
-    if (!payload.empresa_nome) {
-      alert('O nome da empresa é obrigatório.');
-      btn.textContent = 'Salvar Configurações';
-      btn.disabled = false;
-      return;
-    }
-
-    try {
-      const resp = await fetch('/api/config', {
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(payload),
-      });
-      if (!resp.ok) throw new Error(await resp.text());
-      
-      // Limpa senha após salvar
-      document.getElementById('login_senha').value = '';
-      
-      // Toast
-      const toast = document.getElementById('toast');
-      toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
-    } catch(err) {
-      alert('Erro ao salvar: ' + err.message);
-    } finally {
-      btn.textContent = 'Salvar Configurações';
-      btn.disabled = false;
-    }
-  }
-
-  carregarConfig();
-</script>
+        async function salvarConfig() {
+            const data = {
+                empresa_nome: document.getElementById('empresa_nome').value,
+                empresa_cnpj: document.getElementById('empresa_cnpj').value,
+                empresa_email: document.getElementById('empresa_email').value,
+                empresa_slogan: document.getElementById('empresa_slogan').value,
+                empresa_logo_b64: logoBase64,
+                login_email: document.getElementById('login_email').value,
+                login_senha: document.getElementById('login_senha').value
+            };
+            const res = await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            if (res && res.ok) {
+                const toast = document.getElementById('toast');
+                toast.style.display = 'block';
+                localStorage.setItem('empresa_nome', document.getElementById('empresa_nome').value);
+                setTimeout(() => { toast.style.display = 'none'; window.location.reload(); }, 1500);
+            }
+        }
+        loadConfig();
+    </script>
 </body>
 </html>
