@@ -3,22 +3,31 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
+import os
 from base import Base
 from database import get_db
-from models import Orcamento, Categoria, Item
+from models import Orcamento, Categoria, Item, ConfigEmpresa, CatalogoItem, Base
 from main import app
-
-# Importar modelos para registar no Base ANTES de criar engine de teste
-from models import Orcamento, Categoria, Item
+import main as main_module
 
 
 @pytest.fixture
 def client():
+    db_path = "./orcamentos_test_routes.db"
+    if os.path.exists(db_path):
+        os.remove(db_path)
+    
     engine = create_engine(
-        "sqlite:///:memory:", connect_args={"check_same_thread": False}
+        f"sqlite:///{db_path}", connect_args={"check_same_thread": False}
     )
     Base.metadata.create_all(bind=engine)
     TestSession = sessionmaker(bind=engine)
+
+    # Sedia config com licença ativa para que o middleware não bloqueie
+    db = TestSession()
+    db.add(ConfigEmpresa(id=1, licenca_ativa=True))
+    db.commit()
+    db.close()
 
     def override_get_db():
         db = TestSession()
@@ -27,11 +36,25 @@ def client():
         finally:
             db.close()
 
+    # Reseta cache de session_token entre testes
+    main_module._SESSION_TOKEN = ""
+
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
+        # Define o cookie de sessão para passar pelo SessaoMiddleware
+        token = main_module._get_session_token()
+        c.cookies.set("session_token", token)
         yield c
+    
     app.dependency_overrides.clear()
+    main_module._SESSION_TOKEN = ""
     Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+    if os.path.exists(db_path):
+        try:
+            os.remove(db_path)
+        except:
+            pass
 
 
 PAYLOAD = {

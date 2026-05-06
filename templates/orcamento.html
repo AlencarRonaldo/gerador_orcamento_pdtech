@@ -5,6 +5,7 @@
   <title>Orçamento {{ orcamento.numero }}</title>
   <style>
     {% include 'pdf.css' %}
+    :root { --cor-primaria: {{ cor_primaria }}; }
   </style>
 </head>
 <body>
@@ -50,22 +51,27 @@
   {% endif %}
   <p class="intro-text">Prezados Senhores,</p>
   <p class="intro-text">
-    A <strong>RC SUPORTE</strong> agradece a oportunidade de apresentar nossa proposta comercial.
+    A <strong>{{ empresa_nome | upper }}</strong> agradece a oportunidade de apresentar nossa proposta comercial.
   </p>
-  <p class="intro-text">
-    Nosso objetivo é oferecer a melhor solução em infraestrutura de redes, TI e segurança eletrônica, com qualidade e preço justo.
-  </p>
+  {% if empresa_slogan %}
+  <p class="intro-text">{{ empresa_slogan }}</p>
+  {% endif %}
 </div>
 
 <!-- Diferenciais -->
+{% if empresa_diferenciais %}
 <div class="diferenciais no-break">
   <div class="diferenciais-title">Nossos Diferenciais:</div>
-  <div class="diferenciais-items">Profissional certificado &nbsp;&nbsp;|&nbsp;&nbsp; Suporte pós-obra &nbsp;&nbsp;|&nbsp;&nbsp; Garantia de 12 meses &nbsp;&nbsp;|&nbsp;&nbsp; +10 anos no mercado</div>
+  <div class="diferenciais-items">{{ empresa_diferenciais }}</div>
 </div>
+{% endif %}
 
+{% if empresa_cidade %}
 <div class="company-stamp">
-  <strong>RC SUPORTE:</strong> Redes, TI e Segurança Eletrônica &nbsp;|&nbsp; ABC Paulista – Grande São Paulo
+  <strong>{{ empresa_nome | upper }}</strong>
+  {% if empresa_cidade %}&nbsp;|&nbsp; {{ empresa_cidade }}{% endif %}
 </div>
+{% endif %}
 
 <!-- Proposta Comercial -->
 <h2>Proposta Comercial</h2>
@@ -119,7 +125,7 @@
   <div class="payment-grid">
     <div class="payment-option">
       <div class="payment-option-label">Opção 1</div>
-      50% de entrada + 50% em 30 dias
+      {{ cond_pagto_opcao1 }}
     </div>
     <div class="payment-option">
       <div class="payment-option-label">Opção 2</div>
@@ -127,7 +133,7 @@
     </div>
     <div class="payment-option">
       <div class="payment-option-label">Opção 3 &#9733; À vista</div>
-      Desconto de 5% no valor total
+      Desconto de {{ cond_pagto_opcao3_desconto }} no valor total
     </div>
   </div>
   <div class="payment-info">Emissão de NF: até 7 dias após aprovação &nbsp;|&nbsp; Pagamento via Boleto, TED ou PIX</div>
@@ -163,8 +169,12 @@
   <div class="signature-block">
     <div class="signature-space"></div>
     <div class="signature-line"></div>
-    <div class="signature-name">RC SUPORTE INFORMÁTICA E TELECOM</div>
-    <div class="signature-label">contato@rcsuporte.tec.br &nbsp;|&nbsp; (11) 95653-4963</div>
+    <div class="signature-name">{{ empresa_nome | upper }}</div>
+    <div class="signature-label">
+      {% if empresa_email %}{{ empresa_email }}{% endif %}
+      {% if empresa_email and empresa_telefone %} &nbsp;|&nbsp; {% endif %}
+      {% if empresa_telefone %}{{ empresa_telefone }}{% endif %}
+    </div>
   </div>
   <div class="signature-block">
     <div class="signature-space"></div>

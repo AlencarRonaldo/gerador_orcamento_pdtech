@@ -2,10 +2,49 @@ from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
-from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 
 from base import Base
+
+
+class ConfigEmpresa(Base):
+    __tablename__ = "config_empresa"
+
+    id = Column(Integer, primary_key=True, default=1)
+    empresa_nome = Column(String, default="Minha Empresa")
+    empresa_cnpj = Column(String, nullable=True)
+    empresa_telefone = Column(String, nullable=True)
+    empresa_email = Column(String, nullable=True)
+    empresa_endereco = Column(String, nullable=True)
+    empresa_cidade = Column(String, nullable=True)
+    empresa_slogan = Column(String, nullable=True)
+    empresa_diferenciais = Column(String, nullable=True)
+    empresa_logo_b64 = Column(Text, nullable=True)
+    cor_primaria = Column(String, default="#0097b2")
+    obs_padrao_json = Column(Text, nullable=True)
+    cond_pagto_opcao1 = Column(String, default="50% de entrada + 50% em 30 dias")
+    cond_pagto_opcao3_desconto = Column(String, default="5%")
+    login_email = Column(String, default="admin@admin.com")
+    login_senha = Column(String, default="admin123")
+    session_token = Column(String, nullable=True)
+    licenca_chave = Column(String, nullable=True)
+    licenca_ativa = Column(Boolean, default=False)
+    numero_base = Column(Integer, default=0)
+    atualizado_em = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class CatalogoItem(Base):
+    __tablename__ = "catalogo_itens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    categoria = Column(String, nullable=False, index=True)
+    descricao = Column(String, nullable=False)
+    preco = Column(Float, nullable=False, default=0.0)
+    garantia = Column(String, default="12 Meses")
+    ativo = Column(Boolean, default=True)
+    ordem = Column(Integer, default=0)
+    criado_em = Column(DateTime, default=datetime.utcnow)
 
 
 class Orcamento(Base):
@@ -144,5 +183,49 @@ class OrcamentoListItem(BaseModel):
     valor_total: float = 0.0
     uuid_publico: Optional[str] = None
     assinatura_nome: Optional[str] = None
+
+    model_config = {"from_attributes": True}
+
+
+# ── Config Empresa ────────────────────────────────────────────────────────────
+
+class ConfigEmpresaInput(BaseModel):
+    empresa_nome: str
+    empresa_cnpj: Optional[str] = None
+    empresa_telefone: Optional[str] = None
+    empresa_email: Optional[str] = None
+    empresa_endereco: Optional[str] = None
+    empresa_cidade: Optional[str] = None
+    empresa_slogan: Optional[str] = None
+    empresa_diferenciais: Optional[str] = None
+    empresa_logo_b64: Optional[str] = None
+    cor_primaria: str = "#0097b2"
+    obs_padrao_json: Optional[str] = None
+    cond_pagto_opcao1: Optional[str] = None
+    cond_pagto_opcao3_desconto: Optional[str] = None
+    login_email: Optional[str] = None
+    login_senha: Optional[str] = None
+    numero_base: Optional[int] = None
+
+
+# ── Catálogo ──────────────────────────────────────────────────────────────────
+
+class CatalogoItemInput(BaseModel):
+    categoria: str
+    descricao: str
+    preco: float
+    garantia: str = "12 Meses"
+    ativo: bool = True
+    ordem: int = 0
+
+
+class CatalogoItemOutput(BaseModel):
+    id: int
+    categoria: str
+    descricao: str
+    preco: float
+    garantia: str
+    ativo: bool
+    ordem: int
 
     model_config = {"from_attributes": True}

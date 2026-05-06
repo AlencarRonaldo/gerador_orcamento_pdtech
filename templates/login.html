@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — RC Suporte</title>
+  <title>Login — {{ config.empresa_nome }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -210,7 +210,7 @@
         </svg>
       </div>
       <h1>Bem-vindo de volta</h1>
-      <p class="subtitle">Acesse o Gerador de Orçamentos RC Suporte</p>
+      <p class="subtitle">Acesse o Gerador de Orçamentos {{ config.empresa_nome }}</p>
     </div>
 
     <div id="error-box" class="error-message"></div>
@@ -219,7 +219,7 @@
       <div class="input-group">
         <label for="email">E-mail Corporativo</label>
         <div class="input-wrapper">
-          <input type="email" id="email" required placeholder="ex: contato@rcsuporte.com.br" autocomplete="email">
+          <input type="email" id="email" required placeholder="ex: contato@rcsuporte.com.br" autocomplete="email" value="admin@admin.com">
         </div>
       </div>
       

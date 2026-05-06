@@ -3,16 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Histórico — RC Suporte</title>
+  <title>Histórico — Sistema de Orçamentos</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
-  <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
-  <a href="/" class="text-sm bg-white text-[#0097b2] font-semibold px-4 py-1.5 rounded-lg hover:bg-blue-50">
-    + Novo Orçamento
-  </a>
+<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow" id="nav">
+  <span class="font-bold text-lg tracking-wide" id="nav-empresa">Gerador de Orçamentos</span>
+  <div class="flex gap-3 text-sm">
+    <a href="/catalogo.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📦 Catálogo</a>
+    <a href="/configuracoes.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">⚙️ Config</a>
+    <a href="/" class="bg-white text-[#0097b2] font-semibold px-3 py-1.5 rounded-lg hover:bg-blue-50 transition">+ Novo Orçamento</a>
+  </div>
 </nav>
 
 <main class="max-w-6xl mx-auto p-6">
@@ -199,6 +201,15 @@
   }
 
   carregarHistorico();
+
+  // Carrega nome/cor da empresa
+  fetch('/api/config').then(r => r.json()).then(cfg => {
+    const nome = cfg.empresa_nome || 'Gerador de Orçamentos';
+    document.getElementById('nav-empresa').textContent = nome;
+    if (cfg.cor_primaria) {
+      document.getElementById('nav').style.backgroundColor = cfg.cor_primaria;
+    }
+  }).catch(() => {});
 </script>
 </body>
 </html>

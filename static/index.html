@@ -3,14 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Novo Orçamento — RC Suporte</title>
+  <title>Novo Orçamento</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-50 min-h-screen">
 
-<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow">
-  <span class="font-bold text-lg tracking-wide">RC Suporte — Gerador de Orçamentos</span>
-  <a href="/historico.html" class="text-sm underline hover:text-blue-100">Ver Histórico →</a>
+<nav class="bg-[#0097b2] text-white px-6 py-3 flex items-center justify-between shadow" id="nav">
+  <span class="font-bold text-lg tracking-wide" id="nav-empresa">Gerador de Orçamentos</span>
+  <div class="flex gap-3 text-sm">
+    <a href="/catalogo.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">📦 Catálogo</a>
+    <a href="/configuracoes.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">⚙️ Config</a>
+    <a href="/historico.html" class="bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition">Ver Histórico →</a>
+  </div>
 </nav>
 
 <!-- Modal sucesso -->
@@ -163,130 +167,29 @@
 </main>
 
 <script>
-  const CAT_DISPLAY = {
-    "CAMERAS": "Câmeras", "NVR": "Gravadores NVR",
-    "REDE": "Equipamentos de Rede", "CABEAMENTO": "Cabeamento Estruturado",
-    "MAO_DE_OBRA": "Mão de Obra",
-  };
-
-  const cameras = [
-    { descricao: "CAM IP VIP 1230 D G4 2.8MM 2MP Dome PoE", preco: 349.90 },
-    { descricao: "CAM IP VIP 1230 D G4 4MM 2MP Dome PoE", preco: 349.90 },
-    { descricao: "CAM IP VIP 1230 D G5 2.8MM 2MP Dome PoE", preco: 389.90 },
-    { descricao: "CAM IP VIP 1230 D G5 4MM 2MP Dome PoE", preco: 389.90 },
-    { descricao: "CAM IP VIP 1230 L G3 2.8MM 2MP Bullet PoE", preco: 299.90 },
-    { descricao: "CAM IP VIP 3200 D G4 2.8MM 4K Dome PoE", preco: 549.90 },
-    { descricao: "CAM IP VIP 3200 D G4 4MM 4K Dome PoE", preco: 559.90 },
-    { descricao: "CAM IP VIP S60 D G4 2.8MM 4K AI Dome PoE", preco: 749.90 },
-    { descricao: "CAM IP VIP S60 D G4 4MM 4K AI Dome PoE", preco: 759.90 },
-    { descricao: "CAM IP VIP S70 D G4 4K AI Dome PoE", preco: 949.90 },
-    { descricao: "CAM IP VIP S80 D G4 4K AI Speed Dome PoE", preco: 1890.00 },
-    { descricao: "CAM IP VIP 3120 D G3 4K Dome PoE", preco: 489.90 },
-    { descricao: "CAM IP VIP 5450 Z G3 4K Dome PTZ PoE", preco: 1250.00 },
-    { descricao: "CAM IP VIP M22 D G3 2MP Mini Dome PoE", preco: 289.90 },
-    { descricao: "CAM IP VIP M21 A G3 2MP Mini Box PoE", preco: 269.90 },
-    { descricao: "CAM IP VIP C22 C G3 2MP Cube Wi-Fi", preco: 319.90 },
-    { descricao: "CAM IP VIP 1130 D G3 2MP Dome", preco: 259.90 },
-    { descricao: "CAM IP VIP 1130 L G3 2MP Bullet", preco: 249.90 },
-    { descricao: "CAM IP VIP Fisheye 5M 360 Graus", preco: 590.00 },
-    { descricao: "CAM IP Wi-Fi VK5500 4MP", preco: 429.90 },
-  ];
-  const nvr = [
-    { descricao: "NVR NVD 1404 4K 4 canais sem PoE", preco: 579.00 },
-    { descricao: "NVR NVD 1404 P 4K 4 canais PoE", preco: 829.00 },
-    { descricao: "NVR NVD 1408 4K 8 canais sem PoE", preco: 760.00 },
-    { descricao: "NVR NVD 1408 P 4K 8 canais PoE", preco: 1450.00 },
-    { descricao: "NVR NVD 1416 4K 16 canais sem PoE", preco: 1150.00 },
-    { descricao: "NVR NVD 1416 P 4K 16 canais PoE", preco: 1890.00 },
-    { descricao: "NVR NVD 3208 P 4K 8 canais PoE", preco: 1950.00 },
-    { descricao: "NVR NVD 3216 P 4K 16 canais PoE", preco: 2850.00 },
-    { descricao: "NVR NVD 3408 4K 8 canais", preco: 1250.00 },
-    { descricao: "NVR NVD 3416 4K 16 canais", preco: 2100.00 },
-  ];
-  const rede = [
-    { descricao: "Switch PoE 8 portas TL-SG1008P", preco: 385.00 },
-    { descricao: "Switch PoE 16 portas TL-SG1016P", preco: 520.00 },
-    { descricao: "Switch PoE 24 portas TL-SG1024P", preco: 680.00 },
-    { descricao: "Switch PoE 48 portas TL-SG1048P", preco: 1850.00 },
-    { descricao: "Switch gerenciável 8 portas TL-SG2008P", preco: 450.00 },
-    { descricao: "Switch gerenciável 16 portas TL-SG2016P", preco: 620.00 },
-    { descricao: "Switch gerenciável 24 portas TL-SG2424P", preco: 890.00 },
-    { descricao: "Switch Gigabit 5 portas TL-SG105", preco: 95.00 },
-    { descricao: "Switch Gigabit 8 portas TL-SG108", preco: 145.00 },
-    { descricao: "Access Point Wi-Fi EAP225 AC1200", preco: 390.00 },
-    { descricao: "Access Point Wi-Fi EAP650", preco: 350.00 },
-    { descricao: "Roteador Wi-Fi AC1200", preco: 280.00 },
-    { descricao: "Roteador Wi-Fi 5G AX1800", preco: 420.00 },
-    { descricao: "Transmissor vídeo rádio VT51", preco: 1450.00 },
-    { descricao: "Receptor vídeo rádio VR51", preco: 1250.00 },
-    { descricao: "HD 1TB para NVR", preco: 280.00 },
-    { descricao: "HD 2TB para NVR", preco: 350.00 },
-    { descricao: "HD 4TB para NVR", preco: 480.00 },
-    { descricao: "HD 6TB para NVR", preco: 620.00 },
-    { descricao: "HD 8TB para NVR", preco: 780.00 },
-  ];
-  const cabecamento = [
-    { descricao: "Cabo UTP Cat6 305m Furukawa Sohoplus Azul", preco: 1290.00 },
-    { descricao: "Cabo UTP Cat6 305m Furukawa Sohoplus Branco", preco: 1290.00 },
-    { descricao: "Cabo UTP Cat6 305m Intelbras Impact Giga Azul", preco: 1350.00 },
-    { descricao: "Cabo UTP Cat5e 305m Furukawa Sohoplus Azul", preco: 880.00 },
-    { descricao: "Patch cord Cat6 1.0m", preco: 15.00 },
-    { descricao: "Patch cord Cat6 2.0m", preco: 22.00 },
-    { descricao: "Patch cord Cat6 3.0m", preco: 28.00 },
-    { descricao: "Patch cord Cat6 5.0m", preco: 38.00 },
-    { descricao: "Patch panel 24 portas Cat6", preco: 320.00 },
-    { descricao: "Patch panel 48 portas Cat6", preco: 520.00 },
-    { descricao: "Keystone Cat6 branco", preco: 15.00 },
-    { descricao: "Keystone Cat6 azul", preco: 18.00 },
-    { descricao: "Keystone blindado Cat6", preco: 25.00 },
-    { descricao: "Conector RJ45 Cat6", preco: 2.50 },
-    { descricao: "BOX keystone 1 posto", preco: 8.00 },
-    { descricao: "BOX keystone 2 posto", preco: 12.00 },
-    { descricao: "Tubo conduíte 3/4\" (3m)", preco: 35.00 },
-    { descricao: "Eletroduto PVC 3/4\" (3m)", preco: 28.00 },
-    { descricao: "Caixa de passar 4x2", preco: 8.00 },
-  ];
-  const maoDeObra = [
-    { descricao: "Instalação câmera IP/Analógica", preco: 120.00 },
-    { descricao: "Instalação NVR/DVR", preco: 180.00 },
-    { descricao: "Instalação câmera Speed Dome", preco: 250.00 },
-    { descricao: "Configuração NVR completo", preco: 200.00 },
-    { descricao: "Configuração câmeras remotas", preco: 80.00 },
-    { descricao: "Instalação switch PoE", preco: 100.00 },
-    { descricao: "Instalação access point", preco: 90.00 },
-    { descricao: "Configuração Wi-Fi mesh", preco: 120.00 },
-    { descricao: "Lançamento ponto de rede Cat6", preco: 120.00 },
-    { descricao: "Lançamento ponto de rede Cat5e", preco: 90.00 },
-    { descricao: "Passagem de cabo de rede (metro)", preco: 5.00 },
-    { descricao: "Conexão keystone", preco: 18.00 },
-    { descricao: "Conexão RJ45", preco: 25.00 },
-    { descricao: "Terminação patch panel (porta)", preco: 15.00 },
-    { descricao: "Certificação rede Fluke (ponto)", preco: 38.00 },
-    { descricao: "Organização rack", preco: 150.00 },
-    { descricao: "Instalação poste/mastro", preco: 180.00 },
-    { descricao: "Serviço técnico / hora", preco: 120.00 },
-    { descricao: "Programação do sistema", preco: 250.00 },
-    { descricao: "Manutenção preventiva", preco: 180.00 },
-    { descricao: "Viabilidade técnica", preco: 100.00 },
-    { descricao: "Instalação câmera Wi-Fi", preco: 100.00 },
-    { descricao: "Configuração acesso remoto (DDNS)", preco: 100.00 },
-    { descricao: "Setup inicial NVR + câmeras", preco: 280.00 },
-    { descricao: "Instalação disco NVR", preco: 100.00 },
-    { descricao: "Teste e entrega do sistema", preco: 150.00 },
-    { descricao: "Elaboração de projeto CFTV", preco: 350.00 },
-    { descricao: "Remoção de equipamento existente", preco: 80.00 },
-    { descricao: "Instalação Kit 04 canais CFTV", preco: 700.00 },
-    { descricao: "Instalação Kit 08 canais CFTV", preco: 1200.00 },
-    { descricao: "Instalação Kit 16 canais CFTV", preco: 2150.00 },
-    { descricao: "Infraestrutura eletroduto (metro)", preco: 8.00 },
-    { descricao: "Infraestrutura calha (metro)", preco: 32.00 },
-    { descricao: "Furação alvenaria/concreto", preco: 12.00 },
-    { descricao: "Chaveamento elétrico", preco: 250.00 },
-    { descricao: "Aterramento do sistema", preco: 180.00 },
-  ];
-
+  const CAT_DISPLAY = {}; // preenchido via API
+  let catalogoAPI = {};   // { categoria: [{descricao, preco, garantia}] }
+  let configEmpresa = {};
   let categoriaCount = 0;
   let clientesDB = [];
+
+  // ── Carregar config + catálogo da API ──────────────────────────────────────
+  async function carregarConfigECatalogo() {
+    try {
+      const [cfgResp, catResp] = await Promise.all([
+        fetch('/api/config'),
+        fetch('/api/catalogo'),
+      ]);
+      configEmpresa = await cfgResp.json();
+      catalogoAPI = await catResp.json();
+
+      const nome = configEmpresa.empresa_nome || 'Gerador de Orçamentos';
+      document.getElementById('nav-empresa').textContent = nome;
+      if (configEmpresa.cor_primaria) {
+        document.getElementById('nav').style.backgroundColor = configEmpresa.cor_primaria;
+      }
+    } catch(e) { console.warn('Erro ao carregar config/catálogo:', e); }
+  }
 
   // ── Clientes anteriores ──────────────────────────────────────────────────
   async function carregarClientes() {
@@ -385,12 +288,8 @@
     } catch(e) { console.error(e); }
   }
 
-  // ── Observações ──────────────────────────────────────────────────────────
-  const OBS_DEFAULT = [
-    "Instalação: mediante orçamento adicional",
-    "Garantia: fabricante (equipamentos) + 12 meses (mão de obra)",
-    "Suporte pós-venda: 30 dias após a conclusão dos serviços",
-  ];
+  // ── Observações ──────────────────────────────────────────────────────────────
+  // OBS_DEFAULT é carregado via API (configEmpresa.obs_padrao)
 
   function adicionarObs(texto = '') {
     const container = document.getElementById('obs-container');
@@ -425,12 +324,10 @@
       <div class="flex items-center gap-3 mb-4 flex-wrap">
         <select id="cat-tipo-${id}" onchange="mudouTipoCategoria(${id})"
           class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-          <option value="">-- Selecione o Tipo --</option>
-          <option value="CAMERAS">CÂMERAS</option>
-          <option value="NVR">GRAVADORES NVR</option>
-          <option value="REDE">EQUIPAMENTOS DE REDE</option>
-          <option value="CABEAMENTO">CABEAMENTO</option>
-          <option value="MAO_DE_OBRA">MÃO DE OBRA</option>
+          <option value="">-- Selecione a Categoria --</option>
+          ${Object.keys(catalogoAPI).sort().map(cat =>
+            `<option value="${cat}">${cat}</option>`
+          ).join('')}
           <option value="PERSONALIZADO">PERSONALIZADO</option>
         </select>
         <input type="text" placeholder="Nome da Categoria"
@@ -515,10 +412,10 @@
 
   function adicionarItem(catId) {
     const tipo = document.getElementById(`cat-tipo-${catId}`)?.value;
-    if (!tipo) { alert('Selecione primeiro o tipo da categoria!'); return; }
-    const lista = {CAMERAS:cameras,NVR:nvr,REDE:rede,CABEAMENTO:cabecamento,MAO_DE_OBRA:maoDeObra}[tipo] || [];
+    if (!tipo) { alert('Selecione primeiro a categoria!'); return; }
+    const lista = tipo === 'PERSONALIZADO' ? [] : (catalogoAPI[tipo] || []);
     const options = lista.map((item,i) =>
-      `<option value="${i}" data-preco="${item.preco}" data-desc="${item.descricao}">${item.descricao}</option>`
+      `<option value="${i}" data-preco="${item.preco}" data-desc="${item.descricao}" data-gar="${item.garantia||'12 Meses'}">${item.descricao}</option>`
     ).join('');
     const rowId = Date.now() + Math.random();
     const tr = document.createElement('tr');
@@ -590,8 +487,12 @@
 
   function mudouItem(rowId, catId) {
     const sel = document.getElementById(`desc-${rowId}`);
+    const opt = sel.options[sel.selectedIndex];
     document.getElementById(`vun-${rowId}`).value =
-      parseFloat(sel.options[sel.selectedIndex]?.dataset?.preco || 0).toFixed(2);
+      parseFloat(opt?.dataset?.preco || 0).toFixed(2);
+    // Preenche garantia do catálogo se disponível
+    const gar = opt?.dataset?.gar;
+    if (gar) document.getElementById(`gar-${rowId}`).value = gar;
     calcularLinha(rowId);
   }
 
@@ -713,13 +614,15 @@
 
     const tel = (dados.cliente_telefone || '').replace(/\D/g,'');
     const num = tel ? (tel.startsWith('55') ? tel : '55' + tel) : '';
+    const empresaNome = configEmpresa.empresa_nome || 'nossa empresa';
+    const empresaTel = configEmpresa.empresa_telefone || '';
+    const assinatura = empresaTel ? `\n\nAtenciosamente,\n${empresaNome} — ${empresaTel}` : `\n\nAtenciosamente,\n${empresaNome}`;
     const msg = encodeURIComponent(
       `Olá ${dados.cliente_contato}! Segue nossa proposta comercial:\n\n` +
       `*Orçamento Nº:* ${orc.numero}\n` +
       `*Valor Total:* ${moeda(total)}\n\n` +
       `Acesse a proposta interativa para visualização e aceite digital pelo link abaixo:\n` +
-      `${publicUrl}\n\n` +
-      `Em caso de dúvidas, estamos à disposição.\n\nAtenciosamente,\nRC Suporte — (11) 95653-4963`
+      `${publicUrl}${assinatura}`
     );
     document.getElementById('btn-whatsapp').href =
       num ? `https://wa.me/${num}?text=${msg}` : `https://wa.me/?text=${msg}`;
@@ -749,18 +652,26 @@
     document.getElementById('btn-gerar').disabled = false;
   }
 
-  // ── Init ─────────────────────────────────────────────────────────────────
-  carregarClientes();
-  OBS_DEFAULT.forEach(txt => adicionarObs(txt));
-  adicionarCategoria();
+  // Init: espera a config carregar para popular obs e categoria
+  carregarConfigECatalogo().then(() => {
+    const obs = configEmpresa.obs_padrao || [
+      "Instalação: mediante orçamento adicional",
+      "Garantia: fabricante (equipamentos) + 12 meses (mão de obra)",
+      "Suporte pós-venda: 30 dias após a conclusão dos serviços",
+    ];
+    obs.forEach(txt => adicionarObs(txt));
+    adicionarCategoria();
 
-  const fromId = new URLSearchParams(window.location.search).get('from');
-  if (fromId) {
-    document.getElementById('obs-container').innerHTML = '';
-    document.getElementById('categorias-container').innerHTML = '';
-    categoriaCount = 0;
-    carregarOrcamento(fromId);
-  }
+    const fromId = new URLSearchParams(window.location.search).get('from');
+    if (fromId) {
+      document.getElementById('obs-container').innerHTML = '';
+      document.getElementById('categorias-container').innerHTML = '';
+      categoriaCount = 0;
+      carregarOrcamento(fromId);
+    }
+  });
+  carregarClientes();
+
 </script>
 </body>
 </html>

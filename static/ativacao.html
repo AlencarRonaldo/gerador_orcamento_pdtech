@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ativação de Licença</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body { font-family: 'Inter', sans-serif; }</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+
+<div class="bg-white rounded-2xl shadow-xl p-10 max-w-md w-full mx-4">
+  <div class="text-center mb-8">
+    <div class="text-5xl mb-3">🔑</div>
+    <h1 class="text-2xl font-bold text-gray-800">Ativação do Sistema</h1>
+    <p class="text-gray-500 text-sm mt-2">Digite o CNPJ da sua empresa e a chave de licença fornecida pelo vendedor.</p>
+  </div>
+
+  <div class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">CNPJ da Empresa</label>
+      <input id="cnpj" type="text" placeholder="00.000.000/0001-00"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1">Chave de Licença</label>
+      <input id="chave" type="text" placeholder="Cole a chave recebida aqui"
+        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+    </div>
+
+    <div id="erro" class="hidden text-red-500 text-sm text-center"></div>
+    <div id="sucesso" class="hidden text-green-600 text-sm text-center font-semibold"></div>
+
+    <button onclick="ativar()" id="btn-ativar"
+      class="w-full bg-[#0097b2] text-white font-semibold py-3 rounded-lg hover:bg-[#007d96] transition mt-2">
+      Ativar Sistema
+    </button>
+  </div>
+</div>
+
+<script>
+  // Verifica se já está ativado ao carregar
+  fetch('/api/licenca/status')
+    .then(r => r.json())
+    .then(d => {
+      if (d.ativada) window.location.href = '/login.html';
+    })
+    .catch(() => {});
+
+  async function ativar() {
+    const cnpj = document.getElementById('cnpj').value.trim();
+    const chave = document.getElementById('chave').value.trim();
+    const erro = document.getElementById('erro');
+    const sucesso = document.getElementById('sucesso');
+    const btn = document.getElementById('btn-ativar');
+    erro.classList.add('hidden');
+    sucesso.classList.add('hidden');
+
+    if (!cnpj || !chave) {
+      erro.textContent = 'Preencha o CNPJ e a chave de licença.';
+      erro.classList.remove('hidden');
+      return;
+    }
+
+    btn.textContent = 'Validando...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/licenca/ativar', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ cnpj, chave }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.detail || 'Chave inválida');
+      }
+      sucesso.textContent = '✅ Sistema ativado com sucesso! Redirecionando...';
+      sucesso.classList.remove('hidden');
+      setTimeout(() => { window.location.href = '/login.html'; }, 1500);
+    } catch(e) {
+      erro.textContent = e.message;
+      erro.classList.remove('hidden');
+      btn.textContent = 'Ativar Sistema';
+      btn.disabled = false;
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') ativar();
+  });
+</script>
+</body>
+</html>

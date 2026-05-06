@@ -17,7 +17,7 @@ def get_db():
 
 
 def create_tables():
-    from models import Orcamento, Categoria, Item
+    from models import Orcamento, Categoria, Item, ConfigEmpresa, CatalogoItem
     Base.metadata.create_all(bind=engine)
     migrations = [
         "ALTER TABLE orcamentos ADD COLUMN cliente_cnpj TEXT",
@@ -31,6 +31,10 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN aceito_em DATETIME",
         "ALTER TABLE orcamentos ADD COLUMN aceito_ip TEXT",
         "ALTER TABLE orcamentos ADD COLUMN assinatura_nome TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN session_token TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN licenca_chave TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN licenca_ativa BOOLEAN DEFAULT 0",
+        "ALTER TABLE config_empresa ADD COLUMN numero_base INTEGER DEFAULT 0",
     ]
     with engine.connect() as conn:
         for sql in migrations:
