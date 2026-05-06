@@ -3,131 +3,173 @@
 <head>
   <meta charset="UTF-8">
   <title>Orçamento {{ orcamento.numero }}</title>
+  <style>
+    {% include 'pdf.css' %}
+  </style>
 </head>
 <body>
 
-  <!-- Cabeçalho correndo em todas as páginas -->
-  <header class="page-header">
-    <img src="data:image/png;base64,{{ logo_b64 }}" alt="RC Suporte Logo">
-    <div class="company-name">RC SUPORTE INFORMÁTICA E TELECOM</div>
-  </header>
-
-  <!-- Rodapé correndo em todas as páginas -->
-  <footer class="page-footer">
-    RCSUPORTE E TELECOM &nbsp;|&nbsp; CNPJ: 43.260.654/0001-67 &nbsp;|&nbsp;
-    São Bernardo do Campo – SP &nbsp;|&nbsp; Tel: (11) 95653-4963 &nbsp;|&nbsp;
-    contato@rcsuporte.tec.br
-  </footer>
-
-  <!-- ── PÁGINA 1: Apresentação ── -->
-  <div class="data-linha">{{ data_formatada }}</div>
-
-  <div class="bloco-cliente">
-    <p><strong>A</strong></p>
-    <p><strong>{{ orcamento.cliente_nome }}</strong></p>
-    <p>A/C. {{ orcamento.cliente_contato }}</p>
-    <p>{{ orcamento.cliente_endereco }}</p>
+<!-- Meta: Número + Data -->
+<div class="meta-bar">
+  <div class="orc-numero-wrap">
+    <span class="orc-label">Orçamento Nº</span>
+    <span class="orc-badge">{{ orcamento.numero }}</span>
   </div>
+  <div class="orc-data">{{ data_formatada }}</div>
+</div>
 
-  <p class="prezados">Prezados,</p>
+<!-- Dados do Cliente -->
+<div class="section no-break">
+  <h2>Dados do Cliente</h2>
+  <table class="client-table">
+    <tr>
+      <td style="width:55%"><strong>Empresa:</strong> {{ orcamento.cliente_nome }}</td>
+      <td><strong>A/C (Contato):</strong> {{ orcamento.cliente_contato }}</td>
+    </tr>
+    {% if orcamento.cliente_cnpj or orcamento.cliente_telefone %}
+    <tr>
+      <td>{% if orcamento.cliente_cnpj %}<strong>CNPJ:</strong> {{ orcamento.cliente_cnpj }}{% endif %}</td>
+      <td>{% if orcamento.cliente_telefone %}<strong>Tel:</strong> {{ orcamento.cliente_telefone }}{% endif %}</td>
+    </tr>
+    {% endif %}
+    <tr>
+      <td colspan="2"><strong>Endereço:</strong> {{ orcamento.cliente_endereco }}</td>
+    </tr>
+    {% if orcamento.cliente_email %}
+    <tr>
+      <td colspan="2"><strong>E-mail:</strong> {{ orcamento.cliente_email }}</td>
+    </tr>
+    {% endif %}
+  </table>
+</div>
 
-  <p class="prezados">
-    A RCSUPORTE agradece a oportunidade de poder participar do processo de cotação
-    de materiais para sua empresa, estamos contentes com essa oportunidade.
+<!-- Carta de Apresentação -->
+<div class="section">
+  {% if orcamento.descricao_intro %}
+  <p class="intro-ref"><strong>Ref.:</strong> {{ orcamento.descricao_intro }}</p>
+  {% endif %}
+  <p class="intro-text">Prezados Senhores,</p>
+  <p class="intro-text">
+    A <strong>RC SUPORTE</strong> agradece a oportunidade de apresentar nossa proposta comercial.
   </p>
-
-  <h2>Quem Somos</h2>
-  <div class="quem-somos">
-    <p>
-      A RCSUPORTE E TELECOM é uma empresa nova mas colaboradores com mais de 10 anos de mercado,
-      com sede em São Bernardo do Campo – SP, atuando nas áreas de TI / Telecom,
-      Infraestrutura de TI, Suporte Técnico,лённые outras atividades a fim.
-      Possuímos amplo balizador operacional que ajuda o cliente nas demandas mais complexas
-      de infraestrutura e outras adequações. Contamos com um quadro de funcionários e de
-      colaboradores altamente técnicos e devidamente certificados pelos principais fabricantes
-      do mercado. Nossos principais fornecedores são revendas autorizadas, tais como:
-    </p>
-    <p class="parceiros">Lenovo &nbsp;|&nbsp; Microsoft &nbsp;|&nbsp; Dell &nbsp;|&nbsp;
-      Furukawa &nbsp;|&nbsp; Panasonic &nbsp;|&nbsp; Intelbras &nbsp;|&nbsp;
-      IBM &nbsp;|&nbsp; Cisco
-    </p>
-  </div>
-
-  <!-- ── PÁGINA 2+: Proposta ── -->
-  <h2>Proposta</h2>
-  <p class="prezados">
-    Cientes da não obrigatoriedade a aceitar qualquer proposta recebida, aguardamos retorno
-    e nos colocamos à disposição para maiores esclarecimentos.
+  <p class="intro-text">
+    Nosso objetivo é oferecer a melhor solução em infraestrutura de redes, TI e segurança eletrônica, com qualidade e preço justo.
   </p>
-  <p class="prezados">
-    Venho por meio deste, apresentar nosso memorial descritivo para {{ orcamento.descricao_intro }}:
-  </p>
+</div>
 
-  <!-- Categorias e Tabelas -->
-  {% for categoria in orcamento.categorias %}
-    <div class="categoria-titulo">{{ categoria.titulo }}</div>
-    <table class="itens">
-      <thead>
-        <tr>
-          <th style="width:10%">Garantia</th>
-          <th class="col-desc" style="width:48%">Descrição</th>
-          <th class="col-num" style="width:7%">Qtd</th>
-          <th class="col-val" style="width:17%">Valor Unitário</th>
-          <th class="col-val" style="width:18%">Valor Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for item in categoria.itens %}
-        <tr>
-          <td class="col-num">{{ item.garantia }}</td>
-          <td class="col-desc">{{ item.descricao }}</td>
-          <td class="col-num">{{ item.quantidade }}</td>
-          <td class="col-val">{{ item.valor_unitario | moeda }}</td>
-          <td class="col-val">{{ item.valor_total | moeda }}</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  {% endfor %}
+<!-- Diferenciais -->
+<div class="diferenciais no-break">
+  <div class="diferenciais-title">Nossos Diferenciais:</div>
+  <div class="diferenciais-items">Profissional certificado &nbsp;&nbsp;|&nbsp;&nbsp; Suporte pós-obra &nbsp;&nbsp;|&nbsp;&nbsp; Garantia de 12 meses &nbsp;&nbsp;|&nbsp;&nbsp; +10 anos no mercado</div>
+</div>
 
-  <div class="valor-total-geral">
-    VALOR TOTAL &nbsp;&nbsp; {{ valor_total_geral | moeda }}
-  </div>
+<div class="company-stamp">
+  <strong>RC SUPORTE:</strong> Redes, TI e Segurança Eletrônica &nbsp;|&nbsp; ABC Paulista – Grande São Paulo
+</div>
 
-  <p class="prezados">A presente proposta é para os materiais mencionados acima.</p>
+<!-- Proposta Comercial -->
+<h2>Proposta Comercial</h2>
 
-  <!-- Investimento -->
-  <h2>Investimento</h2>
-  <table class="investimento">
+{% for cat in categorias_processadas %}
+<div class="no-break">
+  <div class="categoria-header">{{ cat.titulo_display }}</div>
+  <table class="itens">
     <thead>
       <tr>
-        <th>Recursos</th>
-        <th>Pagamento</th>
-        <th>Valor</th>
+        <th style="width:72px;">Garantia</th>
+        <th class="th-desc">Descrição</th>
+        <th style="width:36px;">Qtd</th>
+        <th style="width:82px;">Vl. Unit.</th>
+        <th style="width:90px;">Vl. Total</th>
       </tr>
     </thead>
     <tbody>
-      {% for categoria in orcamento.categorias %}
-        {% set subtotal = namespace(val=0) %}
-        {% for item in categoria.itens %}{% set subtotal.val = subtotal.val + item.valor_total %}{% endfor %}
+      {% for item in cat.itens %}
       <tr>
-        <td>{{ categoria.titulo }}</td>
-        <td>Em {{ orcamento.condicao_pagto }}</td>
-        <td class="col-valor">{{ subtotal.val | moeda }}</td>
+        <td class="td-center">{{ item.garantia }}</td>
+        <td>{{ item.descricao }}</td>
+        <td class="td-center">{{ item.quantidade }}</td>
+        <td class="td-right">{{ item.valor_unitario | moeda }}</td>
+        <td class="td-right td-bold">{{ item.valor_total | moeda }}</td>
       </tr>
       {% endfor %}
+      {% if multiplas_categorias %}
+      <tr class="subtotal-row">
+        <td colspan="4" class="td-right">Subtotal {{ cat.titulo_display }}:</td>
+        <td class="td-right">{{ cat.subtotal | moeda }}</td>
+      </tr>
+      {% endif %}
     </tbody>
   </table>
+</div>
+{% endfor %}
 
-  <!-- Faturamento -->
-  <h2>Faturamento e Pagamento</h2>
-  <div class="faturamento">
-    <p>
-      A RC SUPORTE se compromete a entregar a Nota Fiscal na entrega dos equipamentos
-      em até 7 dias após a aprovação, junto com o boleto para pagamento conforme acordado.
-      Faturamos em até {{ orcamento.condicao_pagto }}.
-    </p>
+<!-- Total Geral -->
+<div class="total-geral">
+  <div class="total-box">TOTAL GERAL:&nbsp; {{ valor_total_geral | moeda }}</div>
+</div>
+
+<!-- Condições de Pagamento -->
+<div class="section no-break">
+  <h2>Condições de Pagamento</h2>
+  <div class="payment-grid">
+    <div class="payment-option">
+      <div class="payment-option-label">Opção 1</div>
+      50% de entrada + 50% em 30 dias
+    </div>
+    <div class="payment-option">
+      <div class="payment-option-label">Opção 2</div>
+      100% via faturamento em {{ orcamento.condicao_pagto }}
+    </div>
+    <div class="payment-option">
+      <div class="payment-option-label">Opção 3 &#9733; À vista</div>
+      Desconto de 5% no valor total
+    </div>
   </div>
+  <div class="payment-info">Emissão de NF: até 7 dias após aprovação &nbsp;|&nbsp; Pagamento via Boleto, TED ou PIX</div>
+</div>
+
+<!-- Prazo de Entrega -->
+<div class="section no-break">
+  <h2>Prazo de Entrega</h2>
+  <div class="delivery-grid">
+    <div class="delivery-item">
+      <div class="delivery-label">Equipamentos</div>
+      5 a 10 dias úteis após confirmação do pedido
+    </div>
+    <div class="delivery-item">
+      <div class="delivery-label">Instalação</div>
+      Mediante agendamento após entrega dos equipamentos
+    </div>
+  </div>
+</div>
+
+<!-- Observações -->
+<div class="section no-break">
+  <h2>Observações</h2>
+  <ul class="obs-list">
+    <li>Validade da proposta: até <strong>{{ validade_formatada }}</strong></li>
+    <li>Instalação: mediante orçamento adicional</li>
+    <li>Garantia: fabricante (equipamentos) + 12 meses (mão de obra)</li>
+    <li>Suporte pós-venda: 30 dias após a conclusão dos serviços</li>
+  </ul>
+</div>
+
+<!-- Assinatura -->
+<div class="signature-grid">
+  <div class="signature-block">
+    <div class="signature-space"></div>
+    <div class="signature-line"></div>
+    <div class="signature-name">RC SUPORTE INFORMÁTICA E TELECOM</div>
+    <div class="signature-label">contato@rcsuporte.tec.br &nbsp;|&nbsp; (11) 95653-4963</div>
+  </div>
+  <div class="signature-block">
+    <div class="signature-space"></div>
+    <div class="signature-line"></div>
+    <div class="signature-name">{{ orcamento.cliente_nome }}</div>
+    <div class="signature-label">Aprovação do Cliente</div>
+  </div>
+</div>
 
 </body>
 </html>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 * {
   box-sizing: border-box;
@@ -7,185 +7,297 @@
 }
 
 body {
-  font-family: 'Open Sans', Arial, sans-serif;
-  font-size: 10pt;
-  color: #222;
-  line-height: 1.4;
+  font-family: 'Inter', Arial, sans-serif;
+  font-size: 9.5pt;
+  color: #1a1a2e;
+  line-height: 1.5;
 }
 
-@page {
-  size: A4;
-  margin: 28mm 15mm 28mm 15mm;
+/* ── Meta bar: Nº + Data ── */
+.meta-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #d0eaf0;
 }
 
-.page-header {
-  width: 100%;
-  border-bottom: 2px solid #0097b2;
-  padding-bottom: 6px;
+.orc-numero-wrap {
   display: flex;
   align-items: center;
-  gap: 12px;
-  position: running(page-header);
+  gap: 8px;
 }
 
-.page-header img {
-  height: 48px;
-  width: auto;
+.orc-label {
+  font-size: 8.5pt;
+  color: #777;
+  font-weight: 500;
 }
 
-.page-header .company-name {
-  font-size: 11pt;
+.orc-badge {
+  background: #0097b2;
+  color: #fff;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-size: 9pt;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.orc-data {
+  font-size: 8.5pt;
+  color: #555;
+}
+
+/* ── Seções ── */
+.section {
+  margin-bottom: 16px;
+}
+
+h2 {
+  font-size: 9.5pt;
   font-weight: 700;
   color: #0097b2;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border-bottom: 1.5px solid #0097b2;
+  padding-bottom: 3px;
+  margin-bottom: 10px;
 }
 
-.page-footer {
+/* ── Dados do Cliente ── */
+.client-table {
   width: 100%;
-  border-top: 1px solid #0097b2;
-  padding-top: 5px;
-  text-align: center;
-  font-size: 8pt;
-  color: #555;
-  position: running(page-footer);
+  border-collapse: collapse;
 }
 
-.data-linha {
-  text-align: right;
+.client-table td {
+  padding: 3px 4px;
+  font-size: 9pt;
+  vertical-align: top;
+  border: none;
+}
+
+/* ── Texto de apresentação ── */
+.intro-ref {
+  font-size: 9pt;
+  color: #444;
+  margin-bottom: 10px;
+  padding: 4px 8px;
+  border-left: 3px solid #c0dde3;
+  background: #f9fdfe;
+}
+
+.intro-text {
   font-size: 9.5pt;
-  margin-bottom: 18px;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* ── Diferenciais ── */
+.diferenciais {
+  background: #e8f7fa;
+  border-left: 3px solid #0097b2;
+  padding: 7px 12px;
+  margin-bottom: 10px;
+  border-radius: 0 4px 4px 0;
+}
+
+.diferenciais-title {
+  font-weight: 700;
+  color: #0097b2;
+  font-size: 9pt;
+  margin-bottom: 2px;
+}
+
+.diferenciais-items {
+  font-size: 9pt;
   color: #333;
 }
 
-.bloco-cliente {
-  margin-bottom: 16px;
-}
-
-.bloco-cliente p {
-  margin: 2px 0;
-}
-
-.prezados {
+/* ── Rodapé da empresa ── */
+.company-stamp {
+  font-size: 8.5pt;
+  color: #666;
+  font-weight: 500;
   margin-bottom: 14px;
 }
 
-h2 {
-  font-size: 11pt;
-  color: #0097b2;
-  border-bottom: 1px solid #0097b2;
-  padding-bottom: 3px;
-  margin: 18px 0 8px;
-}
-
-.quem-somos p {
-  text-align: justify;
-  margin-bottom: 8px;
-}
-
-.parceiros {
-  font-weight: 600;
-  color: #0097b2;
-}
-
-.categoria-titulo {
-  font-size: 10.5pt;
-  font-weight: 700;
+/* ── Tabela de itens ── */
+.categoria-header {
   background: #0097b2;
   color: #fff;
   padding: 5px 8px;
-  margin: 16px 0 0;
+  font-size: 9.5pt;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
+  break-after: avoid;
 }
 
 table.itens {
   width: 100%;
   border-collapse: collapse;
-  margin-bottom: 4px;
+  break-inside: avoid;
 }
 
 table.itens thead th {
-  background: #e8f7fa;
+  background: #f0f9fc;
   color: #0097b2;
-  font-weight: 700;
-  font-size: 9pt;
-  padding: 5px 6px;
+  font-weight: 600;
+  font-size: 8.5pt;
+  padding: 4px 6px;
   border: 1px solid #c0dde3;
   text-align: center;
 }
 
-table.itens thead th.col-desc {
+table.itens thead th.th-desc {
   text-align: left;
 }
 
 table.itens tbody td {
-  padding: 5px 6px;
-  border: 1px solid #ddd;
-  font-size: 9pt;
-  vertical-align: top;
+  padding: 3px 6px;
+  border: 1px solid #e8e8e8;
+  font-size: 8.5pt;
+  vertical-align: middle;
 }
 
-table.itens tbody td.col-desc {
-  text-align: left;
-}
-
-table.itens tbody td.col-num {
-  text-align: center;
-}
-
-table.itens tbody td.col-val {
-  text-align: right;
-  white-space: nowrap;
-}
-
-table.itens tbody tr:nth-child(even) {
+table.itens tbody tr:nth-child(even) td {
   background: #f9fdfe;
 }
 
-.subtotal-row {
-  font-weight: 600;
-  background: #f0f9fc;
-}
+.td-center { text-align: center; }
+.td-right  { text-align: right; white-space: nowrap; }
+.td-bold   { font-weight: 600; }
 
-.valor-total-geral {
-  text-align: right;
-  font-size: 11pt;
+/* ── Linha de subtotal ── */
+.subtotal-row td {
+  background: #ddf0f5 !important;
   font-weight: 700;
-  color: #0097b2;
-  margin: 10px 0 18px;
-  padding: 6px 8px;
-  border: 1.5px solid #0097b2;
-  background: #e8f7fa;
+  color: #005f73;
+  font-size: 8.5pt;
+  border-top: 1.5px solid #0097b2 !important;
 }
 
-table.investimento {
-  width: 100%;
-  border-collapse: collapse;
+/* ── Total Geral ── */
+.total-geral {
+  text-align: right;
+  margin: 14px 0 18px;
+}
+
+.total-box {
+  display: inline-block;
+  background: #0097b2;
+  color: #fff;
+  padding: 8px 18px;
+  font-size: 12pt;
+  font-weight: 700;
+  border-radius: 4px;
+  letter-spacing: 0.3px;
+}
+
+/* ── Condições de Pagamento ── */
+.payment-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
   margin-bottom: 8px;
 }
 
-table.investimento th {
-  background: #0097b2;
-  color: #fff;
-  font-size: 9.5pt;
-  padding: 5px 8px;
-  text-align: left;
-  border: 1px solid #007d96;
+.payment-option {
+  background: #f8f9fa;
+  border: 1px solid #dde8ea;
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 8.5pt;
 }
 
-table.investimento td {
-  padding: 5px 8px;
-  border: 1px solid #c0dde3;
-  font-size: 9.5pt;
-}
-
-table.investimento td.col-valor {
+.payment-option-label {
   font-weight: 700;
-  text-align: right;
-  white-space: nowrap;
+  color: #0097b2;
+  font-size: 8pt;
+  margin-bottom: 3px;
 }
 
-.faturamento p {
-  text-align: justify;
+.payment-info {
+  font-size: 8pt;
+  color: #666;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* ── Prazo de Entrega ── */
+.delivery-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.delivery-item {
+  font-size: 9pt;
+}
+
+.delivery-label {
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 2px;
+}
+
+/* ── Observações ── */
+.obs-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.obs-list li {
+  font-size: 9pt;
+  padding: 2px 0 2px 14px;
+  position: relative;
+}
+
+.obs-list li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: #0097b2;
+  font-weight: 700;
+}
+
+/* ── Assinatura ── */
+.signature-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  margin-top: 44px;
+}
+
+.signature-block {
+  text-align: center;
+}
+
+.signature-space {
+  height: 48px;
+}
+
+.signature-line {
+  border-top: 1px solid #333;
+  margin-bottom: 6px;
+}
+
+.signature-name {
+  font-weight: 700;
+  font-size: 9pt;
+}
+
+.signature-label {
+  font-size: 8pt;
+  color: #666;
+}
+
+/* ── Controle de quebra ── */
+.no-break {
+  break-inside: avoid;
 }

@@ -13,40 +13,69 @@
     <a href="/historico.html" class="text-sm underline hover:text-blue-100">Ver Histórico →</a>
   </nav>
 
-  <main class="max-w-4xl mx-auto p-6">
+  <main class="max-w-6xl mx-auto p-6">
     <h1 class="text-2xl font-bold text-gray-700 mb-6">Novo Orçamento</h1>
 
+    <!-- Dados do Cliente -->
     <section class="bg-white rounded-xl shadow p-6 mb-6">
       <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">Dados do Cliente</h2>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Nome da Empresa</label>
-          <input id="cliente_nome" type="text" placeholder="Ex: Complexo de Saude"
+          <label class="block text-sm font-medium text-gray-600 mb-1">Nome da Empresa <span class="text-red-500">*</span></label>
+          <input id="cliente_nome" type="text" placeholder="Ex: Hospital Ipiranga"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
         </div>
         <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">A/C (Contato)</label>
+          <label class="block text-sm font-medium text-gray-600 mb-1">A/C (Contato) <span class="text-red-500">*</span></label>
           <input id="cliente_contato" type="text" placeholder="Ex: Sr. Eduardo Nobuo"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
         </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">CNPJ / CPF</label>
+          <input id="cliente_cnpj" type="text" placeholder="Ex: 12.345.678/0001-90"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Telefone</label>
+          <input id="cliente_telefone" type="text" placeholder="Ex: (11) 98765-4321"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
         <div class="md:col-span-2">
-          <label class="block text-sm font-medium text-gray-600 mb-1">Endereço</label>
-          <input id="cliente_endereco" type="text" placeholder="Ex: Centro – São Bernardo do Campo - SP"
+          <label class="block text-sm font-medium text-gray-600 mb-1">Endereço <span class="text-red-500">*</span></label>
+          <input id="cliente_endereco" type="text" placeholder="Ex: R. da Bica, 120 – São Bernardo do Campo - SP"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Condição de Pagamento</label>
-          <input id="condicao_pagto" type="text" value="até 28 dias"
-            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-600 mb-1">Descrição do Orçamento</label>
-          <input id="descricao_intro" type="text" placeholder="Ex: orçamento de 15 cameras Intelbras"
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-600 mb-1">E-mail</label>
+          <input id="cliente_email" type="email" placeholder="Ex: contato@empresa.com.br"
             class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
         </div>
       </div>
     </section>
 
+    <!-- Dados da Proposta -->
+    <section class="bg-white rounded-xl shadow p-6 mb-6">
+      <h2 class="text-base font-semibold text-[#0097b2] uppercase mb-4">Dados da Proposta</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-600 mb-1">Descrição do Orçamento</label>
+          <input id="descricao_intro" type="text" placeholder="Ex: instalação de câmeras IP e cabeamento Cat6"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Condição de Pagamento (Opção 2)</label>
+          <input id="condicao_pagto" type="text" value="até 28 dias"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">Validade da Proposta (dias)</label>
+          <input id="validade_dias" type="number" value="7" min="1" max="60"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+        </div>
+      </div>
+    </section>
+
+    <!-- Itens -->
     <section class="mb-6">
       <div class="flex items-center justify-between mb-3">
         <h2 class="text-base font-semibold text-[#0097b2] uppercase">Itens do Orçamento</h2>
@@ -58,12 +87,13 @@
       <div id="categorias-container"></div>
     </section>
 
-    <div id="total-geral" class="bg-[#e8f7fa] border border-[#0097b2] rounded-lg p-4 mb-6 text-right hidden">
-      <span class="font-bold text-[#0097b2] text-lg">VALOR TOTAL GERAL: </span>
-      <span id="total-valor" class="font-bold text-gray-800 text-lg"></span>
+    <!-- Total -->
+    <div id="total-geral" class="bg-[#0097b2] rounded-lg p-4 mb-6 text-right hidden">
+      <span class="font-bold text-white text-lg">VALOR TOTAL GERAL: </span>
+      <span id="total-valor" class="font-bold text-white text-lg"></span>
     </div>
 
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-3">
       <button onclick="salvarEGerarPDF()"
         class="bg-green-600 text-white font-semibold px-8 py-3 rounded-xl hover:bg-green-700 transition shadow">
         Salvar e Gerar PDF
@@ -72,6 +102,144 @@
   </main>
 
   <script>
+    // === CÂMERAS Intelbras ===
+    const cameras = [
+      { descricao: "CAM IP VIP 1230 D G4 2.8MM 2MP Dome PoE", preco: 349.90 },
+      { descricao: "CAM IP VIP 1230 D G4 4MM 2MP Dome PoE", preco: 349.90 },
+      { descricao: "CAM IP VIP 1230 D G5 2.8MM 2MP Dome PoE", preco: 389.90 },
+      { descricao: "CAM IP VIP 1230 D G5 4MM 2MP Dome PoE", preco: 389.90 },
+      { descricao: "CAM IP VIP 1230 L G3 2.8MM 2MP Bullet PoE", preco: 299.90 },
+      { descricao: "CAM IP VIP 3200 D G4 2.8MM 4K Dome PoE", preco: 549.90 },
+      { descricao: "CAM IP VIP 3200 D G4 4MM 4K Dome PoE", preco: 559.90 },
+      { descricao: "CAM IP VIP S60 D G4 2.8MM 4K AI Dome PoE", preco: 749.90 },
+      { descricao: "CAM IP VIP S60 D G4 4MM 4K AI Dome PoE", preco: 759.90 },
+      { descricao: "CAM IP VIP S70 D G4 4K AI Dome PoE", preco: 949.90 },
+      { descricao: "CAM IP VIP S80 D G4 4K AI Speed Dome PoE", preco: 1890.00 },
+      { descricao: "CAM IP VIP 3120 D G3 4K Dome PoE", preco: 489.90 },
+      { descricao: "CAM IP VIP 5450 Z G3 4K Dome PTZ PoE", preco: 1250.00 },
+      { descricao: "CAM IP VIP M22 D G3 2MP Mini Dome PoE", preco: 289.90 },
+      { descricao: "CAM IP VIP M21 A G3 2MP Mini Box PoE", preco: 269.90 },
+      { descricao: "CAM IP VIP C22 C G3 2MP Cube Wi-Fi", preco: 319.90 },
+      { descricao: "CAM IP VIP 1130 D G3 2MP Dome", preco: 259.90 },
+      { descricao: "CAM IP VIP 1130 L G3 2MP Bullet", preco: 249.90 },
+      { descricao: "CAM IP VIP Fisheye 5M 360 Graus", preco: 590.00 },
+      { descricao: "CAM IP Wi-Fi VK5500 4MP", preco: 429.90 },
+    ];
+
+    // === GRAVADORES NVR ===
+    const nvr = [
+      { descricao: "NVR NVD 1404 4K 4 canais sem PoE", preco: 579.00 },
+      { descricao: "NVR NVD 1404 P 4K 4 canais PoE", preco: 829.00 },
+      { descricao: "NVR NVD 1408 4K 8 canais sem PoE", preco: 760.00 },
+      { descricao: "NVR NVD 1408 P 4K 8 canais PoE", preco: 1450.00 },
+      { descricao: "NVR NVD 1416 4K 16 canais sem PoE", preco: 1150.00 },
+      { descricao: "NVR NVD 1416 P 4K 16 canais PoE", preco: 1890.00 },
+      { descricao: "NVR NVD 3208 P 4K 8 canais PoE", preco: 1950.00 },
+      { descricao: "NVR NVD 3216 P 4K 16 canais PoE", preco: 2850.00 },
+      { descricao: "NVR NVD 3116 P 4K 16 canais PoE", preco: 2650.00 },
+      { descricao: "NVR NVD 3404 4K 4 canais", preco: 850.00 },
+      { descricao: "NVR NVD 3408 4K 8 canais", preco: 1250.00 },
+      { descricao: "NVR NVD 3416 4K 16 canais", preco: 2100.00 },
+    ];
+
+    // === EQUIPAMENTOS DE REDE ===
+    const rede = [
+      { descricao: "Switch PoE 8 portas TL-SG1008P", preco: 385.00 },
+      { descricao: "Switch PoE 16 portas TL-SG1016P", preco: 520.00 },
+      { descricao: "Switch PoE 24 portas TL-SG1024P", preco: 680.00 },
+      { descricao: "Switch PoE 48 portas TL-SG1048P", preco: 1850.00 },
+      { descricao: "Switch gerenciável 8 portas TL-SG2008P", preco: 450.00 },
+      { descricao: "Switch gerenciável 16 portas TL-SG2016P", preco: 620.00 },
+      { descricao: "Switch gerenciável 24 portas TL-SG2424P", preco: 890.00 },
+      { descricao: "Switch Gigabit 5 portas TL-SG105", preco: 95.00 },
+      { descricao: "Switch Gigabit 8 portas TL-SG108", preco: 145.00 },
+      { descricao: "Access Point Wi-Fi EAP110", preco: 320.00 },
+      { descricao: "Access Point Wi-Fi EAP115", preco: 280.00 },
+      { descricao: "Access Point Wi-Fi EAP225 AC1200", preco: 390.00 },
+      { descricao: "Access Point Wi-Fi EAP650", preco: 350.00 },
+      { descricao: "Roteador Wi-Fi AC1200", preco: 280.00 },
+      { descricao: "Roteador Wi-Fi 5G AX1800", preco: 420.00 },
+      { descricao: "Transmissor vídeo rádio VT51", preco: 1450.00 },
+      { descricao: "Receptor vídeo rádio VR51", preco: 1250.00 },
+      { descricao: "HD 1TB para NVR", preco: 280.00 },
+      { descricao: "HD 2TB para NVR", preco: 350.00 },
+      { descricao: "HD 4TB para NVR", preco: 480.00 },
+      { descricao: "HD 6TB para NVR", preco: 620.00 },
+      { descricao: "HD 8TB para NVR", preco: 780.00 },
+    ];
+
+    // === CABEAMENTO ===
+    const cabecamento = [
+      { descricao: "Cabo UTP Cat6 305m Furukawa Sohoplus Azul", preco: 1290.00 },
+      { descricao: "Cabo UTP Cat6 305m Furukawa Sohoplus Branco", preco: 1290.00 },
+      { descricao: "Cabo UTP Cat6 305m Furukawa Sohoplus Preto", preco: 1290.00 },
+      { descricao: "Cabo UTP Cat6 305m Intelbras Impact Giga Azul", preco: 1350.00 },
+      { descricao: "Cabo UTP Cat6 305m Intelbras Impact Giga Branco", preco: 1350.00 },
+      { descricao: "Cabo UTP Cat5e 305m Furukawa Sohoplus Azul", preco: 880.00 },
+      { descricao: "Cabo UTP Cat5e 305m Furukawa Sohoplus Branco", preco: 850.00 },
+      { descricao: "Patch cord Cat6 0.5m", preco: 12.00 },
+      { descricao: "Patch cord Cat6 1.0m", preco: 15.00 },
+      { descricao: "Patch cord Cat6 2.0m", preco: 22.00 },
+      { descricao: "Patch cord Cat6 3.0m", preco: 28.00 },
+      { descricao: "Patch cord Cat6 5.0m", preco: 38.00 },
+      { descricao: "Patch cord Cat5e 2.0m", preco: 12.00 },
+      { descricao: "Patch panel 24 portas Cat6", preco: 320.00 },
+      { descricao: "Patch panel 48 portas Cat6", preco: 520.00 },
+      { descricao: "Keystone Cat6 branco", preco: 15.00 },
+      { descricao: "Keystone Cat6 azul", preco: 18.00 },
+      { descricao: "Keystone Cat5e branco", preco: 12.00 },
+      { descricao: "Keystone blindado Cat6", preco: 25.00 },
+      { descricao: "Conector RJ45 Cat6", preco: 2.50 },
+      { descricao: "BOX keystone 1 posto", preco: 8.00 },
+      { descricao: "BOX keystone 2 posto", preco: 12.00 },
+      { descricao: "Espelho keystone 1 posto", preco: 6.00 },
+      { descricao: "Organizador de cabos 1U", preco: 85.00 },
+      { descricao: "Patch panel 24 portas Cat5e", preco: 280.00 },
+      { descricao: "Tubo conduíte 3/4\" (3m)", preco: 35.00 },
+      { descricao: "Eletroduto PVC 3/4\" (3m)", preco: 28.00 },
+      { descricao: "Caixa de passar 4x2", preco: 8.00 },
+    ];
+
+    // === MÃO DE OBRA ===
+    const maoDeObra = [
+      { descricao: "Instalação câmera IP/Analógica", preco: 120.00 },
+      { descricao: "Instalação NVR/DVR", preco: 180.00 },
+      { descricao: "Instalação câmera Speed Dome", preco: 250.00 },
+      { descricao: "Configuração NVR completo", preco: 200.00 },
+      { descricao: "Configuração câmeras remotas", preco: 80.00 },
+      { descricao: "Instalação switch PoE", preco: 100.00 },
+      { descricao: "Instalação access point", preco: 90.00 },
+      { descricao: "Configuração Wi-Fi mesh", preco: 120.00 },
+      { descricao: "Lançamento ponto de rede Cat6", preco: 120.00 },
+      { descricao: "Lançamento ponto de rede Cat5e", preco: 90.00 },
+      { descricao: "Passagem de cabo de rede (metro)", preco: 5.00 },
+      { descricao: "Conexão keystone", preco: 18.00 },
+      { descricao: "Conexão RJ45", preco: 25.00 },
+      { descricao: "Terminação patch panel (porta)", preco: 15.00 },
+      { descricao: "Certificação rede Fluke (ponto)", preco: 38.00 },
+      { descricao: "Organização rack", preco: 150.00 },
+      { descricao: "Instalação poste/mastro", preco: 180.00 },
+      { descricao: "Serviço técnico / hora", preco: 120.00 },
+      { descricao: "Programação do sistema", preco: 250.00 },
+      { descricao: "Manutenção preventiva", preco: 180.00 },
+      { descricao: "Viabilidade técnica", preco: 100.00 },
+      { descricao: "Instalação câmera Wi-Fi", preco: 100.00 },
+      { descricao: "Configuração acesso remoto (DDNS)", preco: 100.00 },
+      { descricao: "Setup inicial NVR + câmeras", preco: 280.00 },
+      { descricao: "Instalação disco NVR", preco: 100.00 },
+      { descricao: "Teste e entrega do sistema", preco: 150.00 },
+      { descricao: "Elaboração de projeto CFTV", preco: 350.00 },
+      { descricao: "Remoção de equipamento existente", preco: 80.00 },
+      { descricao: "Instalação Kit 04 canais CFTV", preco: 700.00 },
+      { descricao: "Instalação Kit 08 canais CFTV", preco: 1200.00 },
+      { descricao: "Instalação Kit 16 canais CFTV", preco: 2150.00 },
+      { descricao: "Infraestrutura eletroduto (metro)", preco: 8.00 },
+      { descricao: "Infraestrutura calha (metro)", preco: 32.00 },
+      { descricao: "Furação alvenaria/concreto", preco: 12.00 },
+      { descricao: "Chaveamento elétrico", preco: 250.00 },
+      { descricao: "Aterramento do sistema", preco: 180.00 },
+    ];
+
     let categoriaCount = 0;
 
     function adicionarCategoria() {
@@ -81,23 +249,34 @@
       div.className = 'bg-white rounded-xl shadow p-5 mb-4';
       div.id = `cat-${id}`;
       div.innerHTML = `
-        <div class="flex items-center gap-3 mb-4">
-          <input type="text" placeholder="Nome da Categoria (ex: EQUIPAMENTOS CAMERAS)"
-            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-[#0097b2]"
-            id="cat-titulo-${id}">
+        <div class="flex items-center gap-3 mb-4 flex-wrap">
+          <select id="cat-tipo-${id}" onchange="mudouTipoCategoria(${id})"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#0097b2]">
+            <option value="">-- Selecione o Tipo --</option>
+            <option value="CAMERAS">CÂMERAS</option>
+            <option value="NVR">GRAVADORES NVR</option>
+            <option value="REDE">EQUIPAMENTOS DE REDE</option>
+            <option value="CABEAMENTO">CABEAMENTO</option>
+            <option value="MAO_DE_OBRA">MÃO DE OBRA</option>
+            <option value="PERSONALIZADO">PERSONALIZADO</option>
+          </select>
+          <input type="text" placeholder="Nome da Categoria"
+            class="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold uppercase focus:outline-none focus:ring-2 focus:ring-[#0097b2] hidden"
+            id="cat-titulo-personalizado-${id}">
           <button onclick="document.getElementById('cat-${id}').remove(); recalcularTotal()"
-            class="text-red-400 hover:text-red-600 text-sm">Remover</button>
+            class="text-red-400 hover:text-red-600 text-sm ml-auto">Remover Categoria</button>
         </div>
         <div class="overflow-x-auto">
           <table class="w-full text-sm border-collapse">
             <thead>
               <tr class="bg-[#e8f7fa] text-[#0097b2]">
+                <th class="border border-gray-200 px-2 py-2 text-center w-8">#</th>
+                <th class="border border-gray-200 px-2 py-2 text-left">Item</th>
                 <th class="border border-gray-200 px-2 py-2 text-left w-24">Garantia</th>
-                <th class="border border-gray-200 px-2 py-2 text-left">Descrição</th>
-                <th class="border border-gray-200 px-2 py-2 text-center w-16">Qtd</th>
-                <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Unitário</th>
+                <th class="border border-gray-200 px-2 py-2 text-center w-14">Qtd</th>
+                <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Unit.</th>
                 <th class="border border-gray-200 px-2 py-2 text-right w-28">Vl. Total</th>
-                <th class="border border-gray-200 px-2 py-2 w-10"></th>
+                <th class="border border-gray-200 px-2 py-2 w-8"></th>
               </tr>
             </thead>
             <tbody id="itens-${id}"></tbody>
@@ -107,43 +286,109 @@
           class="mt-3 text-sm text-[#0097b2] hover:underline">+ Adicionar Item</button>
       `;
       container.appendChild(div);
-      adicionarItem(id);
+    }
+
+    function mudouTipoCategoria(catId) {
+      const select = document.getElementById(`cat-tipo-${catId}`);
+      const inputPersonalizado = document.getElementById(`cat-titulo-personalizado-${catId}`);
+      const tipo = select.value;
+
+      if (tipo === 'PERSONALIZADO') {
+        inputPersonalizado.classList.remove('hidden');
+        select.classList.remove('flex-1');
+        select.classList.add('w-48');
+      } else {
+        inputPersonalizado.classList.add('hidden');
+        select.classList.add('flex-1');
+        select.classList.remove('w-48');
+      }
+
+      document.getElementById(`itens-${catId}`).innerHTML = '';
     }
 
     function adicionarItem(catId) {
+      const tipo = document.getElementById(`cat-tipo-${catId}`)?.value;
+      if (!tipo) {
+        alert('Selecione primeiro o tipo da categoria!');
+        return;
+      }
+
       const tbody = document.getElementById(`itens-${catId}`);
       const rowId = Date.now() + Math.random();
+
+      let lista = [];
+      if (tipo === 'CAMERAS') lista = cameras;
+      else if (tipo === 'NVR') lista = nvr;
+      else if (tipo === 'REDE') lista = rede;
+      else if (tipo === 'CABEAMENTO') lista = cabecamento;
+      else if (tipo === 'MAO_DE_OBRA') lista = maoDeObra;
+
+      let options = lista.map((item, i) =>
+        `<option value="${i}" data-preco="${item.preco}" data-desc="${item.descricao}">${item.descricao}</option>`
+      ).join('');
+
       const tr = document.createElement('tr');
       tr.id = `item-${rowId}`;
+      tr.className = 'hover:bg-gray-50';
       tr.innerHTML = `
+        <td class="border border-gray-200 px-1 py-1 text-center text-gray-400 text-xs" id="num-${rowId}">1</td>
         <td class="border border-gray-200 px-1 py-1">
-          <input type="text" value="12 Meses" class="w-full border-0 text-sm px-1" id="gar-${rowId}">
+          ${tipo === 'PERSONALIZADO'
+            ? `<input type="text" placeholder="Descrição do item" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="desc-${rowId}">`
+            : `<select class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="desc-${rowId}" onchange="mudouItem(${rowId}, ${catId})">
+                <option value="">-- Selecione --</option>
+                ${options}
+              </select>`
+          }
         </td>
         <td class="border border-gray-200 px-1 py-1">
-          <input type="text" placeholder="Descrição do item" class="w-full border-0 text-sm px-1" id="desc-${rowId}">
+          <input type="text" value="12 Meses" class="w-full border border-gray-200 rounded px-2 py-1 text-sm" id="gar-${rowId}">
         </td>
         <td class="border border-gray-200 px-1 py-1">
-          <input type="number" value="1" min="1" class="w-full border-0 text-sm text-center px-1" id="qtd-${rowId}"
+          <input type="number" value="1" min="1" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-center" id="qtd-${rowId}"
             oninput="calcularLinha(${rowId})">
         </td>
         <td class="border border-gray-200 px-1 py-1">
-          <input type="number" value="0" step="0.01" class="w-full border-0 text-sm text-right px-1" id="vun-${rowId}"
+          <input type="number" value="0" step="0.01" class="w-full border border-gray-200 rounded px-2 py-1 text-sm text-right" id="vun-${rowId}"
             oninput="calcularLinha(${rowId})">
         </td>
-        <td class="border border-gray-200 px-1 py-1 text-right font-semibold text-sm pr-2" id="vtot-${rowId}">R$ 0,00</td>
+        <td class="border border-gray-200 px-1 py-1 text-right font-semibold text-sm pr-2 text-[#0097b2]" id="vtot-${rowId}">R$ 0,00</td>
         <td class="border border-gray-200 px-1 py-1 text-center">
-          <button onclick="document.getElementById('item-${rowId}').remove(); recalcularTotal()"
-            class="text-red-400 hover:text-red-600 text-xs">X</button>
+          <button onclick="removerItem(${rowId}, ${catId})"
+            class="text-red-400 hover:text-red-600 text-xs font-bold">✕</button>
         </td>
       `;
       tbody.appendChild(tr);
+      renumerar(catId);
+    }
+
+    function removerItem(rowId, catId) {
+      document.getElementById(`item-${rowId}`)?.remove();
+      recalcularTotal();
+      renumerar(catId);
+    }
+
+    function renumerar(catId) {
+      const tbody = document.getElementById(`itens-${catId}`);
+      let num = 1;
+      tbody.querySelectorAll('tr').forEach(tr => {
+        const rowId = tr.id.replace('item-', '');
+        const numEl = document.getElementById(`num-${rowId}`);
+        if (numEl) numEl.textContent = num++;
+      });
+    }
+
+    function mudouItem(rowId, catId) {
+      const select = document.getElementById(`desc-${rowId}`);
+      const preco = parseFloat(select.options[select.selectedIndex]?.dataset?.preco) || 0;
+      document.getElementById(`vun-${rowId}`).value = preco.toFixed(2);
+      calcularLinha(rowId);
     }
 
     function calcularLinha(rowId) {
       const qtd = parseFloat(document.getElementById(`qtd-${rowId}`)?.value) || 0;
       const vun = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
-      const total = qtd * vun;
-      document.getElementById(`vtot-${rowId}`).textContent = formatarMoeda(total);
+      document.getElementById(`vtot-${rowId}`).textContent = formatarMoeda(qtd * vun);
       recalcularTotal();
     }
 
@@ -151,8 +396,7 @@
       let total = 0;
       document.querySelectorAll('[id^="vtot-"]').forEach(el => {
         const txt = el.textContent.replace('R$ ', '').replace(/\./g, '').replace(',', '.');
-        const val = parseFloat(txt) || 0;
-        total += val;
+        total += parseFloat(txt) || 0;
       });
       const el = document.getElementById('total-geral');
       el.classList.toggle('hidden', total === 0);
@@ -167,25 +411,46 @@
       const categorias = [];
       document.querySelectorAll('[id^="cat-"]').forEach(catEl => {
         const catId = catEl.id.replace('cat-', '');
-        const titulo = document.getElementById(`cat-titulo-${catId}`)?.value?.trim();
+        const tipo = document.getElementById(`cat-tipo-${catId}`)?.value;
+        let titulo = '';
+
+        if (tipo === 'PERSONALIZADO') {
+          titulo = document.getElementById(`cat-titulo-personalizado-${catId}`)?.value?.trim();
+        } else if (tipo) {
+          titulo = tipo;
+        }
         if (!titulo) return;
+
         const itens = [];
         catEl.querySelectorAll('tbody tr').forEach(tr => {
           const rowId = tr.id.replace('item-', '');
           const garantia = document.getElementById(`gar-${rowId}`)?.value?.trim() || '';
-          const descricao = document.getElementById(`desc-${rowId}`)?.value?.trim() || '';
+
+          let descricao = '';
+          const descInput = document.getElementById(`desc-${rowId}`);
+          if (descInput?.tagName === 'SELECT') {
+            descricao = descInput.options[descInput.selectedIndex]?.dataset?.desc || '';
+          } else {
+            descricao = descInput?.value?.trim() || '';
+          }
+
           const quantidade = parseInt(document.getElementById(`qtd-${rowId}`)?.value) || 0;
           const valor_unitario = parseFloat(document.getElementById(`vun-${rowId}`)?.value) || 0;
-          if (descricao) itens.push({ garantia, descricao, quantidade, valor_unitario });
+          if (descricao && quantidade > 0) itens.push({ garantia, descricao, quantidade, valor_unitario });
         });
         if (itens.length) categorias.push({ titulo, itens });
       });
+
       return {
         cliente_nome: document.getElementById('cliente_nome').value.trim(),
         cliente_contato: document.getElementById('cliente_contato').value.trim(),
         cliente_endereco: document.getElementById('cliente_endereco').value.trim(),
+        cliente_cnpj: document.getElementById('cliente_cnpj').value.trim() || null,
+        cliente_email: document.getElementById('cliente_email').value.trim() || null,
+        cliente_telefone: document.getElementById('cliente_telefone').value.trim() || null,
         condicao_pagto: document.getElementById('condicao_pagto').value.trim(),
         descricao_intro: document.getElementById('descricao_intro').value.trim(),
+        validade_dias: parseInt(document.getElementById('validade_dias').value) || 7,
         categorias,
       };
     }
@@ -193,9 +458,14 @@
     async function salvarEGerarPDF() {
       const dados = coletarDados();
       if (!dados.cliente_nome || !dados.categorias.length) {
-        alert('Preencha o nome do cliente e pelo menos uma categoria com itens.');
+        alert('Preencha o nome do cliente e adicione pelo menos uma categoria com itens.');
         return;
       }
+
+      const btn = document.querySelector('button[onclick="salvarEGerarPDF()"]');
+      btn.textContent = 'Gerando PDF...';
+      btn.disabled = true;
+
       try {
         const resp = await fetch('/orcamentos', {
           method: 'POST',
@@ -207,6 +477,8 @@
         window.location.href = `/orcamentos/${orc.id}/pdf`;
       } catch (err) {
         alert('Erro ao gerar orçamento: ' + err.message);
+        btn.textContent = 'Salvar e Gerar PDF';
+        btn.disabled = false;
       }
     }
 

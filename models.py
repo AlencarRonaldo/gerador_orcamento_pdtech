@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel
 from sqlalchemy import Column, DateTime, Float, ForeignKey, Integer, String, Text
@@ -17,8 +17,12 @@ class Orcamento(Base):
     cliente_nome = Column(String, nullable=False)
     cliente_contato = Column(String, nullable=False)
     cliente_endereco = Column(String, nullable=False)
+    cliente_cnpj = Column(String, nullable=True)
+    cliente_email = Column(String, nullable=True)
+    cliente_telefone = Column(String, nullable=True)
     condicao_pagto = Column(String, nullable=False)
     descricao_intro = Column(String, nullable=False)
+    validade_dias = Column(Integer, default=7, nullable=True)
     dados_json = Column(Text, nullable=True)
 
     categorias = relationship(
@@ -68,8 +72,12 @@ class OrcamentoInput(BaseModel):
     cliente_nome: str
     cliente_contato: str
     cliente_endereco: str
+    cliente_cnpj: Optional[str] = None
+    cliente_email: Optional[str] = None
+    cliente_telefone: Optional[str] = None
     condicao_pagto: str
     descricao_intro: str
+    validade_dias: int = 7
     categorias: List[CategoriaInput]
 
 
@@ -100,8 +108,12 @@ class OrcamentoOutput(BaseModel):
     cliente_nome: str
     cliente_contato: str
     cliente_endereco: str
+    cliente_cnpj: Optional[str] = None
+    cliente_email: Optional[str] = None
+    cliente_telefone: Optional[str] = None
     condicao_pagto: str
     descricao_intro: str
+    validade_dias: int = 7
     categorias: List[CategoriaOutput]
 
     model_config = {"from_attributes": True}
