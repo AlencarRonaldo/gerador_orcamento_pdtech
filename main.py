@@ -373,6 +373,8 @@ def _orc_to_dict(orc: Orcamento, db: Session = None) -> dict:
         "uuid_publico": orc.uuid_publico,
         "aceito_em": orc.aceito_em.isoformat() if orc.aceito_em else None,
         "assinatura_nome": orc.assinatura_nome,
+        "qtd_visualizacoes": orc.qtd_visualizacoes or 0,
+        "primeira_abertura_em": orc.primeira_abertura_em.isoformat() if orc.primeira_abertura_em else None,
         "categorias": [
             {
                 "id": cat.id,
@@ -497,6 +499,7 @@ def listar_orcamentos(db: Session = Depends(get_db)):
             "valor_total": total,
             "uuid_publico": orc.uuid_publico,
             "assinatura_nome": orc.assinatura_nome,
+            "qtd_visualizacoes": orc.qtd_visualizacoes or 0,
         })
     
     if has_changes:
@@ -645,11 +648,15 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     if not orc:
         raise HTTPException(status_code=404, detail="Proposta não encontrada")
     
-    # Atualiza status para 'Visualizado' se ainda estiver 'Aguardando'
+    # Incrementa contador de visualizações
+    orc.qtd_visualizacoes = (orc.qtd_visualizacoes or 0) + 1
+    if orc.primeira_abertura_em is None:
+        orc.primeira_abertura_em = datetime.now(timezone.utc)
+    # Atualiza status para 'Visualizado' apenas se ainda Aguardando
     if orc.status == "Aguardando":
         orc.status = "Visualizado"
-        db.commit()
-        db.refresh(orc)
+    db.commit()
+    db.refresh(orc)
 
     orc_dict = _orc_to_dict(orc, db)
     cfg = _get_config(db)

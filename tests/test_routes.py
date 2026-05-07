@@ -123,3 +123,16 @@ def test_numero_sequencial(client):
     r1 = client.post("/orcamentos", json=PAYLOAD)
     r2 = client.post("/orcamentos", json=PAYLOAD)
     assert r1.json()["numero"] != r2.json()["numero"]
+
+
+def test_tracking_incrementa_visualizacoes(client):
+    """Cada acesso ao link público incrementa qtd_visualizacoes."""
+    orc = client.post("/orcamentos", json=PAYLOAD).json()
+    uuid = orc["uuid_publico"]
+
+    client.get(f"/p/{uuid}")
+    client.get(f"/p/{uuid}")
+
+    detail = client.get(f"/orcamentos/{orc['id']}").json()
+    assert detail["qtd_visualizacoes"] == 2
+    assert detail["primeira_abertura_em"] is not None
