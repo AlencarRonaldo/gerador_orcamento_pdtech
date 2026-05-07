@@ -99,6 +99,8 @@ class Orcamento(Base):
     assinatura_telefone = Column(String, nullable=True)
     assinatura_hash = Column(String, nullable=True)
     assinatura_termos = Column(Boolean, default=False, nullable=True)
+    qtd_visualizacoes = Column(Integer, default=0, nullable=True)
+    primeira_abertura_em = Column(DateTime, nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"
