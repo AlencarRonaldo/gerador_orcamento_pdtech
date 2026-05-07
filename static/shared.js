@@ -132,6 +132,15 @@ async function loadBranding() {
         if (!res) return;
         const data = await res.json();
         
+        // Aplica a cor primária dinâmica se disponível
+        if (data.cor_primaria) {
+            document.documentElement.style.setProperty('--primary', data.cor_primaria);
+            
+            // Também atualiza a meta tag de cor do tema para mobile
+            const themeMeta = document.querySelector('meta[name="theme-color"]');
+            if (themeMeta) themeMeta.content = data.cor_primaria;
+        }
+
         const logoContainers = document.querySelectorAll('.logo');
         logoContainers.forEach(container => {
             if (data.empresa_logo_b64) {

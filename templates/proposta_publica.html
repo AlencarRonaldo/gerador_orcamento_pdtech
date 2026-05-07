@@ -5,12 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Proposta {{ orc.numero }} — {{ config.empresa_nome }}</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     :root {
-      --primary: {{ config.cor_primaria }};
-      --bg-color: #f8fafc;
+      --primary: {{ config.cor_primaria or '#3a7bd5' }};
+      --bg-color: #f1f5f9;
       --text-main: #1e293b;
       --text-muted: #64748b;
       --card-bg: #ffffff;
@@ -22,367 +22,450 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body {
-      font-family: 'Inter', sans-serif;
+      font-family: 'Outfit', sans-serif;
       background-color: var(--bg-color);
       color: var(--text-main);
       line-height: 1.6;
-      padding-bottom: 100px; /* Space for sticky bar */
+      padding-bottom: 120px;
     }
 
     .container {
-      max-width: 800px;
+      max-width: 900px;
       margin: 0 auto;
-      padding: 24px;
+      padding: 20px;
+    }
+
+    /* Glass Effect Panels */
+    .glass-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+      margin-bottom: 30px;
+      border: 1px solid var(--border-color);
     }
 
     header {
-      background-color: var(--card-bg);
-      padding: 32px;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      margin-bottom: 24px;
-      border-top: 6px solid var(--primary);
-    }
-
-    .header-top {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 24px;
+      align-items: center;
+      margin-bottom: 40px;
+      padding: 20px 0;
+    }
+
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo-img {
+      max-height: 60px;
+      max-width: 200px;
+      border-radius: 8px;
+    }
+
+    .proposal-info {
+      text-align: right;
+    }
+
+    .proposal-info h1 {
+      font-size: 28px;
+      color: var(--primary);
+      font-weight: 800;
     }
 
     .status-badge {
-      padding: 6px 12px;
+      display: inline-block;
+      padding: 6px 16px;
       border-radius: 99px;
       font-size: 13px;
-      font-weight: 600;
-      display: inline-block;
+      font-weight: 700;
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
     .status-aguardando { background: #fef3c7; color: #d97706; }
     .status-aprovado { background: #d1fae5; color: var(--success); }
     .status-visualizado { background: #dbeafe; color: #1d4ed8; }
     .status-recusado { background: #fee2e2; color: var(--danger); }
 
-    .company-details h1 { font-size: 24px; color: var(--primary); margin-bottom: 4px; }
-    .company-details p { color: var(--text-muted); font-size: 14px; }
-
-    .client-details {
-      background: var(--bg-color);
-      padding: 16px;
-      border-radius: 8px;
+    .grid-details {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 40px;
     }
-    .client-details h3 { font-size: 16px; margin-bottom: 8px; }
-    .client-details p { font-size: 14px; color: var(--text-muted); margin-bottom: 4px; }
 
-    .section {
-      background-color: var(--card-bg);
-      padding: 32px;
+    .detail-box h3 {
+      font-size: 12px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
+      border-bottom: 2px solid var(--primary);
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+
+    .detail-box p {
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .intro-text {
+      font-size: 16px;
+      color: var(--text-main);
+      margin-bottom: 40px;
+      white-space: pre-line;
+      padding: 25px;
+      background: rgba(var(--primary), 0.03);
       border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-      margin-bottom: 24px;
+      border-left: 4px solid var(--primary);
     }
 
-    .section h2 { font-size: 18px; margin-bottom: 16px; border-bottom: 1px solid var(--border-color); padding-bottom: 8px; }
+    /* Table Styling */
+    .table-section h2 {
+      font-size: 20px;
+      margin-bottom: 20px;
+      color: var(--primary);
+    }
 
-    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
-    th { text-align: left; padding: 12px; border-bottom: 2px solid var(--border-color); color: var(--text-muted); font-size: 13px; text-transform: uppercase; }
-    td { padding: 12px; border-bottom: 1px solid var(--border-color); font-size: 14px; }
-    .text-right { text-align: right; }
-
-    .totals {
+    table {
       width: 100%;
-      max-width: 300px;
-      margin-left: auto;
-      margin-top: 24px;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+      margin-bottom: 30px;
     }
+
+    th {
+      text-align: left;
+      padding: 15px 20px;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    td {
+      padding: 20px;
+      background: #f8fafc;
+      font-size: 15px;
+    }
+
+    td:first-child { border-radius: 12px 0 0 12px; }
+    td:last-child { border-radius: 0 12px 12px 0; }
+
+    .text-right { text-align: right; }
+    .price-tag { font-weight: 700; color: var(--text-main); }
+    .total-tag { font-weight: 800; color: var(--success); }
+
+    .totals-area {
+      width: 100%;
+      max-width: 350px;
+      margin-left: auto;
+      margin-top: 40px;
+      padding: 25px;
+      background: #f8fafc;
+      border-radius: 20px;
+    }
+
     .total-row {
       display: flex;
       justify-content: space-between;
-      padding: 8px 0;
+      margin-bottom: 10px;
       font-size: 15px;
     }
-    .total-row.desconto { color: var(--danger); }
-    .total-row.final {
-      font-size: 20px;
-      font-weight: 700;
+
+    .total-row.grand-total {
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 2px dashed var(--border-color);
+      font-size: 24px;
+      font-weight: 800;
       color: var(--primary);
-      border-top: 2px solid var(--border-color);
-      padding-top: 16px;
-      margin-top: 8px;
     }
 
-    .obs-list { padding-left: 20px; font-size: 14px; color: var(--text-muted); }
-    .obs-list li { margin-bottom: 8px; }
-
-    .sticky-bar {
+    /* Sticky Footer Bar */
+    .sticky-actions {
       position: fixed;
       bottom: 0; left: 0; right: 0;
-      background: var(--card-bg);
-      padding: 16px 24px;
-      box-shadow: 0 -4px 12px rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(20px);
+      padding: 20px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.05);
       display: flex;
       justify-content: center;
-      gap: 16px;
-      z-index: 100;
+      gap: 20px;
+      z-index: 1000;
     }
 
     .btn {
-      padding: 14px 28px;
-      border-radius: 8px;
-      font-size: 15px;
-      font-weight: 600;
+      padding: 16px 40px;
+      border-radius: 16px;
+      font-size: 16px;
+      font-weight: 700;
       cursor: pointer;
       border: none;
-      transition: all 0.2s;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
-    .btn-approve { background: var(--success); color: white; }
-    .btn-approve:hover { background: #059669; }
-    .btn-reject { background: white; color: var(--text-main); border: 1px solid var(--border-color); }
-    .btn-reject:hover { background: #f1f5f9; }
 
-    /* Modal de Assinatura */
+    .btn-approve { background: var(--primary); color: white; box-shadow: 0 10px 20px rgba(var(--primary), 0.2); }
+    .btn-approve:hover { transform: translateY(-3px); box-shadow: 0 15px 30px rgba(var(--primary), 0.3); }
+
+    .btn-reject { background: white; color: var(--text-muted); border: 1px solid var(--border-color); }
+    .btn-reject:hover { background: #fff1f2; color: var(--danger); border-color: var(--danger); }
+
+    /* Signature Modal */
     .modal-overlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.5);
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
       display: flex; justify-content: center; align-items: center;
-      z-index: 200;
-      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+      z-index: 2000; opacity: 0; pointer-events: none; transition: all 0.3s;
     }
     .modal-overlay.active { opacity: 1; pointer-events: all; }
-    
+
     .modal {
       background: white;
-      padding: 32px;
-      border-radius: 16px;
-      width: 100%; max-width: 400px;
-      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+      padding: 40px;
+      border-radius: 32px;
+      width: 100%; max-width: 500px;
+      transform: translateY(20px);
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .modal h3 { margin-bottom: 16px; }
-    .modal p { font-size: 14px; color: var(--text-muted); margin-bottom: 16px; }
-    .modal input {
-      width: 100%; padding: 12px; border: 1px solid var(--border-color);
-      border-radius: 8px; font-size: 15px; margin-bottom: 24px;
-      outline: none;
-    }
-    .modal input:focus { border-color: var(--primary); }
-    
-    .modal-actions { display: flex; gap: 12px; justify-content: flex-end; }
-    .modal-actions .btn { padding: 10px 20px; }
+    .modal-overlay.active .modal { transform: translateY(0); }
 
-    /* Esconder barra se não estiver aguardando ou visualizado */
-    {% if orc.status not in ['Aguardando', 'Visualizado'] %}
-    .sticky-bar { display: none; }
-    {% endif %}
+    .modal h2 { margin-bottom: 10px; font-weight: 800; }
+    .modal p { color: var(--text-muted); margin-bottom: 30px; font-size: 14px; }
+
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; }
+    .form-group input {
+      width: 100%; padding: 15px; border-radius: 12px; border: 1px solid var(--border-color);
+      font-size: 16px; font-family: inherit; outline: none; transition: 0.3s;
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(var(--primary), 0.1); }
+
+    @media (max-width: 768px) {
+      .grid-details { grid-template-columns: 1fr; gap: 20px; }
+      header { flex-direction: column; text-align: center; gap: 20px; }
+      .proposal-info { text-align: center; }
+      .sticky-actions { flex-direction: column; padding: 15px; }
+      .btn { width: 100%; justify-content: center; }
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
     <header>
-      <div class="header-top">
-        <div class="company-details">
-          <h1>{{ config.empresa_nome }}</h1>
-          <p>Proposta Comercial Nº <strong>{{ orc.numero }}</strong></p>
-        </div>
-        <div>
-          <span class="status-badge status-{{ orc.status|lower }}">{{ orc.status }}</span>
-        </div>
+      <div class="logo-area">
+        {% if config.empresa_logo_b64 %}
+          <img src="data:image/png;base64,{{ config.empresa_logo_b64 }}" class="logo-img">
+        {% else %}
+          <div style="font-size: 24px; font-weight: 800; color: var(--primary);">
+            <i class="fas fa-bolt"></i> {{ config.empresa_nome }}
+          </div>
+        {% endif %}
       </div>
-      
-      <div class="client-details">
-        <h3>Cliente: {{ orc.cliente_nome }}</h3>
-        <p><strong>Contato:</strong> {{ orc.cliente_contato }}</p>
-        <p><strong>Endereço:</strong> {{ orc.cliente_endereco }}</p>
-        {% if orc.cliente_cnpj %}<p><strong>CNPJ:</strong> {{ orc.cliente_cnpj }}</p>{% endif %}
+      <div class="proposal-info">
+        <h1>PROPOSTA #{{ orc.numero }}</h1>
+        <span class="status-badge status-{{ orc.status|lower }}">{{ orc.status }}</span>
       </div>
     </header>
 
-    <div class="section">
-      <p style="white-space: pre-line; font-size: 15px; margin-bottom: 24px;">{{ orc.descricao_intro }}</p>
+    <div class="glass-card">
+      <div class="grid-details">
+        <div class="detail-box">
+          <h3>Para:</h3>
+          <p>{{ orc.cliente_nome }}</p>
+          <small style="color: var(--text-muted);">{{ orc.cliente_email }}</small>
+        </div>
+        <div class="detail-box">
+          <h3>Data de Emissão:</h3>
+          <p>{{ orc.criado_em.strftime('%d/%m/%Y') }}</p>
+          <small style="color: var(--text-muted);">Validade: {{ orc.validade_dias }} dias</small>
+        </div>
+      </div>
+
+      {% if orc.descricao_intro %}
+      <div class="intro-text">
+        {{ orc.descricao_intro }}
+      </div>
+      {% endif %}
 
       {% for cat in orc.categorias %}
-      <h2>{{ cat.titulo }}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Descrição</th>
-            <th class="text-right" style="width: 80px;">Qtd</th>
-            <th class="text-right" style="width: 120px;">V. Unit.</th>
-            <th class="text-right" style="width: 120px;">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in cat.itens %}
-          <tr>
-            <td>
-              <strong>{{ item.descricao }}</strong><br>
-              <span style="font-size: 12px; color: #94a3b8;">Garantia: {{ item.garantia }}</span>
-            </td>
-            <td class="text-right">{{ item.quantidade }}</td>
-            <td class="text-right">{{ item.valor_unitario | moeda }}</td>
-            <td class="text-right">{{ item.valor_total | moeda }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="table-section">
+        <h2>{{ cat.titulo }}</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Descrição do Item / Serviço</th>
+              <th class="text-right">Qtd</th>
+              <th class="text-right">Valor Unit.</th>
+              <th class="text-right">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in cat.itens %}
+            <tr>
+              <td>
+                <div style="font-weight: 600;">{{ item.descricao }}</div>
+                {% if item.garantia %}
+                <div style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">
+                  <i class="fas fa-shield-alt"></i> Garantia: {{ item.garantia }}
+                </div>
+                {% endif %}
+              </td>
+              <td class="text-right">{{ item.quantidade }}</td>
+              <td class="text-right price-tag">{{ item.valor_unitario | moeda }}</td>
+              <td class="text-right total-tag">{{ item.valor_total | moeda }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
       {% endfor %}
 
-      <div class="totals">
-        {% if desconto_percent > 0 %}
+      <div class="totals-area">
+        {% if valor_subtotal > valor_total_geral %}
         <div class="total-row">
           <span>Subtotal</span>
           <span>{{ valor_subtotal | moeda }}</span>
         </div>
-        <div class="total-row desconto">
-          <span>Desconto ({{ desconto_percent | int }}%)</span>
-          <span>&minus; {{ valor_desconto | moeda }}</span>
+        <div class="total-row" style="color: var(--danger);">
+          <span>Descontos</span>
+          <span>&minus; {{ (valor_subtotal - valor_total_geral) | moeda }}</span>
         </div>
         {% endif %}
-        <div class="total-row final">
-          <span>Total Geral</span>
+        <div class="total-row grand-total">
+          <span>Total</span>
           <span>{{ valor_total_geral | moeda }}</span>
         </div>
       </div>
     </div>
 
-    <div class="section">
-      <h2>Termos e Observações</h2>
-      <ul class="obs-list">
-        <li>Validade da proposta: <strong>{{ orc.validade_dias }} dias</strong></li>
-        <li>Condições de Pagamento: <strong>{{ orc.condicao_pagto }}</strong></li>
-        {% if orc.observacoes_custom %}
-          {% for obs in orc.observacoes_custom %}
-          <li>{{ obs }}</li>
-          {% endfor %}
-        {% else %}
-          <li>Instalação: mediante orçamento adicional</li>
-          <li>Garantia: fabricante (equipamentos) + 12 meses (mão de obra)</li>
-          <li>Suporte pós-venda: 30 dias após a conclusão dos serviços</li>
-        {% endif %}
-      </ul>
-      
+    <div class="glass-card">
+      <div class="detail-box">
+        <h3>Informações Adicionais</h3>
+        <ul style="list-style: none; margin-top: 15px;">
+          <li style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-credit-card" style="color: var(--primary);"></i>
+            <span>Pagamento: <strong>{{ orc.condicao_pagto }}</strong></span>
+          </li>
+          {% if orc.observacoes_custom %}
+            {% for obs in orc.observacoes_custom %}
+            <li style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 10px;">
+              <i class="fas fa-check-circle" style="color: var(--primary); margin-top: 4px;"></i>
+              <span>{{ obs }}</span>
+            </li>
+            {% endfor %}
+          {% endif %}
+        </ul>
+      </div>
+
       {% if orc.aceito_em %}
-      <div style="margin-top: 24px; padding: 16px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: var(--text-muted);">
-        <p style="font-weight: 600; color: var(--success); margin-bottom: 8px;">✅ Assinatura Eletrônica Avançada Confirmada</p>
-        <p><strong>Assinante:</strong> {{ orc.assinatura_nome }}</p>
-        {% if orc.assinatura_cpf %}<p><strong>CPF:</strong> {{ orc.assinatura_cpf }}</p>{% endif %}
-        {% if orc.assinatura_telefone %}<p><strong>Telefone:</strong> {{ orc.assinatura_telefone }}</p>{% endif %}
-        <p><strong>Data/Hora:</strong> {{ orc.aceito_em }}</p>
-        <p><strong>IP:</strong> {{ orc.aceito_ip }}</p>
-        {% if orc.assinatura_hash %}<p style="margin-top: 8px; font-size: 11px; color: #94a3b8;">Hash: {{ orc.assinatura_hash }}</p>{% endif %}
+      <div style="margin-top: 30px; padding: 25px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 20px;">
+        <h4 style="color: var(--success); display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+          <i class="fas fa-check-double"></i> Documento Assinado Eletronicamente
+        </h4>
+        <div style="font-size: 13px; color: #166534;">
+          <p><strong>Assinante:</strong> {{ orc.assinatura_nome }} ({{ orc.assinatura_cpf }})</p>
+          <p><strong>Data/Hora:</strong> {{ orc.aceito_em }}</p>
+          <p><strong>IP de Origem:</strong> {{ orc.aceito_ip }}</p>
+          <p style="margin-top: 10px; font-size: 11px; font-family: monospace;">HASH: {{ orc.assinatura_hash }}</p>
+        </div>
       </div>
       {% endif %}
     </div>
   </div>
 
-  <div class="sticky-bar">
-    <button class="btn btn-reject" onclick="recusar()">Recusar Proposta</button>
-    <button class="btn btn-approve" onclick="abrirModalAceite()">Aprovar Proposta</button>
+  {% if orc.status in ['Aguardando', 'Visualizado'] %}
+  <div class="sticky-actions">
+    <button class="btn btn-reject" onclick="recusar()">
+      <i class="fas fa-times"></i> Recusar Proposta
+    </button>
+    <button class="btn btn-approve" onclick="abrirModal()">
+      <i class="fas fa-signature"></i> Assinar e Aprovar
+    </button>
   </div>
+  {% endif %}
 
+  <!-- Modal -->
   <div class="modal-overlay" id="modalAceite">
     <div class="modal">
-      <h3>Assinatura Eletrônica Avançada</h3>
-      <p>Para aprovar esta proposta, confirme seus dados. Isso注册ará sua concordância com os valores e termos apresentados com valor jurídico (Lei 14.063/2020).</p>
+      <h2>Assinatura Eletrônica</h2>
+      <p>Ao confirmar seus dados, você concorda legalmente com os termos e valores desta proposta comercial.</p>
       
-      <div style="margin-bottom: 16px;">
-        <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Nome Completo *</label>
-        <input type="text" id="assinaturaNome" placeholder="Seu nome completo" required style="margin-bottom: 0;">
+      <div class="form-group">
+        <label>Seu Nome Completo</label>
+        <input type="text" id="assinaturaNome" placeholder="Digite seu nome..." required>
       </div>
       
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;">
-        <div>
-          <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">CPF *</label>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div class="form-group">
+          <label>CPF</label>
           <input type="text" id="assinaturaCPF" placeholder="000.000.000-00" required>
         </div>
-        <div>
-          <label style="display: block; font-size: 13px; color: var(--text-muted); margin-bottom: 6px;">Telefone *</label>
+        <div class="form-group">
+          <label>Telefone</label>
           <input type="text" id="assinaturaTelefone" placeholder="(00) 00000-0000" required>
         </div>
       </div>
-      
-      <div style="margin-bottom: 24px; padding: 12px; background: #f8fafc; border-radius: 8px; font-size: 12px; color: var(--text-muted);">
-        <label style="display: flex; align-items: flex-start; gap: 8px; cursor: pointer;">
-          <input type="checkbox" id="aceiteTermos" style="margin-top: 3px;">
-          <span>Eu, {{ orc.cliente_nome }}, declaro que li e concordo com os termos desta proposta comercial, seus valores e condições de pagamento, e autorizo a aprovaçãoDigital deste documento.</span>
-        </label>
-      </div>
-      
-      <div class="modal-actions">
-        <button class="btn btn-reject" onclick="fecharModal()">Cancelar</button>
-        <button class="btn btn-approve" onclick="confirmarAceite()" id="btnConfirmar">Assinar e Aprovar</button>
+
+      <div style="margin-top: 20px; display: flex; gap: 12px;">
+        <button class="btn" style="flex: 1; background: #f1f5f9; color: var(--text-muted);" onclick="fecharModal()">Cancelar</button>
+        <button class="btn btn-approve" style="flex: 2;" onclick="confirmarAceite()" id="btnConfirmar">Confirmar Aprovação</button>
       </div>
     </div>
   </div>
 
   <script>
     const uuid = '{{ orc.uuid_publico }}';
-    const signatureData = {};
 
-    // Masks
-    document.getElementById('assinaturaCPF').addEventListener('input', function(e) {
-      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-      v = v.replace(/^(\d{3})(\d)/, '$1.$2').replace(/\.(\d{3})(\d)/, '.$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
-      e.target.value = v;
-    });
-
-    document.getElementById('assinaturaTelefone').addEventListener('input', function(e) {
-      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
-      if (v.length > 10) v = `(${v.slice(0,2)}) ${v.slice(2,7)}-${v.slice(7)}`;
-      else if (v.length > 6) v = `(${v.slice(0,2)}) ${v.slice(2,6)}-${v.slice(6)}`;
-      else if (v.length > 2) v = `(${v.slice(0,2)}) ${v.slice(2)}`;
-      e.target.value = v;
-    });
-
-    function abrirModalAceite() {
-      document.getElementById('modalAceite').classList.add('active');
-    }
-
-    function fecharModal() {
-      document.getElementById('modalAceite').classList.remove('active');
-    }
+    function abrirModal() { document.getElementById('modalAceite').classList.add('active'); }
+    function fecharModal() { document.getElementById('modalAceite').classList.remove('active'); }
 
     async function confirmarAceite() {
       const nome = document.getElementById('assinaturaNome').value.trim();
       const cpf = document.getElementById('assinaturaCPF').value.replace(/\D/g, '');
-      const telefone = document.getElementById('assinaturaTelefone').value.replace(/\D/g, '');
-      const aceiteTermos = document.getElementById('aceiteTermos').checked;
+      const tel = document.getElementById('assinaturaTelefone').value.replace(/\D/g, '');
 
-      if (!nome) return alert('Por favor, digite seu nome completo.');
-      if (cpf.length !== 11) return alert('Por favor, digite um CPF válido.');
-      if (telefone.length < 10) return alert('Por favor, digite um telefone válido.');
-      if (!aceiteTermos) return alert('Você precisa concordar com os termos para aprovar.');
+      if (!nome || cpf.length < 11 || tel.length < 10) {
+        alert('Por favor, preencha todos os campos corretamente.');
+        return;
+      }
 
       const btn = document.getElementById('btnConfirmar');
       btn.disabled = true;
-      btn.textContent = 'Aprovando...';
+      btn.textContent = 'Processando...';
 
       try {
         const res = await fetch(`/api/p/${uuid}/aceitar`, {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ 
-            assinatura_nome: nome,
-            assinatura_cpf: cpf,
-            assinatura_telefone: telefone
-          })
+          body: JSON.stringify({ assinatura_nome: nome, assinatura_cpf: cpf, assinatura_telefone: tel })
         });
         if (res.ok) window.location.reload();
-        else alert('Erro ao aprovar proposta.');
-      } catch (e) {
-        alert('Erro de conexão.');
-      }
+        else alert('Erro ao processar aprovação.');
+      } catch (e) { alert('Erro de conexão.'); }
     }
 
     async function recusar() {
-      if (!confirm('Tem certeza que deseja recusar esta proposta?')) return;
-      try {
-        const res = await fetch(`/api/p/${uuid}/recusar`, { method: 'POST' });
-        if (res.ok) window.location.reload();
-      } catch (e) {
-        alert('Erro de conexão.');
-      }
+      if (!confirm('Deseja realmente recusar esta proposta?')) return;
+      const res = await fetch(`/api/p/${uuid}/recusar`, { method: 'POST' });
+      if (res.ok) window.location.reload();
     }
+
+    // CPF/Phone Masks
+    document.getElementById('assinaturaCPF').oninput = (e) => {
+      let v = e.target.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/^(\d{3})(\d)/, '$1.$2').replace(/\.(\d{3})(\d)/, '.$1.$2').replace(/(\d{3})(\d)/, '$1-$2');
+      e.target.value = v;
+    };
   </script>
 </body>
 </html>

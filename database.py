@@ -36,6 +36,9 @@ def create_tables():
         "ALTER TABLE config_empresa ADD COLUMN licenca_ativa BOOLEAN DEFAULT 0",
         "ALTER TABLE config_empresa ADD COLUMN numero_base INTEGER DEFAULT 0",
         "ALTER TABLE orcamentos ADD COLUMN cliente_id INTEGER",
+        "ALTER TABLE config_empresa ADD COLUMN prazo_equipamentos TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN prazo_instalacao TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN pagto_info TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

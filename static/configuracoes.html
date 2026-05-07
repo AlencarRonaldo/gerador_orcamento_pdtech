@@ -87,9 +87,61 @@
             </div>
             <div class="grid-2">
                 <div class="form-group"><label>CNPJ</label><input type="text" id="empresa_cnpj"></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="empresa_telefone" placeholder="(11) 99999-9999"></div>
+            </div>
+            <div class="grid-2">
                 <div class="form-group"><label>E-mail Público</label><input type="email" id="empresa_email"></div>
+                <div class="form-group"><label>Cidade</label><input type="text" id="empresa_cidade" placeholder="São Paulo - SP"></div>
             </div>
             <div class="form-group"><label>Slogan da Empresa</label><input type="text" id="empresa_slogan"></div>
+            <div class="form-group">
+                <label>Diferenciais (texto exibido no PDF)</label>
+                <input type="text" id="empresa_diferenciais" placeholder="Ex: Atendimento personalizado • Suporte 24h • Garantia estendida">
+            </div>
+            <div class="form-group">
+                <label>Cor Principal</label>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <input type="color" id="cor_primaria" style="width:50px;height:40px;padding:2px;border-radius:8px;cursor:pointer;" oninput="document.getElementById('cor_primaria_hex').value=this.value">
+                    <input type="text" id="cor_primaria_hex" placeholder="#0097b2" style="flex:1;" oninput="document.getElementById('cor_primaria').value=this.value">
+                </div>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-credit-card"></i> Condições de Pagamento</h2>
+            <div class="form-group">
+                <label>Opção 1 de Pagamento</label>
+                <input type="text" id="cond_pagto_opcao1" placeholder="Ex: 50% de entrada + 50% em 30 dias">
+            </div>
+            <div class="form-group">
+                <label>Desconto à Vista (Opção 3)</label>
+                <input type="text" id="cond_pagto_opcao3_desconto" placeholder="Ex: 5%">
+            </div>
+            <div class="form-group">
+                <label>Informações adicionais de pagamento</label>
+                <input type="text" id="pagto_info" placeholder="Ex: Emissão de NF: até 7 dias após aprovação | Pagamento via Boleto, TED ou PIX">
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-list-ul"></i> Observações Padrão do PDF</h2>
+            <div class="form-group">
+                <label>Uma observação por linha</label>
+                <textarea id="obs_padrao" rows="5" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--glass-border);padding:12px;border-radius:12px;color:var(--text-main);outline:none;resize:vertical;font-family:inherit;font-size:13px;" placeholder="Instalação: mediante orçamento adicional&#10;Garantia: fabricante (equipamentos) + 12 meses (mão de obra)&#10;Suporte pós-venda: 30 dias após a conclusão dos serviços"></textarea>
+                <small style="color:var(--text-muted);font-size:11px;">A validade da proposta é adicionada automaticamente como primeiro item.</small>
+            </div>
+        </div>
+
+        <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-truck"></i> Prazo de Entrega</h2>
+            <div class="form-group">
+                <label>Prazo — Equipamentos</label>
+                <input type="text" id="prazo_equipamentos" placeholder="Ex: 5 a 10 dias úteis após confirmação do pedido">
+            </div>
+            <div class="form-group">
+                <label>Prazo — Instalação</label>
+                <input type="text" id="prazo_instalacao" placeholder="Ex: Mediante agendamento após entrega dos equipamentos">
+            </div>
         </div>
 
         <div class="glass-panel">
@@ -115,8 +167,20 @@
             const data = await res.json();
             document.getElementById('empresa_nome').value = data.empresa_nome || '';
             document.getElementById('empresa_cnpj').value = data.empresa_cnpj || '';
+            document.getElementById('empresa_telefone').value = data.empresa_telefone || '';
             document.getElementById('empresa_email').value = data.empresa_email || '';
+            document.getElementById('empresa_cidade').value = data.empresa_cidade || '';
             document.getElementById('empresa_slogan').value = data.empresa_slogan || '';
+            document.getElementById('empresa_diferenciais').value = data.empresa_diferenciais || '';
+            const cor = data.cor_primaria || '#0097b2';
+            document.getElementById('cor_primaria').value = cor;
+            document.getElementById('cor_primaria_hex').value = cor;
+            document.getElementById('cond_pagto_opcao1').value = data.cond_pagto_opcao1 || '';
+            document.getElementById('cond_pagto_opcao3_desconto').value = data.cond_pagto_opcao3_desconto || '';
+            document.getElementById('pagto_info').value = data.pagto_info || '';
+            document.getElementById('obs_padrao').value = (data.obs_padrao || []).join('\n');
+            document.getElementById('prazo_equipamentos').value = data.prazo_equipamentos || '';
+            document.getElementById('prazo_instalacao').value = data.prazo_instalacao || '';
             document.getElementById('login_email').value = data.login_email || '';
             
             if (data.empresa_logo_b64) {
@@ -151,16 +215,28 @@
         }
 
         async function salvarConfig() {
+            const obsRaw = document.getElementById('obs_padrao').value;
+            const obsLista = obsRaw.split('\n').map(s => s.trim()).filter(s => s.length > 0);
             const data = {
                 empresa_nome: document.getElementById('empresa_nome').value,
                 empresa_cnpj: document.getElementById('empresa_cnpj').value,
+                empresa_telefone: document.getElementById('empresa_telefone').value,
                 empresa_email: document.getElementById('empresa_email').value,
+                empresa_cidade: document.getElementById('empresa_cidade').value,
                 empresa_slogan: document.getElementById('empresa_slogan').value,
+                empresa_diferenciais: document.getElementById('empresa_diferenciais').value,
+                cor_primaria: document.getElementById('cor_primaria_hex').value || document.getElementById('cor_primaria').value,
                 empresa_logo_b64: logoBase64,
+                cond_pagto_opcao1: document.getElementById('cond_pagto_opcao1').value,
+                cond_pagto_opcao3_desconto: document.getElementById('cond_pagto_opcao3_desconto').value,
+                pagto_info: document.getElementById('pagto_info').value,
+                obs_padrao_json: JSON.stringify(obsLista),
+                prazo_equipamentos: document.getElementById('prazo_equipamentos').value,
+                prazo_instalacao: document.getElementById('prazo_instalacao').value,
                 login_email: document.getElementById('login_email').value,
                 login_senha: document.getElementById('login_senha').value
             };
-            const res = await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            const res = await apiFetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             if (res && res.ok) {
                 const toast = document.getElementById('toast');
                 toast.style.display = 'block';

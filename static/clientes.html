@@ -9,20 +9,101 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/shared.css">
     <style>
-        @media (max-width: 768px) {
-            header { flex-direction: column !important; align-items: flex-start !important; gap: 15px !important; }
-            h1 { font-size: 20px; }
-            .glass-panel { padding: 15px; }
-            .btn-primary { width: 100%; justify-content: center; }
+        .client-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(58, 123, 213, 0.3);
         }
-        
-        @media (max-width: 480px) {
-            .main-content { padding: 10px; }
-            table { font-size: 13px; }
-            th, td { padding: 10px 6px; }
-            .table-container { margin: 0 -15px; padding: 0 15px; overflow-x: auto; }
-            #modal { padding: 10px; }
-            #modal .glass-panel { margin: 0; }
+
+        .search-container {
+            position: relative;
+            flex: 1;
+            max-width: 400px;
+        }
+
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            padding: 12px 15px 12px 45px;
+            border-radius: 14px;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(58, 123, 213, 0.1);
+        }
+
+        tr {
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.02) !important;
+            transform: scale(1.002);
+        }
+
+        .client-info-cell {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .client-name {
+            font-weight: 600;
+            color: var(--text-main);
+            display: block;
+        }
+
+        .client-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .badge-city {
+            padding: 4px 10px;
+            background: rgba(58, 123, 213, 0.1);
+            color: var(--primary);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+
+        @media (max-width: 768px) {
+            .header-row {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 20px;
+            }
+            .search-container {
+                max-width: none;
+            }
         }
     </style>
 </head>
@@ -53,97 +134,214 @@
     </div>
 
     <main class="main-content">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <header class="header-row" style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px;">
             <div>
                 <h1>Gestão de Clientes</h1>
-                <p style="color: var(--text-muted);">Visualize e gerencie seu banco de dados de clientes.</p>
+                <p style="color: var(--text-muted);">Banco de dados centralizado de seus contatos.</p>
+            </div>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" class="search-input" id="search-input" placeholder="Buscar por nome, e-mail ou empresa..." onkeyup="filterClients()">
             </div>
             <button class="btn btn-primary" onclick="openModal()">
-                <i class="fas fa-user-plus"></i> Novo Cliente
+                <i class="fas fa-plus"></i> Novo Cliente
             </button>
         </header>
 
-        <div class="glass-panel">
+        <div class="glass-panel" style="padding: 0; overflow: hidden;">
             <div class="table-container">
-                <table>
+                <table style="border-collapse: separate; border-spacing: 0;">
                     <thead>
                         <tr>
-                            <th>Nome / Empresa</th>
+                            <th style="padding-left: 25px;">Cliente / Empresa</th>
                             <th>Contato</th>
                             <th>E-mail</th>
                             <th>Cidade</th>
-                            <th style="text-align: right;">Ações</th>
+                            <th style="text-align: right; padding-right: 25px;">Ações</th>
                         </tr>
                     </thead>
-                    <tbody id="client-list"></tbody>
+                    <tbody id="client-list">
+                        <!-- Clientes serão carregados aqui -->
+                    </tbody>
                 </table>
             </div>
         </div>
+        
+        <div id="empty-state" style="display: none; text-align: center; padding: 60px 20px;">
+            <div style="font-size: 50px; color: var(--glass-border); margin-bottom: 20px;">
+                <i class="fas fa-users-slash"></i>
+            </div>
+            <h3 style="color: var(--text-muted);">Nenhum cliente encontrado</h3>
+            <p style="color: var(--text-muted); font-size: 14px;">Tente ajustar sua busca ou adicione um novo cliente.</p>
+        </div>
     </main>
 
-    <!-- Modal Modal -->
-    <div id="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(5px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
-        <div class="glass-panel" style="width: 100%; max-width: 500px; margin-bottom: 0;">
-            <h2 id="modal-title" style="margin-bottom: 25px;">Novo Cliente</h2>
+    <!-- Modal Cliente -->
+    <div id="modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 2000; align-items: center; justify-content: center; padding: 20px;">
+        <div class="glass-panel" style="width: 100%; max-width: 550px; margin-bottom: 0; animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 id="modal-title" style="margin: 0;">Novo Cliente</h2>
+                <button onclick="closeModal()" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
             <form id="client-form">
                 <input type="hidden" id="client-id">
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted);">Nome / Empresa</label>
-                    <input type="text" id="nome" required style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 12px; border-radius: 10px; color: var(--text-main); outline: none;">
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">Nome Completo / Razão Social</label>
+                    <input type="text" id="nome" required class="search-input" style="padding-left: 15px;" placeholder="Ex: Alencar Ronaldo Ltda">
                 </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
-                        <label style="display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted);">Contato</label>
-                        <input type="text" id="contato" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 12px; border-radius: 10px; color: var(--text-main); outline: none;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">Nome do Contato</label>
+                        <input type="text" id="contato" class="search-input" style="padding-left: 15px;" placeholder="Ex: Ronaldo">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted);">Telefone</label>
-                        <input type="text" id="telefone" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 12px; border-radius: 10px; color: var(--text-main); outline: none;">
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">Telefone / WhatsApp</label>
+                        <input type="text" id="telefone" class="search-input" style="padding-left: 15px;" placeholder="(00) 00000-0000">
                     </div>
                 </div>
-                <div style="margin-bottom: 15px;">
-                    <label style="display: block; font-size: 13px; margin-bottom: 5px; color: var(--text-muted);">E-mail</label>
-                    <input type="email" id="email" style="width: 100%; background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 12px; border-radius: 10px; color: var(--text-main); outline: none;">
+
+                <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">E-mail</label>
+                        <input type="email" id="email" class="search-input" style="padding-left: 15px;" placeholder="cliente@email.com">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">Cidade</label>
+                        <input type="text" id="cidade" class="search-input" style="padding-left: 15px;" placeholder="Cidade/UF">
+                    </div>
                 </div>
-                <div style="display: flex; gap: 10px; margin-top: 30px;">
-                    <button type="button" class="btn" style="flex: 1; background: var(--glass-border);" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar</button>
+
+                <div style="margin-bottom: 30px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">Endereço Completo</label>
+                    <input type="text" id="endereco" class="search-input" style="padding-left: 15px;" placeholder="Rua, Número, Bairro...">
+                </div>
+
+                <div style="display: flex; gap: 12px; margin-top: 10px;">
+                    <button type="button" class="btn" style="flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main);" onclick="closeModal()">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1.5;">Confirmar e Salvar</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <style>
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+
     <script src="/shared.js?v=1.2"></script>
     <script>
+        let allClients = [];
+
+        function sendWhatsApp(telefone, nome) {
+            let telefoneLimpo = telefone.replace(/\D/g, '');
+            if (!telefoneLimpo || telefoneLimpo.length < 10) {
+                alert('Telefone inválido ou não cadastrado para este cliente.');
+                return;
+            }
+            
+            // Adiciona prefixo 55 se não houver (para 10 ou 11 dígitos)
+            if (telefoneLimpo.length === 10 || telefoneLimpo.length === 11) {
+                telefoneLimpo = '55' + telefoneLimpo;
+            }
+            
+            const empresa = localStorage.getItem('empresa_nome') || 'Nossa Empresa';
+            const mensagem = `Olá, *${nome}*! 👋%0A%0AComo podemos ajudar você hoje?%0A%0AAtenciosamente,%0A*Equipe ${empresa}*`;
+            const waLink = `https://wa.me/${telefoneLimpo}?text=${encodeURIComponent(mensagem)}`;
+            window.open(waLink, '_blank');
+        }
+
         async function loadClients() {
             const res = await apiFetch('/api/clientes');
             if (!res) return;
-            const clients = await res.json();
-            document.getElementById('client-list').innerHTML = clients.map(c => `
-                <tr>
-                    <td style="font-weight: 700; color: var(--primary);">${c.nome}</td>
-                    <td style="font-weight: 500;">${c.contato || '-'}</td>
-                    <td>${c.email || '-'}</td>
-                    <td>${c.cidade || '-'}</td>
-                    <td style="text-align: right;">
-                        <button class="btn-icon" onclick='editClient(${JSON.stringify(c)})'><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon" onclick="deleteClient(${c.id})" style="color: #ef4444;"><i class="fas fa-trash"></i></button>
-                    </td>
-                </tr>
-            `).join('') || '<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Nenhum cliente cadastrado.</td></tr>';
+            allClients = await res.json();
+            renderClients(allClients);
+        }
+
+        function renderClients(clients) {
+            const list = document.getElementById('client-list');
+            const empty = document.getElementById('empty-state');
+            
+            if (clients.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.innerHTML = clients.map(c => {
+                const initial = c.nome ? c.nome.charAt(0).toUpperCase() : '?';
+                return `
+                    <tr>
+                        <td style="padding-left: 25px;">
+                            <div class="client-info-cell">
+                                <div class="client-avatar">${initial}</div>
+                                <div>
+                                    <span class="client-name">${c.nome}</span>
+                                    <span class="client-sub">${c.cnpj_cpf || 'Sem documento'}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="display: flex; flex-direction: column;">
+                                <span style="font-weight: 500;">${c.contato || '-'}</span>
+                                <span style="font-size: 12px; color: var(--text-muted);">${c.telefone || ''}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <a href="mailto:${c.email}" style="color: var(--text-muted); text-decoration: none; font-size: 13px;">
+                                ${c.email || '-'}
+                            </a>
+                        </td>
+                        <td><span class="badge-city">${c.cidade || 'Não inf.'}</span></td>
+                        <td style="text-align: right; padding-right: 25px;">
+                            <div class="action-btns">
+                                <button class="btn-icon" onclick="sendWhatsApp('${c.telefone || ''}', '${c.nome}')" style="color: #25D366;" title="WhatsApp">
+                                    <i class="fab fa-whatsapp"></i>
+                                </button>
+                                <button class="btn-icon" onclick='editClient(${JSON.stringify(c)})' title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn-icon" onclick="deleteClient(${c.id})" style="color: #ef4444;" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function filterClients() {
+            const query = document.getElementById('search-input').value.toLowerCase();
+            const filtered = allClients.filter(c => 
+                c.nome.toLowerCase().includes(query) || 
+                (c.email && c.email.toLowerCase().includes(query)) ||
+                (c.contato && c.contato.toLowerCase().includes(query))
+            );
+            renderClients(filtered);
         }
 
         function openModal(client = null) {
             document.getElementById('modal').style.display = 'flex';
             const form = document.getElementById('client-form');
             form.reset();
+            
             if(client) {
                 document.getElementById('modal-title').innerText = 'Editar Cliente';
                 document.getElementById('client-id').value = client.id;
-                document.getElementById('nome').value = client.nome;
+                document.getElementById('nome').value = client.nome || '';
                 document.getElementById('contato').value = client.contato || '';
                 document.getElementById('email').value = client.email || '';
                 document.getElementById('telefone').value = client.telefone || '';
+                document.getElementById('cidade').value = client.cidade || '';
+                document.getElementById('endereco').value = client.endereco || '';
             } else {
                 document.getElementById('modal-title').innerText = 'Novo Cliente';
                 document.getElementById('client-id').value = '';
@@ -160,10 +358,19 @@
                 contato: document.getElementById('contato').value,
                 email: document.getElementById('email').value,
                 telefone: document.getElementById('telefone').value,
+                cidade: document.getElementById('cidade').value,
+                endereco: document.getElementById('endereco').value,
             };
+            
             const method = id ? 'PUT' : 'POST';
             const url = id ? `/api/clientes/${id}` : '/api/clientes';
-            const res = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+            
+            const res = await apiFetch(url, { 
+                method, 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(data) 
+            });
+            
             if (res) {
                 closeModal();
                 loadClients();
@@ -171,7 +378,7 @@
         };
 
         async function deleteClient(id) {
-            if(confirm('Excluir este cliente?')) {
+            if(confirm('Tem certeza que deseja excluir este cliente? Esta ação não pode ser desfeita.')) {
                 const res = await apiFetch(`/api/clientes/${id}`, { method: 'DELETE' });
                 if (res) loadClients();
             }

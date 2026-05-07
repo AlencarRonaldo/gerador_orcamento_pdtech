@@ -466,14 +466,14 @@
                         items.push({
                             descricao: desc,
                             quantidade: parseFloat(row.querySelector('.item-qtd').value),
-                            preco_unitario: parseFloat(row.querySelector('.item-preco').value),
+                            valor_unitario: parseFloat(row.querySelector('.item-preco').value),
                             garantia: row.querySelector('.item-garantia').value,
                             prazo: row.querySelector('.item-prazo').value
                         });
                     }
                 });
                 if(items.length > 0) {
-                    categorias.push({ nome: cat.querySelector('.cat-name').value || "Itens", itens: items });
+                    categorias.push({ titulo: cat.querySelector('.cat-name').value || "Itens", itens: items });
                 }
             });
 

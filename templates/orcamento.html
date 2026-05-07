@@ -66,13 +66,6 @@
 </div>
 {% endif %}
 
-{% if empresa_cidade %}
-<div class="company-stamp">
-  <strong>{{ empresa_nome | upper }}</strong>
-  {% if empresa_cidade %}&nbsp;|&nbsp; {{ empresa_cidade }}{% endif %}
-</div>
-{% endif %}
-
 <!-- Proposta Comercial -->
 <h2>Proposta Comercial</h2>
 
@@ -136,7 +129,7 @@
       Desconto de {{ cond_pagto_opcao3_desconto }} no valor total
     </div>
   </div>
-  <div class="payment-info">Emissão de NF: até 7 dias após aprovação &nbsp;|&nbsp; Pagamento via Boleto, TED ou PIX</div>
+  {% if pagto_info %}<div class="payment-info">{{ pagto_info }}</div>{% endif %}
 </div>
 
 <!-- Prazo de Entrega -->
@@ -145,11 +138,11 @@
   <div class="delivery-grid">
     <div class="delivery-item">
       <div class="delivery-label">Equipamentos</div>
-      5 a 10 dias úteis após confirmação do pedido
+      {{ prazo_equipamentos }}
     </div>
     <div class="delivery-item">
       <div class="delivery-label">Instalação</div>
-      Mediante agendamento após entrega dos equipamentos
+      {{ prazo_instalacao }}
     </div>
   </div>
 </div>

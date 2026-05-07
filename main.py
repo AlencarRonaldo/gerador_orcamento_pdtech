@@ -131,9 +131,13 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "empresa_logo_b64": cfg.empresa_logo_b64 or "",
         "cor_primaria": cfg.cor_primaria or "#0097b2",
         "obs_padrao": obs,
+        "prazo_equipamentos": cfg.prazo_equipamentos or "",
+        "prazo_instalacao": cfg.prazo_instalacao or "",
+        "pagto_info": cfg.pagto_info or "",
         "cond_pagto_opcao1": cfg.cond_pagto_opcao1 or "50% de entrada + 50% em 30 dias",
         "cond_pagto_opcao3_desconto": cfg.cond_pagto_opcao3_desconto or "5%",
         "login_email": cfg.login_email or "",
+        "login_senha": cfg.login_senha or "",
         "numero_base": cfg.numero_base or 0,
     }
 
@@ -287,9 +291,11 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
             "id": o.id,
             "numero": o.numero,
             "cliente": o.cliente_nome,
+            "cliente_telefone": o.cliente_telefone,
             "status": o.status or "Aguardando",
             "valor": _valor(o),
             "data": o.criado_em.strftime("%d/%m"),
+            "uuid_publico": o.uuid_publico,
         }
         for o in recentes_orm
     ]
@@ -486,6 +492,7 @@ def listar_orcamentos(db: Session = Depends(get_db)):
             "numero": orc.numero,
             "data": orc.criado_em.strftime("%d/%m/%Y"),
             "cliente_nome": orc.cliente_nome,
+            "cliente_telefone": orc.cliente_telefone,
             "status": orc.status or "Aguardando",
             "valor_total": total,
             "uuid_publico": orc.uuid_publico,

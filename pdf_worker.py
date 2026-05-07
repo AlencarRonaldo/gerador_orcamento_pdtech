@@ -45,13 +45,7 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
     env = Environment(loader=FileSystemLoader(str(BASE_DIR / "templates")))
     env.filters["moeda"] = _formatar_moeda
 
-    # Logo: prioriza logo da config, senão usa arquivo padrão
     logo_b64 = config.get("empresa_logo_b64", "")
-    if not logo_b64:
-        logo_path = BASE_DIR / "assets" / "rcsuporte.png"
-        if logo_path.exists():
-            import base64
-            logo_b64 = base64.b64encode(logo_path.read_bytes()).decode()
 
     empresa_nome = config.get("empresa_nome", "Minha Empresa")
     empresa_email = config.get("empresa_email", "")
@@ -63,6 +57,9 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
     cor_primaria = config.get("cor_primaria", "#0097b2")
     cond_pagto_opcao1 = config.get("cond_pagto_opcao1", "50% de entrada + 50% em 30 dias")
     cond_pagto_opcao3_desconto = config.get("cond_pagto_opcao3_desconto", "5%")
+    prazo_equipamentos = config.get("prazo_equipamentos") or "5 a 10 dias úteis após confirmação do pedido"
+    prazo_instalacao = config.get("prazo_instalacao") or "Mediante agendamento após entrega dos equipamentos"
+    pagto_info = config.get("pagto_info") or "Emissão de NF: até 7 dias após aprovação &nbsp;|&nbsp; Pagamento via Boleto, TED ou PIX"
     obs_padrao = config.get("obs_padrao", [
         "Instalação: mediante orçamento adicional",
         "Garantia: fabricante (equipamentos) + 12 meses (mão de obra)",
@@ -114,10 +111,17 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
         categorias_processadas=categorias_processadas,
         observacoes=observacoes,
         multiplas_categorias=len(categorias_processadas) > 1,
+        prazo_equipamentos=prazo_equipamentos,
+        prazo_instalacao=prazo_instalacao,
+        pagto_info=pagto_info,
     )
 
     # Header e footer dinâmicos
-    logo_img = f'<img src="data:image/png;base64,{logo_b64}" style="height:30px;width:auto;">' if logo_b64 else f'<span style="font-weight:700;color:{cor_primaria};font-size:10pt;">{empresa_nome}</span>'
+    if logo_b64:
+        logo_src = logo_b64 if logo_b64.startswith("data:") else f"data:image/png;base64,{logo_b64}"
+        logo_img = f'<img src="{logo_src}" style="height:48px;width:auto;max-width:180px;object-fit:contain;">'
+    else:
+        logo_img = f'<span style="font-weight:700;color:{cor_primaria};font-size:10pt;">{empresa_nome}</span>'
 
     contato_parts = []
     if empresa_email:
@@ -127,7 +131,7 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
     contato_str = " &nbsp;|&nbsp; ".join(contato_parts) if contato_parts else ""
 
     header_template = f"""<div style="
-      width:100%;padding:7px 15mm 5px;
+      width:100%;padding:4px 13mm 4px;
       display:flex;align-items:center;justify-content:space-between;
       font-family:Arial,sans-serif;border-bottom:2px solid {cor_primaria};
       box-sizing:border-box;
@@ -164,7 +168,7 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
             display_header_footer=True,
             header_template=header_template,
             footer_template=footer_template,
-            margin={"top": "46mm", "bottom": "22mm", "left": "15mm", "right": "15mm"},
+            margin={"top": "26mm", "bottom": "16mm", "left": "13mm", "right": "13mm"},
         )
         browser.close()
 

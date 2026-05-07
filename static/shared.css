@@ -129,7 +129,7 @@ body {
 /* Sidebar Toggle Button */
 .sidebar-toggle {
     position: absolute;
-    top: 25px;
+    top: 90px;
     right: -15px;
     width: 30px;
     height: 30px;
@@ -147,8 +147,8 @@ body {
 }
 
 .sidebar.collapsed .sidebar-toggle {
-    right: 25px;
-    top: 80px;
+    right: -15px;
+    top: 90px;
 }
 
 @media (max-width: 1024px) {

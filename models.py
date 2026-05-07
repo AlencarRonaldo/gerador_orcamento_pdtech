@@ -27,6 +27,9 @@ class ConfigEmpresa(Base):
     empresa_logo_b64 = Column(Text, nullable=True)
     cor_primaria = Column(String, default="#0097b2")
     obs_padrao_json = Column(Text, nullable=True)
+    prazo_equipamentos = Column(String, nullable=True)
+    prazo_instalacao = Column(String, nullable=True)
+    pagto_info = Column(String, nullable=True)
     cond_pagto_opcao1 = Column(String, default="50% de entrada + 50% em 30 dias")
     cond_pagto_opcao3_desconto = Column(String, default="5%")
     login_email = Column(String, default="admin@admin.com")
@@ -246,6 +249,9 @@ class ConfigEmpresaInput(BaseModel):
     empresa_logo_b64: Optional[str] = None
     cor_primaria: str = "#0097b2"
     obs_padrao_json: Optional[str] = None
+    prazo_equipamentos: Optional[str] = None
+    prazo_instalacao: Optional[str] = None
+    pagto_info: Optional[str] = None
     cond_pagto_opcao1: Optional[str] = None
     cond_pagto_opcao3_desconto: Optional[str] = None
     login_email: Optional[str] = None

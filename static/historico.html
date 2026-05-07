@@ -223,13 +223,15 @@
                 return;
             }
             
-            if (telefoneLimpo.length === 10) {
+            // Adiciona prefixo 55 se não houver (para 10 ou 11 dígitos)
+            if (telefoneLimpo.length === 10 || telefoneLimpo.length === 11) {
                 telefoneLimpo = '55' + telefoneLimpo;
             }
             
             const linkOrcamento = `${window.location.origin}/p/${uuid}`;
             const empresa = localStorage.getItem('empresa_nome') || 'Nossa Empresa';
-            const mensagem = `Olá ${nome}! 👋%0A%0A${empresa} enviou uma proposta comercial para você.%0A%0APode visualizar e aprovar diretamente pelo link:%0A${linkOrcamento}%0A%0AQualquer dúvida, me avisa aqui!`;
+            
+            const mensagem = `*PROPOSTA COMERCIAL - ${empresa.toUpperCase()}* 📄%0A%0AOlá, *${nome}*! 👋%0A%0AÉ um prazer apresentar nossa proposta personalizada. Preparamos os detalhes com foco em atender às suas necessidades com excelência.%0A%0A🔗 *Acesse agora para visualizar e aprovar:*%0A${linkOrcamento}%0A%0A_Este link é seguro e permite a assinatura eletrônica do documento._%0A%0AFicamos à disposição para qualquer dúvida!%0A%0AAtenciosamente,%0A*Equipe ${empresa}*`;
             
             const waLink = `https://wa.me/${telefoneLimpo}?text=${mensagem}`;
             
