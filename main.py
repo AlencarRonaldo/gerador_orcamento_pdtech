@@ -9,7 +9,7 @@ import threading
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import List, Optional
 
@@ -316,20 +316,44 @@ def _gerar_numero(db: Session) -> str:
 
 # --- DASHBOARD ---
 
+def _valor(orc):
+    return sum(item.valor_total for cat in orc.categorias for item in cat.itens)
+
 @app.get("/api/dashboard/stats")
 def get_dashboard_stats(db: Session = Depends(get_db)):
     now = datetime.now(timezone.utc)
     inicio_mes = datetime(now.year, now.month, 1)
-
+    
+    # Mês anterior
+    if now.month == 1:
+        inicio_mes_anterior = datetime(now.year - 1, 12, 1)
+    else:
+        inicio_mes_anterior = datetime(now.year, now.month - 1, 1)
+    fim_mes_anterior = inicio_mes - timedelta(days=1)
+    
     orcamentos_mes = db.query(Orcamento).filter(Orcamento.criado_em >= inicio_mes).all()
+    orcamentos_mes_anterior = db.query(Orcamento).filter(
+        Orcamento.criado_em >= inicio_mes_anterior,
+        Orcamento.criado_em <= fim_mes_anterior
+    ).all()
+    
     total_orcados = len(orcamentos_mes)
     total_aprovados = sum(1 for o in orcamentos_mes if o.status == "Aprovado")
 
-    def _valor(orc):
-        return sum(item.valor_total for cat in orc.categorias for item in cat.itens)
-
     valor_total_mes = sum(_valor(o) for o in orcamentos_mes)
     valor_aprovado_mes = sum(_valor(o) for o in orcamentos_mes if o.status == "Aprovado")
+    
+    # Mês anterior
+    total_mes_anterior = len(orcamentos_mes_anterior)
+    valor_aprovado_anterior = sum(_valor(o) for o in orcamentos_mes_anterior if o.status == "Aprovado")
+    
+    # Crescimento
+    crescimento_orcamentos = 0
+    if total_mes_anterior > 0:
+        crescimento_orcamentos = round(((total_orcados - total_mes_anterior) / total_mes_anterior) * 100, 1)
+    crescimento_receita = 0
+    if valor_aprovado_anterior > 0:
+        crescimento_receita = round(((valor_aprovado_mes - valor_aprovado_anterior) / valor_aprovado_anterior) * 100, 1)
 
     # Contagem por status (todos os registros)
     todos = db.query(Orcamento).all()
@@ -338,9 +362,39 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         s = orc.status or "Aguardando"
         por_status[s] = por_status.get(s, 0) + 1
 
+    # Totais históricos
+    total_historico = len(todos)
+    valor_total_historico = sum(_valor(o) for o in todos)
+    valor_aprovado_historico = sum(_valor(o) for o in todos if o.status == "Aprovado")
+    ticket_medio = valor_total_historico / total_historico if total_historico > 0 else 0
+    ticket_medio_aprovado = valor_aprovado_historico / por_status.get("Aprovado", 0) if por_status.get("Aprovado", 0) > 0 else 0
+
     conversao = round(total_aprovados / total_orcados * 100, 1) if total_orcados > 0 else 0.0
 
-    recentes_orm = db.query(Orcamento).order_by(Orcamento.criado_em.desc()).limit(6).all()
+    # Por consultor
+    por_consultor: dict = {}
+    for orc in todos:
+        c = orc.consultor_nome or "Sem consultor"
+        if c not in por_consultor:
+            por_consultor[c] = {"total": 0, "aprovados": 0, "valor": 0, "valor_aprovado": 0}
+        por_consultor[c]["total"] += 1
+        por_consultor[c]["valor"] += _valor(orc)
+        if orc.status == "Aprovado":
+            por_consultor[c]["aprovados"] += 1
+            por_consultor[c]["valor_aprovado"] += _valor(orc)
+
+    # Top clientes por valor aprovado
+    clientes_valor: dict = {}
+    for orc in todos:
+        if orc.status == "Aprovado":
+            c = orc.cliente_nome
+            clientes_valor[c] = clientes_valor.get(c, 0) + _valor(orc)
+    top_clientes = sorted(clientes_valor.items(), key=lambda x: x[1], reverse=True)[:5]
+
+    # Visualizações total
+    total_visualizacoes = sum(o.qtd_visualizacoes or 0 for o in todos)
+
+    recentes_orm = db.query(Orcamento).order_by(Orcamento.criado_em.desc()).limit(5).all()
     recentes = [
         {
             "id": o.id,
@@ -351,6 +405,7 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
             "valor": _valor(o),
             "data": o.criado_em.strftime("%d/%m"),
             "uuid_publico": o.uuid_publico,
+            "consultor": o.consultor_nome or "",
         }
         for o in recentes_orm
     ]
@@ -363,6 +418,17 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "taxa_conversao": conversao,
         "por_status": por_status,
         "recentes": recentes,
+        # Novas métricas
+        "total_historico": total_historico,
+        "valor_total_historico": valor_total_historico,
+        "valor_aprovado_historico": valor_aprovado_historico,
+        "ticket_medio": round(ticket_medio, 2),
+        "ticket_medio_aprovado": round(ticket_medio_aprovado, 2),
+        "crescimento_orcamentos": crescimento_orcamentos,
+        "crescimento_receita": crescimento_receita,
+        "por_consultor": por_consultor,
+        "top_clientes": [{"nome": c[0], "valor": c[1]} for c in top_clientes],
+        "total_visualizacoes": total_visualizacoes,
     }
 
 # --- CRM (CLIENTES) ---
