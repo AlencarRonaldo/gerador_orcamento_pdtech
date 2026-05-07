@@ -45,6 +45,7 @@ class ConfigEmpresa(Base):
     smtp_pass = Column(String, nullable=True)
     notif_email_dest = Column(String, nullable=True)
     consultor_nome = Column(String, nullable=True)
+    consultores_json = Column(Text, nullable=True)
 
 
 class Cliente(Base):
@@ -273,6 +274,7 @@ class ConfigEmpresaInput(BaseModel):
     smtp_pass: Optional[str] = None
     notif_email_dest: Optional[str] = None
     consultor_nome: Optional[str] = None
+    consultores_json: Optional[str] = None
 
 
 # ── Catálogo ──────────────────────────────────────────────────────────────────

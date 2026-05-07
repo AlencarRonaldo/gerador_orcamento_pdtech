@@ -43,6 +43,7 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN primeira_abertura_em DATETIME",
         "ALTER TABLE orcamentos ADD COLUMN consultor_nome TEXT",
         "ALTER TABLE config_empresa ADD COLUMN consultor_nome TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN consultores_json TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

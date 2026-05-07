@@ -192,6 +192,7 @@
             <!-- Condições -->
             <div class="glass-panel">
                 <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-handshake"></i> Condições Comerciais</h2>
+                <div class="form-group"><label>Consultor</label><select id="consultor_select"><option value="">Selecione...</option></select></div>
                 <div class="form-group"><label>Resumo Técnico</label><textarea id="descricao_intro" rows="4"></textarea></div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                     <div class="form-group"><label>Pagamento</label><select id="condicao_pagto"></select></div>
@@ -226,6 +227,23 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        async function loadConsultores() {
+            const res = await apiFetch('/api/config');
+            if (!res) return;
+            const data = await res.json();
+            const consultores = JSON.parse(data.consultores_json || '[]');
+            const select = document.getElementById('consultor_select');
+            consultores.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.nome;
+                opt.textContent = c.nome;
+                select.appendChild(opt);
+            });
+            if (data.consultor_nome) {
+                select.value = data.consultor_nome;
+            }
         }
 
         // ── CNPJ ──────────────────────────────────────────────────────────────
@@ -487,6 +505,7 @@
                 cliente_endereco: document.getElementById('cliente_endereco').value,
                 cliente_contato: document.getElementById('cliente_contato').value,
                 descricao_intro: document.getElementById('descricao_intro').value,
+                consultor_nome: document.getElementById('consultor_select').value || null,
                 condicao_pagto: document.getElementById('condicao_pagto').value,
                 validade_dias: parseInt(document.getElementById('validade_dias').value),
                 categorias: categorias
@@ -561,6 +580,7 @@
         });
 
         init();
+        loadConsultores();
         loadEditData();
     </script>
 </body>

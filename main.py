@@ -149,6 +149,7 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "smtp_pass_set": bool(cfg.smtp_pass),
         "notif_email_dest": cfg.notif_email_dest or "",
         "consultor_nome": cfg.consultor_nome or "",
+        "consultores_json": cfg.consultores_json or "[]",
     }
 
 

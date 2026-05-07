@@ -152,6 +152,17 @@
         </div>
 
         <div class="glass-panel">
+            <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-users"></i> Consultores</h2>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Adicione os consultores para選擇 na hora de criar orçamentos.</p>
+            <div id="consultores-list" style="margin-bottom: 15px;"></div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="text" id="novo_consultor_nome" placeholder="Nome do consultor" style="flex:1;background:var(--bg-card);border:1px solid var(--glass-border);padding:10px;border-radius:12px;color:var(--text-main);outline:none;">
+                <input type="email" id="novo_consultor_email" placeholder="E-mail (opcional)" style="flex:1;background:var(--bg-card);border:1px solid var(--glass-border);padding:10px;border-radius:12px;color:var(--text-main);outline:none;">
+                <button type="button" onclick="adicionarConsultor()" style="background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:12px;cursor:pointer;"><i class="fas fa-plus"></i> Adicionar</button>
+            </div>
+        </div>
+
+        <div class="glass-panel">
             <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--primary);"><i class="fas fa-bell"></i> Notificações por E-mail</h2>
             <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;">Configure o SMTP para receber alertas quando uma proposta for visualizada ou aprovada. Deixe em branco para desativar.</p>
             <div class="grid-2">
@@ -198,6 +209,9 @@
             document.getElementById('prazo_instalacao').value = data.prazo_instalacao || '';
             document.getElementById('consultor_nome').value = data.consultor_nome || '';
             document.getElementById('login_email').value = data.login_email || '';
+            
+            const consultores = JSON.parse(data.consultores_json || '[]');
+            renderConsultores(consultores);
             
             document.getElementById('smtp_host').value = data.smtp_host || '';
             document.getElementById('smtp_port').value = data.smtp_port || 587;
@@ -261,7 +275,8 @@
                 smtp_port: parseInt(document.getElementById('smtp_port').value) || 587,
                 smtp_user: document.getElementById('smtp_user').value,
                 smtp_pass: document.getElementById('smtp_pass').value || null,
-                notif_email_dest: document.getElementById('notif_email_dest').value
+                notif_email_dest: document.getElementById('notif_email_dest').value,
+                consultores_json: JSON.stringify(consultoresGlobal)
             };
             const res = await apiFetch('/api/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
             if (res && res.ok) {
@@ -271,6 +286,49 @@
                 setTimeout(() => { toast.style.display = 'none'; window.location.reload(); }, 1500);
             }
         }
+        
+        let consultoresGlobal = [];
+        
+        function renderConsultores(consultores) {
+            consultoresGlobal = consultores;
+            const container = document.getElementById('consultores-list');
+            if (!consultores.length) {
+                container.innerHTML = '<p style="color:var(--text-muted);font-size:13px;">Nenhum consultor cadastrado.</p>';
+                return;
+            }
+            container.innerHTML = consultores.map((c, i) => `
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg-card);padding:10px 15px;border-radius:10px;margin-bottom:8px;border:1px solid var(--glass-border);">
+                    <div>
+                        <span style="font-weight:600;">${c.nome}</span>
+                        ${c.email ? `<span style="color:var(--text-muted);font-size:12px;margin-left:8px;">${c.email}</span>` : ''}
+                    </div>
+                    <button type="button" onclick="removerConsultor(${i})" style="background:transparent;border:none;color:#ef4444;cursor:pointer;font-size:16px;"><i class="fas fa-trash"></i></button>
+                </div>
+            `).join('');
+        }
+        
+        function adicionarConsultor() {
+            const nome = document.getElementById('novo_consultor_nome').value.trim();
+            const email = document.getElementById('novo_consultor_email').value.trim();
+            if (!nome) { 
+                const t = document.getElementById('toast');
+                t.textContent = '⚠️ Digite o nome do consultor';
+                t.style.background = '#ef4444';
+                t.style.display = 'block';
+                setTimeout(() => t.style.display = 'none', 2000);
+                return; 
+            }
+            consultoresGlobal.push({ nome, email });
+            renderConsultores(consultoresGlobal);
+            document.getElementById('novo_consultor_nome').value = '';
+            document.getElementById('novo_consultor_email').value = '';
+        }
+        
+        function removerConsultor(index) {
+            consultoresGlobal.splice(index, 1);
+            renderConsultores(consultoresGlobal);
+        }
+        
         loadConfig();
     </script>
 </body>
