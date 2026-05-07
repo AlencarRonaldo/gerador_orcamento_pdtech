@@ -39,6 +39,11 @@ class ConfigEmpresa(Base):
     licenca_ativa = Column(Boolean, default=False)
     numero_base = Column(Integer, default=0)
     atualizado_em = Column(DateTime, default=_utc_now, onupdate=_utc_now)
+    smtp_host = Column(String, nullable=True)
+    smtp_port = Column(Integer, default=587, nullable=True)
+    smtp_user = Column(String, nullable=True)
+    smtp_pass = Column(String, nullable=True)
+    notif_email_dest = Column(String, nullable=True)
 
 
 class Cliente(Base):
@@ -259,6 +264,11 @@ class ConfigEmpresaInput(BaseModel):
     login_email: Optional[str] = None
     login_senha: Optional[str] = None
     numero_base: Optional[int] = None
+    smtp_host: Optional[str] = None
+    smtp_port: Optional[int] = None
+    smtp_user: Optional[str] = None
+    smtp_pass: Optional[str] = None
+    notif_email_dest: Optional[str] = None
 
 
 # ── Catálogo ──────────────────────────────────────────────────────────────────

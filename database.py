@@ -41,6 +41,11 @@ def create_tables():
         "ALTER TABLE config_empresa ADD COLUMN pagto_info TEXT",
         "ALTER TABLE orcamentos ADD COLUMN qtd_visualizacoes INTEGER DEFAULT 0",
         "ALTER TABLE orcamentos ADD COLUMN primeira_abertura_em DATETIME",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_host TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_port INTEGER DEFAULT 587",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_user TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_pass TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN notif_email_dest TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:
