@@ -10,152 +10,266 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/shared.css">
     <style>
-        /* ── KPI Cards ───────────────────────────────────────────────── */
+        /* ── Dashboard Header ──────────────────────────────────────────── */
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .dash-header-left h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+        .dash-header-left p {
+            color: var(--text-muted);
+            font-size: 12px;
+            margin-top: 3px;
+        }
+        .dash-header-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .period-selector {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            padding: 7px 12px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: default;
+        }
+        .period-selector i { font-size: 11px; }
+
+        /* ── KPI Grid 5 cols ─────────────────────────────────────────── */
         .kpi-grid {
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
             margin-bottom: 20px;
         }
-        @media (max-width: 1400px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 480px) { .kpi-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 1300px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 900px)  { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 500px)  { .kpi-grid { grid-template-columns: 1fr; } }
 
         .kpi-card {
             background: var(--bg-card);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 16px;
+            padding: 18px 20px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        
-        .kpi-card .kpi-header {
+        .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.18); }
+
+        .kpi-card-top {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
         }
-        
-        .kpi-card .kpi-icon {
-            width: 28px; height: 28px; border-radius: 8px;
+        .kpi-icon-wrap {
+            width: 42px; height: 42px; border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
-            font-size: 12px;
+            font-size: 16px;
         }
-        
-        .kpi-card .kpi-trend {
-            font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px;
+        .kpi-trend {
+            font-size: 11px; font-weight: 700;
+            padding: 3px 7px; border-radius: 6px;
         }
-        .kpi-card .kpi-trend.up { background: rgba(16,185,129,0.15); color: #10b981; }
-        .kpi-card .kpi-trend.down { background: rgba(239,68,68,0.15); color: #ef4444; }
-        
-        .kpi-card .kpi-label { 
-            font-size: 11px; color: var(--text-muted); font-weight: 600; 
-            text-transform: uppercase; letter-spacing: 0.3px; 
+        .kpi-trend.up   { background: rgba(16,185,129,0.15); color: #10b981; }
+        .kpi-trend.down { background: rgba(239,68,68,0.15);  color: #ef4444; }
+        .kpi-trend.neutral { background: rgba(148,163,184,0.12); color: #94a3b8; }
+
+        .kpi-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
         }
-        .kpi-card .kpi-value { 
-            font-size: 22px; font-weight: 800; color: var(--text-main); 
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--text-main);
+            line-height: 1.1;
         }
-        .kpi-card .kpi-sub { 
-            font-size: 10px; color: var(--text-muted); 
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
         }
 
-        .kpi-card:nth-child(1) .kpi-icon { background: rgba(58,123,213,0.15); color: #3a7bd5; }
-        .kpi-card:nth-child(2) .kpi-icon { background: rgba(16,185,129,0.15); color: #10b981; }
-        .kpi-card:nth-child(3) .kpi-icon { background: rgba(139,92,246,0.15); color: #8b5cf6; }
-        .kpi-card:nth-child(4) .kpi-icon { background: rgba(245,158,11,0.15); color: #f59e0b; }
-        .kpi-card:nth-child(5) .kpi-icon { background: rgba(236,72,153,0.15); color: #ec4899; }
-        .kpi-card:nth-child(6) .kpi-icon { background: rgba(0,210,255,0.15); color: #00d2ff; }
-        .kpi-card:nth-child(7) .kpi-icon { background: rgba(34,197,94,0.15); color: #22c55e; }
-        .kpi-card:nth-child(8) .kpi-icon { background: rgba(168,85,247,0.15); color: #a855f7; }
-
-        /* ── Main Grid ───────────────────────────────────────────────── */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        @media (max-width: 1100px) { .main-grid { grid-template-columns: 1fr; } }
-
-        /* ── Cards ─────────────────────────────────────────────────────── */
+        /* ── Stats Cards ────────────────────────────────────────────── */
         .stats-card {
             background: var(--bg-card);
             border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 16px;
+            padding: 20px;
         }
-        
         .stats-card h3 {
-            font-size: 13px; font-weight: 700;
+            font-size: 13px;
+            font-weight: 700;
             color: var(--text-main);
-            margin-bottom: 14px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
-        
         .stats-card h3 i { color: var(--primary); font-size: 14px; }
 
-        /* ── Status Grid ─────────────────────────────────────────────── */
-        .status-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-bottom: 14px;
+        /* ── Chart card ─────────────────────────────────────────────── */
+        .chart-card {
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
-        
-        .status-item {
+        .chart-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .chart-card-header h3 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px;
-            background: rgba(255,255,255,0.03);
-            border-radius: 8px;
-            border: 1px solid var(--glass-border);
         }
-        
-        .status-item .status-dot {
-            width: 10px; height: 10px; border-radius: 50%;
+        .chart-card-header h3 i { color: var(--primary); }
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
         }
-        
-        .status-item .status-info { flex: 1; }
-        .status-item .status-label { font-size: 11px; color: var(--text-muted); }
-        .status-item .status-count { font-size: 16px; font-weight: 700; color: var(--text-main); }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .legend-dot {
+            width: 10px; height: 10px; border-radius: 3px;
+        }
+        .chart-wrap {
+            position: relative;
+            height: 200px;
+        }
 
-        /* ── Activity ────────────────────────────────────────────────── */
-        .activity-list { display: flex; flex-direction: column; gap: 8px; }
-        
-        .activity-item {
+        /* ── Section 3: 3-col grid ──────────────────────────────────── */
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 1100px) { .grid-3 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 700px)  { .grid-3 { grid-template-columns: 1fr; } }
+
+        /* ── Funnel ─────────────────────────────────────────────────── */
+        .funnel-row {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .funnel-item { display: flex; flex-direction: column; gap: 4px; }
+        .funnel-item-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+        .funnel-item-label { color: var(--text-muted); font-weight: 600; }
+        .funnel-item-count { color: var(--text-main); font-weight: 700; }
+        .funnel-bar {
+            height: 8px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .funnel-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .funnel-pct {
+            font-size: 10px;
+            color: var(--text-muted);
+            text-align: right;
+        }
+
+        /* ── Expiry Alerts ──────────────────────────────────────────── */
+        .expiry-list { display: flex; flex-direction: column; gap: 8px; }
+        .expiry-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px;
+            padding: 10px 12px;
             background: rgba(255,255,255,0.02);
             border: 1px solid var(--glass-border);
             border-radius: 10px;
-            transition: all 0.2s;
+            cursor: pointer;
+            transition: background 0.15s;
         }
-        
-        .activity-item:hover { background: rgba(255,255,255,0.04); }
-        
-        .activity-avatar {
+        .expiry-item:hover { background: rgba(255,255,255,0.04); }
+        .expiry-info { flex: 1; min-width: 0; }
+        .expiry-numero { font-size: 10px; color: var(--text-muted); }
+        .expiry-cliente { font-size: 12px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .expiry-right { text-align: right; }
+        .expiry-val { font-size: 11px; font-weight: 700; color: var(--primary); }
+        .badge-urgency {
+            font-size: 9px; font-weight: 700;
+            padding: 2px 7px; border-radius: 5px;
+            display: inline-block; white-space: nowrap;
+        }
+        .badge-hoje   { background: rgba(239,68,68,0.2);  color: #ef4444; }
+        .badge-orange { background: rgba(249,115,22,0.2); color: #f97316; }
+        .badge-yellow { background: rgba(245,158,11,0.2); color: #f59e0b; }
+
+        /* ── Status Overview ────────────────────────────────────────── */
+        .status-overview { display: flex; flex-direction: column; gap: 10px; }
+        .status-ov-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+        }
+        .status-ov-icon {
             width: 32px; height: 32px; border-radius: 8px;
             display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 11px;
+            font-size: 12px;
         }
-        
-        .activity-info { flex: 1; min-width: 0; }
-        .activity-name { font-weight: 600; font-size: 12px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .activity-meta { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
-        
-        .activity-right { text-align: right; }
-        .activity-val { font-weight: 700; font-size: 12px; color: var(--text-main); }
-        
-        .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .status-ov-info { flex: 1; }
+        .status-ov-label { font-size: 11px; color: var(--text-muted); }
+        .status-ov-count { font-size: 18px; font-weight: 800; color: var(--text-main); line-height: 1.1; }
+        .status-ov-pct { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
 
-        /* ── Mini Lists ──────────────────────────────────────────────── */
+        /* ── Section 4: 2-col grid ──────────────────────────────────── */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        /* ── Mini Lists ─────────────────────────────────────────────── */
         .mini-list { display: flex; flex-direction: column; gap: 8px; }
-        
         .mini-item {
             display: flex;
             align-items: center;
@@ -164,32 +278,67 @@
             background: rgba(255,255,255,0.02);
             border-radius: 8px;
         }
-        
-        .mini-item .mini-rank {
-            width: 20px; height: 20px; border-radius: 50%;
+        .mini-rank {
+            width: 22px; height: 22px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 10px; font-weight: 700; color: white;
+            flex-shrink: 0;
         }
-        
-        .mini-item .mini-name { flex: 1; font-size: 12px; font-weight: 500; }
-        .mini-item .mini-val { font-size: 11px; font-weight: 700; color: var(--primary); }
+        .mini-name { flex: 1; font-size: 12px; font-weight: 500; color: var(--text-main); }
+        .mini-val  { font-size: 11px; font-weight: 700; color: var(--primary); }
 
-        /* ── Conversão ──────────────────────────────────────────────── */
-        .conv-section { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--glass-border); }
-        .conv-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px; }
-        .conv-label { color: var(--text-muted); }
-        .conv-value { font-weight: 700; color: var(--text-main); }
-        .conv-bar { height: 6px; background: var(--glass-border); border-radius: 3px; overflow: hidden; }
-        .conv-bar-fill { height: 100%; background: linear-gradient(90deg, #10b981, #22c55e); border-radius: 3px; }
-
-        /* ── Second Row ──────────────────────────────────────────────── */
-        .second-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-top: 16px;
+        /* ── Activity Row ────────────────────────────────────────────── */
+        .activity-section {
+            margin-bottom: 20px;
         }
-        @media (max-width: 768px) { .second-row { grid-template-columns: 1fr; } }
+        .activity-row {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .activity-row::-webkit-scrollbar { height: 4px; }
+        .activity-row::-webkit-scrollbar-track { background: transparent; }
+        .activity-row::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 2px; }
+
+        .activity-card {
+            flex: 0 0 200px;
+            background: var(--bg-card);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .activity-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+        .activity-card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        .activity-avatar {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 11px;
+        }
+        .activity-date { font-size: 10px; color: var(--text-muted); }
+        .activity-client { font-size: 12px; font-weight: 700; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .activity-numero { font-size: 10px; color: var(--text-muted); margin-bottom: 6px; }
+        .activity-val  { font-size: 13px; font-weight: 800; color: var(--text-main); }
+
+        .badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 14px;
+        }
+        .section-header i { color: var(--primary); font-size: 14px; }
     </style>
 </head>
 <body class="dark-mode">
@@ -221,125 +370,150 @@
     <main class="main-content">
 
         <!-- Header -->
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-            <div>
-                <h1 style="font-size:22px; font-weight:800;" id="greeting">Olá 👋</h1>
-                <p style="color:var(--text-muted); font-size:12px; margin-top:3px;" id="current-date"></p>
+        <header class="dash-header">
+            <div class="dash-header-left">
+                <h1 id="empresa-nome">Dashboard</h1>
+                <p id="current-date"></p>
             </div>
-            <a href="/novo_orcamento.html" class="btn btn-primary"><i class="fas fa-plus"></i> Novo Orçamento</a>
+            <div class="dash-header-right">
+                <div class="period-selector">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="periodo-label">Este mês</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <a href="/novo_orcamento.html" class="btn btn-primary"><i class="fas fa-plus"></i> Novo Orçamento</a>
+            </div>
         </header>
 
-        <!-- KPIs -->
+        <!-- Seção 1: KPI Cards -->
         <div class="kpi-grid">
+            <!-- Receita Aprovada -->
             <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-file-invoice-dollar"></i></div>
-                    <span class="kpi-trend up" id="trend-orcamentos">↑ 0%</span>
+                <div class="kpi-card-top">
+                    <div class="kpi-icon-wrap" style="background:rgba(16,185,129,0.15); color:#10b981;">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <span class="kpi-trend neutral" id="trend-receita">—</span>
                 </div>
-                <span class="kpi-label">Orçamentos</span>
-                <span class="kpi-value" id="kpi-total">—</span>
-                <span class="kpi-sub" id="kpi-total-sub">este mês</span>
+                <div>
+                    <div class="kpi-label">Receita Aprovada</div>
+                    <div class="kpi-value" id="kpi-aprovado-val">—</div>
+                    <div class="kpi-sub">este mês</div>
+                </div>
             </div>
+            <!-- Pipeline -->
             <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="kpi-card-top">
+                    <div class="kpi-icon-wrap" style="background:rgba(58,123,213,0.15); color:#3a7bd5;">
+                        <i class="fas fa-filter"></i>
+                    </div>
+                    <span class="kpi-trend neutral" id="kpi-pipeline-badge" style="background:rgba(58,123,213,0.12);color:#3a7bd5;">Pipeline</span>
                 </div>
-                <span class="kpi-label">Aprovados</span>
-                <span class="kpi-value" id="kpi-aprovados">—</span>
-                <span class="kpi-sub" id="kpi-conversao-label">—% conversão</span>
+                <div>
+                    <div class="kpi-label">Pipeline</div>
+                    <div class="kpi-value" id="kpi-pipeline">—</div>
+                    <div class="kpi-sub" id="kpi-pipeline-qtd">— propostas em aberto</div>
+                </div>
             </div>
+            <!-- Orçamentos -->
             <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-hand-holding-usd"></i></div>
-                    <span class="kpi-trend up" id="trend-receita">↑ 0%</span>
+                <div class="kpi-card-top">
+                    <div class="kpi-icon-wrap" style="background:rgba(245,158,11,0.15); color:#f59e0b;">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <span class="kpi-trend neutral" id="trend-orcamentos">—</span>
                 </div>
-                <span class="kpi-label">Receita</span>
-                <span class="kpi-value" id="kpi-aprovado-val">—</span>
-                <span class="kpi-sub">este mês</span>
+                <div>
+                    <div class="kpi-label">Orçamentos</div>
+                    <div class="kpi-value" id="kpi-total">—</div>
+                    <div class="kpi-sub">este mês</div>
+                </div>
             </div>
+            <!-- Taxa de Conversão -->
             <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-bullseye"></i></div>
+                <div class="kpi-card-top">
+                    <div class="kpi-icon-wrap" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
                 </div>
-                <span class="kpi-label">Conversão</span>
-                <span class="kpi-value" id="kpi-taxa">—%</span>
-                <span class="kpi-sub">taxa mensal</span>
+                <div>
+                    <div class="kpi-label">Taxa de Conversão</div>
+                    <div class="kpi-value" id="kpi-taxa">—%</div>
+                    <div class="kpi-sub" id="kpi-taxa-sub">— aprovados</div>
+                </div>
             </div>
+            <!-- Ticket Médio -->
             <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-chart-line"></i></div>
+                <div class="kpi-card-top">
+                    <div class="kpi-icon-wrap" style="background:rgba(236,72,153,0.15); color:#ec4899;">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
                 </div>
-                <span class="kpi-label">Ticket Médio</span>
-                <span class="kpi-value" id="kpi-ticket">—</span>
-                <span class="kpi-sub">por orçamento</span>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-history"></i></div>
+                <div>
+                    <div class="kpi-label">Ticket Médio</div>
+                    <div class="kpi-value" id="kpi-ticket">—</div>
+                    <div class="kpi-sub">por aprovação</div>
                 </div>
-                <span class="kpi-label">Total Geral</span>
-                <span class="kpi-value" id="kpi-historico">—</span>
-                <span class="kpi-sub" id="kpi-historico-sub">orçamentos</span>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-handshake"></i></div>
-                </div>
-                <span class="kpi-label">Receita Total</span>
-                <span class="kpi-value" id="kpi-receita-total">—</span>
-                <span class="kpi-sub">histórico</span>
-            </div>
-            <div class="kpi-card">
-                <div class="kpi-header">
-                    <div class="kpi-icon"><i class="fas fa-eye"></i></div>
-                </div>
-                <span class="kpi-label">Visualizações</span>
-                <span class="kpi-value" id="kpi-visualizacoes">—</span>
-                <span class="kpi-sub" id="kpi-visualizacoes-sub">total</span>
             </div>
         </div>
 
-        <!-- Main Grid -->
-        <div class="main-grid">
-
-            <!-- Status breakdown -->
-            <div class="stats-card">
-                <h3><i class="fas fa-chart-pie"></i> Status dos Orçamentos</h3>
-                <div class="status-grid" id="status-grid">
-                    <!-- Preenchido via JS -->
-                </div>
-                <div class="conv-section">
-                    <div class="conv-header">
-                        <span class="conv-label">Taxa de Conversão</span>
-                        <span class="conv-value" id="conv-pct-label">—%</span>
+        <!-- Seção 2: Gráfico de Evolução -->
+        <div class="chart-card">
+            <div class="chart-card-header">
+                <h3><i class="fas fa-chart-bar"></i> Evolução — Últimos 6 Meses</h3>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:rgba(148,163,184,0.4);"></div>
+                        Orçamentos
                     </div>
-                    <div class="conv-bar">
-                        <div class="conv-bar-fill" id="conv-bar-fill" style="width: 0%"></div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#10b981;"></div>
+                        Receita Aprovada
                     </div>
                 </div>
             </div>
+            <div class="chart-wrap">
+                <canvas id="grafico-evolucao"></canvas>
+            </div>
+        </div>
 
-            <!-- Atividade Recente -->
+        <!-- Seção 3: 3 colunas -->
+        <div class="grid-3">
+
+            <!-- Funil de Vendas -->
             <div class="stats-card">
-                <h3><i class="fas fa-clock"></i> Atividade Recente</h3>
-                <div class="activity-list" id="activity-list">
-                    <div style="text-align:center; padding:30px; color:var(--text-muted); font-size:12px;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
+                <h3><i class="fas fa-funnel-dollar"></i> Funil de Vendas</h3>
+                <div class="funnel-row" id="funil-container">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+
+            <!-- Propostas Vencendo -->
+            <div class="stats-card">
+                <h3><i class="fas fa-exclamation-triangle" style="color:#f59e0b;"></i> Propostas Vencendo</h3>
+                <div class="expiry-list" id="expiry-list">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
+                </div>
+            </div>
+
+            <!-- Status Overview -->
+            <div class="stats-card">
+                <h3><i class="fas fa-chart-pie"></i> Status Overview</h3>
+                <div class="status-overview" id="status-overview">
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
                 </div>
             </div>
 
         </div>
 
-        <!-- Second Row -->
-        <div class="second-row">
+        <!-- Seção 4: 2 colunas -->
+        <div class="grid-2">
+
             <!-- Top Clientes -->
             <div class="stats-card">
                 <h3><i class="fas fa-trophy"></i> Top Clientes</h3>
                 <div class="mini-list" id="top-clientes-list">
-                    <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:11px;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
                 </div>
             </div>
 
@@ -347,21 +521,32 @@
             <div class="stats-card">
                 <h3><i class="fas fa-user-tie"></i> Consultores</h3>
                 <div class="mini-list" id="consultores-list">
-                    <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:11px;">
-                        <i class="fas fa-spinner fa-spin"></i>
-                    </div>
+                    <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
                 </div>
             </div>
+
         </div>
+
+        <!-- Seção 5: Atividade Recente -->
+        <div class="activity-section">
+            <div class="section-header">
+                <i class="fas fa-clock"></i> Atividade Recente
+            </div>
+            <div class="activity-row" id="activity-row">
+                <div style="padding:20px;color:var(--text-muted);font-size:11px;"><i class="fas fa-spinner fa-spin"></i></div>
+            </div>
+        </div>
+
     </main>
 
     <script src="/shared.js?v=1.2"></script>
     <script>
+        // ── Helpers ─────────────────────────────────────────────────────
         const STATUS_COLORS = {
-            'Aprovado':    { bg: 'rgba(16,185,129,0.15)',  color: '#10b981',  dot: '#10b981' },
-            'Aguardando':  { bg: 'rgba(245,158,11,0.15)',  color: '#f59e0b',  dot: '#f59e0b' },
-            'Recusado':    { bg: 'rgba(239,68,68,0.15)',   color: '#ef4444',  dot: '#ef4444' },
-            'Visualizado': { bg: 'rgba(0,210,255,0.15)',   color: '#00d2ff',  dot: '#00d2ff' },
+            'Aprovado':    { bg: 'rgba(16,185,129,0.15)',  color: '#10b981', icon: 'fa-check-circle' },
+            'Aguardando':  { bg: 'rgba(245,158,11,0.15)',  color: '#f59e0b', icon: 'fa-clock' },
+            'Recusado':    { bg: 'rgba(239,68,68,0.15)',   color: '#ef4444', icon: 'fa-times-circle' },
+            'Visualizado': { bg: 'rgba(0,210,255,0.15)',   color: '#00d2ff', icon: 'fa-eye' },
         };
 
         function badge(status) {
@@ -370,9 +555,9 @@
         }
 
         function moeda(v) {
-            if (v >= 1000000) return 'R$ ' + (v/1000000).toFixed(1) + 'M';
-            if (v >= 1000) return 'R$ ' + (v/1000).toFixed(1) + 'K';
-            return 'R$ ' + v.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
+            if (v >= 1000000) return 'R$ ' + (v / 1000000).toFixed(1) + 'M';
+            if (v >= 1000)    return 'R$ ' + (v / 1000).toFixed(1) + 'K';
+            return 'R$ ' + (v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 0 });
         }
 
         function initials(nome) {
@@ -382,83 +567,196 @@
         function avatarColor(nome) {
             const colors = ['#3a7bd5','#10b981','#8b5cf6','#f59e0b','#ef4444','#00d2ff','#ec4899'];
             let h = 0;
-            for (const c of nome) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+            for (const c of (nome || '')) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
             return colors[h % colors.length];
         }
 
-        // Date / Greeting
+        // ── Date / Empresa ───────────────────────────────────────────────
         (function () {
-            const h = new Date().getHours();
-            const g = h < 12 ? 'Bom dia' : h < 18 ? 'Boa tarde' : 'Boa noite';
-            document.getElementById('greeting').textContent = `${g} 👋`;
             document.getElementById('current-date').textContent =
-                new Date().toLocaleDateString('pt-BR', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+                new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            const nome = localStorage.getItem('empresa_nome');
+            if (nome) document.getElementById('empresa-nome').textContent = nome;
+            // também tenta carregar da API
+            apiFetch('/api/config').then(r => r && r.json().then(cfg => {
+                if (cfg && cfg.nome_empresa) {
+                    document.getElementById('empresa-nome').textContent = cfg.nome_empresa;
+                    localStorage.setItem('empresa_nome', cfg.nome_empresa);
+                }
+            })).catch(() => {});
         })();
 
-        // Status Grid
-        function buildStatusGrid(porStatus) {
-            const container = document.getElementById('status-grid');
-            const total = Object.values(porStatus).reduce((a, b) => a + b, 0);
-            
-            const labels = { 'Aguardando': 'Aguardando', 'Visualizado': 'Visualizado', 'Aprovado': 'Aprovado', 'Recusado': 'Recusado' };
-            
-            container.innerHTML = Object.entries(labels).map(([key, label]) => {
-                const count = porStatus[key] || 0;
-                const s = STATUS_COLORS[key] || { dot: '#94a3b8' };
-                return `
-                <div class="status-item">
-                    <span class="status-dot" style="background:${s.dot}"></span>
-                    <div class="status-info">
-                        <div class="status-label">${label}</div>
-                        <div class="status-count">${count}</div>
-                    </div>
-                </div>`;
-            }).join('');
+        // ── KPI Trends ───────────────────────────────────────────────────
+        function setTrend(elId, pct) {
+            const el = document.getElementById(elId);
+            if (!el) return;
+            if (pct > 0)      { el.textContent = `↑${pct}%`; el.className = 'kpi-trend up'; }
+            else if (pct < 0) { el.textContent = `↓${Math.abs(pct)}%`; el.className = 'kpi-trend down'; }
+            else              { el.textContent = '=0%'; el.className = 'kpi-trend neutral'; }
         }
 
-        // Activity Feed
-        function buildActivity(recentes) {
-            const list = document.getElementById('activity-list');
-            if (!recentes.length) {
-                list.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-muted);font-size:11px;">Nenhuma atividade</div>`;
+        // ── Gráfico de Evolução ──────────────────────────────────────────
+        let evolChart = null;
+        function buildChart(evolucao) {
+            const ctx = document.getElementById('grafico-evolucao').getContext('2d');
+            if (evolChart) evolChart.destroy();
+            evolChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: evolucao.map(e => e.mes),
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Orçamentos',
+                            data: evolucao.map(e => e.orcados),
+                            backgroundColor: 'rgba(148,163,184,0.2)',
+                            borderRadius: 6,
+                            yAxisID: 'y1',
+                        },
+                        {
+                            type: 'line',
+                            label: 'Receita (R$)',
+                            data: evolucao.map(e => e.receita),
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16,185,129,0.1)',
+                            tension: 0.4,
+                            fill: true,
+                            yAxisID: 'y2',
+                            pointBackgroundColor: '#10b981',
+                            pointRadius: 4,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#94a3b8', font: { size: 11 } } } },
+                    scales: {
+                        x: {
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            grid:  { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y1: {
+                            position: 'left',
+                            ticks: { color: '#94a3b8', font: { size: 10 } },
+                            grid:  { color: 'rgba(255,255,255,0.05)' }
+                        },
+                        y2: {
+                            position: 'right',
+                            ticks: {
+                                color: '#10b981',
+                                font: { size: 10 },
+                                callback: v => 'R$' + (v >= 1000 ? (v / 1000).toFixed(0) + 'K' : v)
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ── Funil de Vendas ──────────────────────────────────────────────
+        function buildFunil(porStatus, totalMes, totalVisualizados) {
+            const container = document.getElementById('funil-container');
+            const total = Object.values(porStatus).reduce((a, b) => a + b, 0);
+            if (total === 0) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:11px;">Sem dados</div>';
                 return;
             }
-            list.innerHTML = recentes.map(orc => {
-                const color = avatarColor(orc.cliente);
+            const aprovados = porStatus['Aprovado'] || 0;
+            const visualizados = porStatus['Visualizado'] || 0;
+
+            const etapas = [
+                { label: 'Orçado',     count: total,         pct: 100,                          color: '#3a7bd5' },
+                { label: 'Visualizado', count: visualizados, pct: Math.round(visualizados / total * 100), color: '#00d2ff' },
+                { label: 'Aprovado',   count: aprovados,     pct: Math.round(aprovados / total * 100),    color: '#10b981' },
+            ];
+
+            container.innerHTML = etapas.map(e => `
+                <div class="funnel-item">
+                    <div class="funnel-item-header">
+                        <span class="funnel-item-label">${e.label}</span>
+                        <span class="funnel-item-count">${e.count}</span>
+                    </div>
+                    <div class="funnel-bar">
+                        <div class="funnel-bar-fill" style="width:${e.pct}%; background:${e.color};"></div>
+                    </div>
+                    <div class="funnel-pct">${e.pct}%</div>
+                </div>
+            `).join('');
+        }
+
+        // ── Propostas Vencendo ───────────────────────────────────────────
+        function buildExpiry(lista) {
+            const container = document.getElementById('expiry-list');
+            if (!lista || !lista.length) {
+                container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;"><i class="fas fa-check-circle" style="color:#10b981;margin-right:6px;"></i>Nenhuma proposta vencendo</div>';
+                return;
+            }
+            container.innerHTML = lista.map(p => {
+                let badgeClass, badgeText;
+                if (p.dias_restantes === 0) {
+                    badgeClass = 'badge-hoje'; badgeText = 'HOJE';
+                } else if (p.dias_restantes <= 3) {
+                    badgeClass = 'badge-orange'; badgeText = `${p.dias_restantes}d`;
+                } else {
+                    badgeClass = 'badge-yellow'; badgeText = `${p.dias_restantes}d`;
+                }
                 return `
-                <div class="activity-item">
-                    <div class="activity-avatar" style="background:${color}22; color:${color};">
-                        ${initials(orc.cliente)}
+                <div class="expiry-item" onclick="window.location.href='/historico.html?id=${p.id}'">
+                    <div class="expiry-info">
+                        <div class="expiry-numero">${p.numero}</div>
+                        <div class="expiry-cliente">${p.cliente}</div>
                     </div>
-                    <div class="activity-info">
-                        <div class="activity-name">${orc.cliente}</div>
-                        <div class="activity-meta">${orc.numero} · ${badge(orc.status)}</div>
-                    </div>
-                    <div class="activity-right">
-                        <div class="activity-val">${moeda(orc.valor)}</div>
+                    <div class="expiry-right">
+                        <div class="expiry-val">${moeda(p.valor)}</div>
+                        <span class="badge-urgency ${badgeClass}">${badgeText}</span>
                     </div>
                 </div>`;
             }).join('');
         }
 
-        // Top Clientes
+        // ── Status Overview ──────────────────────────────────────────────
+        function buildStatusOverview(porStatus) {
+            const container = document.getElementById('status-overview');
+            const total = Object.values(porStatus).reduce((a, b) => a + b, 0);
+            const order = ['Aguardando', 'Visualizado', 'Aprovado', 'Recusado'];
+            container.innerHTML = order.map(key => {
+                const count = porStatus[key] || 0;
+                const pct = total > 0 ? Math.round(count / total * 100) : 0;
+                const s = STATUS_COLORS[key] || { bg: 'rgba(148,163,184,0.12)', color: '#94a3b8', icon: 'fa-circle' };
+                return `
+                <div class="status-ov-item">
+                    <div class="status-ov-icon" style="background:${s.bg}; color:${s.color};">
+                        <i class="fas ${s.icon}"></i>
+                    </div>
+                    <div class="status-ov-info">
+                        <div class="status-ov-label">${key}</div>
+                        <div class="status-ov-count">${count}</div>
+                    </div>
+                    <div class="status-ov-pct">${pct}%</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Top Clientes ─────────────────────────────────────────────────
         function buildTopClientes(topClientes) {
             const container = document.getElementById('top-clientes-list');
             if (!topClientes.length) {
                 container.innerHTML = '<div style="text-align:center;padding:15px;color:var(--text-muted);font-size:11px;">Sem dados</div>';
                 return;
             }
-            const rankColors = ['#f59e0b', '#94a3b8', '#cd9545'];
-            container.innerHTML = topClientes.slice(0, 4).map((c, i) => `
+            const rankColors = ['#f59e0b', '#94a3b8', '#cd9545', '#3a7bd5', '#8b5cf6'];
+            container.innerHTML = topClientes.map((c, i) => `
                 <div class="mini-item">
-                    <span class="mini-rank" style="background:${rankColors[i] || '#94a3b8'}">${i+1}</span>
+                    <span class="mini-rank" style="background:${rankColors[i] || '#94a3b8'}">${i + 1}</span>
                     <span class="mini-name">${c.nome}</span>
                     <span class="mini-val">${moeda(c.valor)}</span>
                 </div>
             `).join('');
         }
 
-        // Consultores
+        // ── Consultores ──────────────────────────────────────────────────
         function buildConsultores(porConsultor) {
             const container = document.getElementById('consultores-list');
             const consultores = Object.entries(porConsultor).filter(c => c[0] !== 'Sem consultor');
@@ -467,7 +765,7 @@
                 return;
             }
             consultores.sort((a, b) => (b[1].valor_aprovado || 0) - (a[1].valor_aprovado || 0));
-            container.innerHTML = consultores.slice(0, 4).map(c => {
+            container.innerHTML = consultores.slice(0, 5).map(c => {
                 const nome = c[0];
                 const dados = c[1];
                 return `
@@ -479,55 +777,78 @@
             }).join('');
         }
 
-        // Load
+        // ── Atividade Recente ────────────────────────────────────────────
+        function buildActivity(recentes) {
+            const row = document.getElementById('activity-row');
+            if (!recentes.length) {
+                row.innerHTML = '<div style="padding:20px;color:var(--text-muted);font-size:11px;">Nenhuma atividade</div>';
+                return;
+            }
+            row.innerHTML = recentes.map(orc => {
+                const color = avatarColor(orc.cliente);
+                const s = STATUS_COLORS[orc.status] || { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8' };
+                return `
+                <div class="activity-card" onclick="window.location.href='/historico.html?id=${orc.id}'">
+                    <div class="activity-card-top">
+                        <div class="activity-avatar" style="background:${color}22; color:${color};">
+                            ${initials(orc.cliente)}
+                        </div>
+                        <span class="activity-date">${orc.data}</span>
+                    </div>
+                    <div class="activity-client">${orc.cliente}</div>
+                    <div class="activity-numero">${orc.numero} &middot; <span class="badge" style="background:${s.bg};color:${s.color};">${orc.status}</span></div>
+                    <div class="activity-val">${moeda(orc.valor)}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Load ─────────────────────────────────────────────────────────
         async function loadData() {
             const res = await apiFetch('/api/dashboard/stats');
             if (!res) return;
             const d = await res.json();
 
-            // KPIs
-            document.getElementById('kpi-total').textContent = d.total_orcados || 0;
-            document.getElementById('kpi-total-sub').textContent = 'este mês';
-            
-            const crescOrc = d.crescimento_orcamentos || 0;
-            const trendOrc = document.getElementById('trend-orcamentos');
-            if (crescOrc > 0) { trendOrc.textContent = `↑ ${crescOrc}%`; trendOrc.className = 'kpi-trend up'; }
-            else if (crescOrc < 0) { trendOrc.textContent = `↓ ${Math.abs(crescOrc)}%`; trendOrc.className = 'kpi-trend down'; }
-            else { trendOrc.style.display = 'none'; }
-
-            document.getElementById('kpi-aprovados').textContent = d.total_aprovados || 0;
-            document.getElementById('kpi-conversao-label').textContent = `${d.taxa_conversao || 0}% conversão`;
-            
+            // KPI 1 — Receita Aprovada
             document.getElementById('kpi-aprovado-val').textContent = moeda(d.valor_aprovado_mes || 0);
-            
-            const crescRec = d.crescimento_receita || 0;
-            const trendRec = document.getElementById('trend-receita');
-            if (crescRec > 0) { trendRec.textContent = `↑ ${crescRec}%`; trendRec.className = 'kpi-trend up'; }
-            else if (crescRec < 0) { trendRec.textContent = `↓ ${Math.abs(crescRec)}%`; trendRec.className = 'kpi-trend down'; }
-            else { trendRec.style.display = 'none'; }
+            setTrend('trend-receita', d.crescimento_receita || 0);
 
+            // KPI 2 — Pipeline
+            document.getElementById('kpi-pipeline').textContent = moeda(d.pipeline_valor || 0);
+            document.getElementById('kpi-pipeline-qtd').textContent = `${d.pipeline_qtd || 0} propostas em aberto`;
+
+            // KPI 3 — Orçamentos
+            document.getElementById('kpi-total').textContent = d.total_orcados || 0;
+            setTrend('trend-orcamentos', d.crescimento_orcamentos || 0);
+
+            // KPI 4 — Taxa de Conversão
             document.getElementById('kpi-taxa').textContent = `${d.taxa_conversao || 0}%`;
-            document.getElementById('kpi-ticket').textContent = moeda(d.ticket_medio || 0);
-            document.getElementById('kpi-historico').textContent = d.total_historico || 0;
-            document.getElementById('kpi-receita-total').textContent = moeda(d.valor_aprovado_historico || 0);
-            document.getElementById('kpi-visualizacoes').textContent = d.total_visualizacoes || 0;
+            document.getElementById('kpi-taxa-sub').textContent = `${d.total_aprovados || 0} aprovados`;
 
-            // Conversão
-            const pct = Math.min(d.taxa_conversao || 0, 100);
-            document.getElementById('conv-pct-label').textContent = `${d.taxa_conversao || 0}%`;
-            document.getElementById('conv-bar-fill').style.width = pct + '%';
+            // KPI 5 — Ticket Médio
+            document.getElementById('kpi-ticket').textContent = moeda(d.ticket_medio_aprovado || 0);
 
-            // Status
-            buildStatusGrid(d.por_status || {});
+            // Gráfico
+            if (d.evolucao_mensal && d.evolucao_mensal.length) {
+                buildChart(d.evolucao_mensal);
+            }
 
-            // Activity
-            buildActivity(d.recentes || []);
-            
+            // Funil
+            buildFunil(d.por_status || {}, d.total_orcados || 0);
+
+            // Expiry
+            buildExpiry(d.propostas_vencendo || []);
+
+            // Status Overview
+            buildStatusOverview(d.por_status || {});
+
             // Top Clientes
             buildTopClientes(d.top_clientes || []);
-            
+
             // Consultores
             buildConsultores(d.por_consultor || {});
+
+            // Atividade
+            buildActivity(d.recentes || []);
         }
 
         loadData();

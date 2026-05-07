@@ -9,7 +9,7 @@ import threading
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date as date_type, timedelta as td
 from pathlib import Path
 from typing import List, Optional
 
@@ -410,6 +410,57 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         for o in recentes_orm
     ]
 
+    # Evolução últimos 6 meses
+    evolucao = []
+    for i in range(5, -1, -1):
+        if now.month - i <= 0:
+            m = now.month - i + 12
+            y = now.year - 1
+        else:
+            m = now.month - i
+            y = now.year
+        inicio = datetime(y, m, 1, tzinfo=timezone.utc)
+        if m == 12:
+            fim = datetime(y + 1, 1, 1, tzinfo=timezone.utc)
+        else:
+            fim = datetime(y, m + 1, 1, tzinfo=timezone.utc)
+        orcs_m = db.query(Orcamento).filter(Orcamento.criado_em >= inicio, Orcamento.criado_em < fim).all()
+        evolucao.append({
+            "mes": inicio.strftime("%b/%y"),
+            "orcados": len(orcs_m),
+            "aprovados": sum(1 for o in orcs_m if o.status == "Aprovado"),
+            "receita": sum(_valor(o) for o in orcs_m if o.status == "Aprovado"),
+        })
+
+    # Pipeline (valor em aberto)
+    pipeline_orcamentos = [o for o in todos if o.status in ("Aguardando", "Visualizado")]
+    pipeline_valor = sum(_valor(o) for o in pipeline_orcamentos)
+    pipeline_qtd = len(pipeline_orcamentos)
+
+    # Propostas vencendo nos próximos 7 dias
+    hoje = date_type.today()
+    vencendo = []
+    for o in todos:
+        if o.status not in ("Aguardando", "Visualizado"):
+            continue
+        dias_val = o.validade_dias or 7
+        criado = o.criado_em.date() if hasattr(o.criado_em, 'date') else hoje
+        vence_em = criado + td(days=dias_val)
+        dias_restantes = (vence_em - hoje).days
+        if 0 <= dias_restantes <= 7:
+            vencendo.append({
+                "id": o.id,
+                "numero": o.numero,
+                "cliente": o.cliente_nome,
+                "dias_restantes": dias_restantes,
+                "valor": _valor(o),
+            })
+    vencendo.sort(key=lambda x: x["dias_restantes"])
+
+    # Taxa de visualização
+    total_enviados = sum(1 for o in todos if o.uuid_publico)
+    taxa_visualizacao = round(sum(1 for o in todos if (o.qtd_visualizacoes or 0) > 0) / total_enviados * 100, 1) if total_enviados > 0 else 0.0
+
     return {
         "total_orcados": total_orcados,
         "total_aprovados": total_aprovados,
@@ -429,6 +480,12 @@ def get_dashboard_stats(db: Session = Depends(get_db)):
         "por_consultor": por_consultor,
         "top_clientes": [{"nome": c[0], "valor": c[1]} for c in top_clientes],
         "total_visualizacoes": total_visualizacoes,
+        # Dashboard executivo
+        "evolucao_mensal": evolucao,
+        "pipeline_valor": pipeline_valor,
+        "pipeline_qtd": pipeline_qtd,
+        "propostas_vencendo": vencendo[:5],
+        "taxa_visualizacao": taxa_visualizacao,
     }
 
 # --- CRM (CLIENTES) ---
