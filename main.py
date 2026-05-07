@@ -3,7 +3,10 @@ import hashlib
 import hmac
 import json
 import secrets
+import smtplib
 import subprocess
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -139,6 +142,11 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "login_email": cfg.login_email or "",
         "login_senha": cfg.login_senha or "",
         "numero_base": cfg.numero_base or 0,
+        "smtp_host": cfg.smtp_host or "",
+        "smtp_port": cfg.smtp_port or 587,
+        "smtp_user": cfg.smtp_user or "",
+        "smtp_pass": cfg.smtp_pass or "",
+        "notif_email_dest": cfg.notif_email_dest or "",
     }
 
 
@@ -250,6 +258,50 @@ class SessaoMiddleware(BaseHTTPMiddleware):
 # LicencaMiddleware registrado depois (executa primeiro).
 app.add_middleware(SessaoMiddleware)
 app.add_middleware(LicencaMiddleware)
+
+
+def _enviar_email_notificacao(tipo: str, orc_dict: dict, cfg: ConfigEmpresa) -> None:
+    """Envia email de notificação ao vendedor. Silencioso em caso de falha."""
+    host = cfg.smtp_host
+    dest = cfg.notif_email_dest or cfg.empresa_email
+    if not host or not dest:
+        return
+    try:
+        numero = orc_dict.get("numero", "")
+        cliente = orc_dict.get("cliente_nome", "")
+        if tipo == "visualizado":
+            assunto = f"Proposta {numero} foi visualizada — {cliente}"
+            corpo = (
+                f"Boa notícia! O cliente {cliente} acabou de abrir a proposta {numero}.\n\n"
+                f"Visualizações até agora: {orc_dict.get('qtd_visualizacoes', 1)}\n"
+                f"Este pode ser o momento certo para um follow-up!"
+            )
+        elif tipo == "aprovado":
+            assunto = f"Proposta {numero} APROVADA por {cliente}!"
+            assinatura = orc_dict.get("assinatura_nome", cliente)
+            corpo = (
+                f"A proposta {numero} foi aprovada e assinada por {assinatura}.\n\n"
+                f"Cliente: {cliente}\n"
+                f"Aprovado em: {datetime.now(timezone.utc).strftime('%d/%m/%Y %H:%M')} UTC"
+            )
+        else:
+            return
+
+        msg = MIMEMultipart()
+        msg["From"] = cfg.smtp_user or dest
+        msg["To"] = dest
+        msg["Subject"] = assunto
+        msg.attach(MIMEText(corpo, "plain", "utf-8"))
+
+        port = cfg.smtp_port or 587
+        with smtplib.SMTP(host, port, timeout=10) as server:
+            server.ehlo()
+            server.starttls()
+            if cfg.smtp_user and cfg.smtp_pass:
+                server.login(cfg.smtp_user, cfg.smtp_pass)
+            server.sendmail(msg["From"], [dest], msg.as_string())
+    except Exception as e:
+        print(f"[email] Falha ao enviar notificação '{tipo}': {e}")
 
 
 def _gerar_numero(db: Session) -> str:
@@ -658,6 +710,11 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     db.commit()
     db.refresh(orc)
 
+    # Notifica vendedor na primeira visualização
+    if orc.qtd_visualizacoes == 1:
+        cfg_notif = _get_config(db)
+        _enviar_email_notificacao("visualizado", _orc_to_dict(orc), cfg_notif)
+
     orc_dict = _orc_to_dict(orc, db)
     cfg = _get_config(db)
     config_dict = _config_to_dict(cfg)
@@ -721,8 +778,10 @@ def aceitar_proposta(uuid: str, data: AceiteInput, request: Request, db: Session
         timestamp
     )
     orc.assinatura_hash = hash_dados
-    
+
     db.commit()
+    cfg_notif = _get_config(db)
+    _enviar_email_notificacao("aprovado", _orc_to_dict(orc), cfg_notif)
     return {"ok": True}
 
 @app.post("/api/p/{uuid}/recusar")
@@ -772,7 +831,7 @@ def salvar_config(data: ConfigEmpresaInput, db: Session = Depends(get_db)):
     cfg = _get_config(db)
     
     # Se mudar email ou senha, invalida a sessão atual para forçar relogin
-    payload = data.model_dump(exclude_none=True)
+    payload = data.model_dump(exclude_unset=True)
     if "login_email" in payload or "login_senha" in payload:
         cfg.session_token = None
         global _SESSION_TOKEN
