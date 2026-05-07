@@ -372,9 +372,11 @@
         function selectClient(c) {
             selectedClientId = c.id;
             document.getElementById('cliente_nome').value = c.nome;
+            document.getElementById('cliente_cnpj').value = c.cnpj_cpf || '';
             document.getElementById('cliente_email').value = c.email || '';
             document.getElementById('cliente_telefone').value = c.telefone || '';
             document.getElementById('cliente_contato').value = c.contato || '';
+            document.getElementById('cliente_endereco').value = c.endereco || '';
             document.getElementById('client-suggestions').style.display = 'none';
         }
 
@@ -454,6 +456,17 @@
             row.querySelector('.item-preco').value = item.preco;
             row.querySelector('.item-garantia').value = item.garantia || '';
             row.querySelector('.suggestions-box').style.display = 'none';
+            
+            if (item.categoria) {
+                const catBlock = row.closest('.category-block');
+                if (catBlock) {
+                    const catNameInput = catBlock.querySelector('.cat-name');
+                    if (catNameInput && !catNameInput.value) {
+                        catNameInput.value = item.categoria;
+                    }
+                }
+            }
+            
             calculateTotal();
         }
 

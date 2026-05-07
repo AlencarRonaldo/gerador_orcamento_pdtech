@@ -204,6 +204,11 @@
                     </div>
                 </div>
 
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">CNPJ / CPF</label>
+                    <input type="text" id="cnpj_cpf" class="search-input" style="padding-left: 15px;" placeholder="00.000.000/0001-00 ou 000.000.000-00">
+                </div>
+
                 <div style="display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div>
                         <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; color: var(--text-muted);">E-mail</label>
@@ -340,6 +345,7 @@
                 document.getElementById('contato').value = client.contato || '';
                 document.getElementById('email').value = client.email || '';
                 document.getElementById('telefone').value = client.telefone || '';
+                document.getElementById('cnpj_cpf').value = client.cnpj_cpf || '';
                 document.getElementById('cidade').value = client.cidade || '';
                 document.getElementById('endereco').value = client.endereco || '';
             } else {
@@ -358,6 +364,7 @@
                 contato: document.getElementById('contato').value,
                 email: document.getElementById('email').value,
                 telefone: document.getElementById('telefone').value,
+                cnpj_cpf: document.getElementById('cnpj_cpf').value,
                 cidade: document.getElementById('cidade').value,
                 endereco: document.getElementById('endereco').value,
             };
