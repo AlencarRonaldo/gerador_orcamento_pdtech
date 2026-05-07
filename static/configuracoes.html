@@ -146,6 +146,7 @@
 
         <div class="glass-panel">
             <h2 style="font-size: 18px; margin-bottom: 20px; color: var(--accent);"><i class="fas fa-lock"></i> Acesso ao Sistema</h2>
+            <div class="form-group"><label>Nome do Consultor (usado nos orçamentos)</label><input type="text" id="consultor_nome" placeholder="Seu nome"></div>
             <div class="form-group"><label>E-mail de Login</label><input type="email" id="login_email"></div>
             <div class="form-group"><label>Nova Senha (opcional)</label><input type="password" id="login_senha"></div>
         </div>
@@ -195,6 +196,7 @@
             document.getElementById('obs_padrao').value = (data.obs_padrao || []).join('\n');
             document.getElementById('prazo_equipamentos').value = data.prazo_equipamentos || '';
             document.getElementById('prazo_instalacao').value = data.prazo_instalacao || '';
+            document.getElementById('consultor_nome').value = data.consultor_nome || '';
             document.getElementById('login_email').value = data.login_email || '';
             
             document.getElementById('smtp_host').value = data.smtp_host || '';
@@ -252,6 +254,7 @@
                 obs_padrao_json: JSON.stringify(obsLista),
                 prazo_equipamentos: document.getElementById('prazo_equipamentos').value,
                 prazo_instalacao: document.getElementById('prazo_instalacao').value,
+                consultor_nome: document.getElementById('consultor_nome').value,
                 login_email: document.getElementById('login_email').value,
                 login_senha: document.getElementById('login_senha').value,
                 smtp_host: document.getElementById('smtp_host').value,

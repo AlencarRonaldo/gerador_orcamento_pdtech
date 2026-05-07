@@ -148,6 +148,7 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "smtp_user": cfg.smtp_user or "",
         "smtp_pass_set": bool(cfg.smtp_pass),
         "notif_email_dest": cfg.notif_email_dest or "",
+        "consultor_nome": cfg.consultor_nome or "",
     }
 
 
@@ -428,6 +429,7 @@ def _orc_to_dict(orc: Orcamento, db: Session = None) -> dict:
         "assinatura_nome": orc.assinatura_nome,
         "qtd_visualizacoes": orc.qtd_visualizacoes or 0,
         "primeira_abertura_em": orc.primeira_abertura_em.isoformat() if orc.primeira_abertura_em else None,
+        "consultor_nome": orc.consultor_nome or "",
         "categorias": [
             {
                 "id": cat.id,
@@ -504,6 +506,9 @@ def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
             cliente_id = novo_cliente.id
             print(f"DEBUG: Novo cliente criado: {novo_cliente.id} - {novo_cliente.nome}")
     
+    cfg = _get_config(db)
+    consultor = data.consultor_nome or cfg.consultor_nome or ""
+    
     orcamento = Orcamento(
         numero=_gerar_numero(db),
         cliente_id=cliente_id,
@@ -519,6 +524,7 @@ def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
         validade_dias=data.validade_dias,
         desconto_percent=data.desconto_percent,
         observacoes_json=json.dumps(data.observacoes_custom) if data.observacoes_custom else None,
+        consultor_nome=consultor,
     )
     db.add(orcamento)
     db.flush()
@@ -553,6 +559,7 @@ def listar_orcamentos(db: Session = Depends(get_db)):
             "uuid_publico": orc.uuid_publico,
             "assinatura_nome": orc.assinatura_nome,
             "qtd_visualizacoes": orc.qtd_visualizacoes or 0,
+            "consultor_nome": orc.consultor_nome or "",
         })
     
     if has_changes:

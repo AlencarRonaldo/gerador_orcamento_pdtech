@@ -44,6 +44,7 @@ class ConfigEmpresa(Base):
     smtp_user = Column(String, nullable=True)
     smtp_pass = Column(String, nullable=True)
     notif_email_dest = Column(String, nullable=True)
+    consultor_nome = Column(String, nullable=True)
 
 
 class Cliente(Base):
@@ -106,6 +107,7 @@ class Orcamento(Base):
     assinatura_termos = Column(Boolean, default=False, nullable=True)
     qtd_visualizacoes = Column(Integer, default=0, nullable=True)
     primeira_abertura_em = Column(DateTime, nullable=True)
+    consultor_nome = Column(String, nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"
@@ -164,6 +166,7 @@ class OrcamentoInput(BaseModel):
     desconto_percent: float = 0.0
     observacoes_custom: Optional[List[str]] = None
     cliente_id: Optional[int] = None
+    consultor_nome: Optional[str] = None
     categorias: List[CategoriaInput]
 
 
@@ -269,6 +272,7 @@ class ConfigEmpresaInput(BaseModel):
     smtp_user: Optional[str] = None
     smtp_pass: Optional[str] = None
     notif_email_dest: Optional[str] = None
+    consultor_nome: Optional[str] = None
 
 
 # ── Catálogo ──────────────────────────────────────────────────────────────────
