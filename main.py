@@ -5,6 +5,7 @@ import json
 import secrets
 import smtplib
 import subprocess
+import threading
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from contextlib import asynccontextmanager
@@ -145,7 +146,7 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "smtp_host": cfg.smtp_host or "",
         "smtp_port": cfg.smtp_port or 587,
         "smtp_user": cfg.smtp_user or "",
-        "smtp_pass": cfg.smtp_pass or "",
+        "smtp_pass_set": bool(cfg.smtp_pass),
         "notif_email_dest": cfg.notif_email_dest or "",
     }
 
@@ -710,10 +711,14 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     db.commit()
     db.refresh(orc)
 
-    # Notifica vendedor na primeira visualização
+    # Notifica vendedor na primeira visualização (fire-and-forget)
     if orc.qtd_visualizacoes == 1:
         cfg_notif = _get_config(db)
-        _enviar_email_notificacao("visualizado", _orc_to_dict(orc), cfg_notif)
+        threading.Thread(
+            target=_enviar_email_notificacao,
+            args=("visualizado", _orc_to_dict(orc), cfg_notif),
+            daemon=True,
+        ).start()
 
     orc_dict = _orc_to_dict(orc, db)
     cfg = _get_config(db)
@@ -781,7 +786,11 @@ def aceitar_proposta(uuid: str, data: AceiteInput, request: Request, db: Session
 
     db.commit()
     cfg_notif = _get_config(db)
-    _enviar_email_notificacao("aprovado", _orc_to_dict(orc), cfg_notif)
+    threading.Thread(
+        target=_enviar_email_notificacao,
+        args=("aprovado", _orc_to_dict(orc, db), cfg_notif),
+        daemon=True,
+    ).start()
     return {"ok": True}
 
 @app.post("/api/p/{uuid}/recusar")
