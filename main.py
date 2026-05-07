@@ -571,6 +571,37 @@ def obter_orcamento(id: int, db: Session = Depends(get_db)):
     return _orc_to_dict(orc, db)
 
 
+@app.put("/orcamentos/{id}")
+def editar_orcamento(id: int, data: OrcamentoInput, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.id == id).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+
+    for cat in orc.categorias:
+        for item in cat.itens:
+            db.delete(item)
+        db.delete(cat)
+    db.flush()
+
+    orc.cliente_nome = data.cliente_nome
+    orc.cliente_cnpj = data.cliente_cnpj
+    orc.cliente_contato = data.cliente_contato
+    orc.cliente_endereco = data.cliente_endereco
+    orc.cliente_email = data.cliente_email
+    orc.cliente_telefone = data.cliente_telefone
+    orc.condicao_pagto = data.condicao_pagto
+    orc.descricao_intro = data.descricao_intro
+    orc.validade_dias = data.validade_dias
+    orc.desconto_percent = data.desconto_percent
+    orc.observacoes_json = json.dumps(data.observacoes_custom) if data.observacoes_custom else None
+
+    db.flush()
+    _criar_categorias(db, orc.id, data.categorias)
+    db.commit()
+    db.refresh(orc)
+    return _orc_to_dict(orc, db)
+
+
 class StatusUpdate(BaseModel):
     status: str
 

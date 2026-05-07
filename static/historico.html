@@ -78,6 +78,23 @@
             <a href="/novo_orcamento.html" class="btn btn-primary">+ Novo</a>
         </header>
 
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
+            <div style="position:relative; flex:1; min-width:200px;">
+                <i class="fas fa-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;"></i>
+                <input type="text" id="filtro-busca" placeholder="Buscar por cliente ou número..."
+                    style="width:100%;background:var(--bg-card);border:1px solid var(--glass-border);padding:10px 14px 10px 40px;border-radius:12px;color:var(--text-main);outline:none;box-sizing:border-box;"
+                    oninput="filtrarHistorico()">
+            </div>
+            <select id="filtro-status" onchange="filtrarHistorico()"
+                style="background:var(--bg-card);border:1px solid var(--glass-border);padding:10px 14px;border-radius:12px;color:var(--text-main);outline:none;min-width:150px;">
+                <option value="">Todos os status</option>
+                <option value="Aguardando">Aguardando</option>
+                <option value="Visualizado">Visualizado</option>
+                <option value="Aprovado">Aprovado</option>
+                <option value="Recusado">Recusado</option>
+            </select>
+        </div>
+
         <div class="glass-panel">
             <div class="table-container">
                 <table>
@@ -88,6 +105,7 @@
                             <th>Cliente</th>
                             <th>Valor Total</th>
                             <th>Status</th>
+                            <th>Visto</th>
                             <th style="text-align: right;">Ações</th>
                         </tr>
                     </thead>
@@ -101,6 +119,8 @@
 
     <script src="/shared.js?v=1.2"></script>
     <script>
+        let _todosOrcamentos = [];
+
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
@@ -118,9 +138,17 @@
             const res = await apiFetch('/api/orcamentos');
             if (!res) return;
             const data = await res.json();
-            document.getElementById('orcamento-list').innerHTML = data.map(orc => {
+            _todosOrcamentos = data;
+            renderHistorico(data);
+        }
+
+        function renderHistorico(lista) {
+            document.getElementById('orcamento-list').innerHTML = lista.map(orc => {
                 const uuid = orc.uuid_publico || '';
                 const statusBadge = getStatusBadge(orc.status);
+                const vistoTxt = orc.qtd_visualizacoes > 0
+                    ? `<span style="color:var(--primary);font-weight:700;">${orc.qtd_visualizacoes}×</span>`
+                    : `<span style="color:var(--text-muted);">—</span>`;
                 return `
                 <tr>
                     <td style="font-weight: 700; color: var(--primary);">${orc.numero}</td>
@@ -128,11 +156,14 @@
                     <td style="font-weight: 500;">${orc.cliente_nome}</td>
                     <td style="font-weight: 600;">${orc.valor_total.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</td>
                     <td>${statusBadge(orc.status)}</td>
+                    <td>${vistoTxt}</td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
                             <button class="btn-icon" title="Aprovar" onclick="updateStatus(${orc.id}, 'Aprovado')" style="color: #10b981;"><i class="fas fa-check"></i></button>
                             <button class="btn-icon" title="Recusar" onclick="updateStatus(${orc.id}, 'Recusado')" style="color: #ef4444;"><i class="fas fa-times"></i></button>
                             <button class="btn-icon" title="Aguardando" onclick="updateStatus(${orc.id}, 'Aguardando')" style="color: #f59e0b;"><i class="fas fa-clock"></i></button>
+                            <button class="btn-icon" title="Duplicar Orçamento" onclick="duplicarOrcamento(${orc.id})" style="color: #8b5cf6;"><i class="fas fa-copy"></i></button>
+                            <button class="btn-icon" title="Editar Orçamento" onclick="window.location.href='/novo_orcamento.html?id=${orc.id}'" style="color: #f59e0b;"><i class="fas fa-edit"></i></button>
                             <button class="btn-icon" title="Enviar WhatsApp" onclick="sendWhatsApp('${uuid}', '${orc.cliente_telefone || ''}', '${orc.cliente_nome}')" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
                             <button class="btn-icon" title="Copiar Link Público" onclick="copyLink('${uuid}')"><i class="fas fa-link"></i></button>
                             <button class="btn-icon" title="Abrir Link Público" onclick="abrirLink('${uuid}')" style="color: var(--primary);"><i class="fas fa-external-link-alt"></i></button>
@@ -140,7 +171,30 @@
                         </div>
                     </td>
                 </tr>`;
-            }).join('') || '<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum orçamento encontrado.</td></tr>';
+            }).join('') || '<tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Nenhum orçamento encontrado.</td></tr>';
+        }
+
+        function filtrarHistorico() {
+            const busca = document.getElementById('filtro-busca').value.toLowerCase();
+            const status = document.getElementById('filtro-status').value;
+            const filtrado = _todosOrcamentos.filter(orc => {
+                const matchBusca = !busca
+                    || orc.cliente_nome.toLowerCase().includes(busca)
+                    || orc.numero.toLowerCase().includes(busca);
+                const matchStatus = !status || orc.status === status;
+                return matchBusca && matchStatus;
+            });
+            renderHistorico(filtrado);
+        }
+
+        async function duplicarOrcamento(id) {
+            const res = await apiFetch(`/orcamentos/${id}/duplicar`, { method: 'POST' });
+            if (res && res.ok) {
+                showToast('Orçamento duplicado!', 'success');
+                loadHistorico();
+            } else {
+                showToast('Erro ao duplicar', 'error');
+            }
         }
 
         function getStatusBadge(status) {

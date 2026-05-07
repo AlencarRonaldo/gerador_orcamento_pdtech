@@ -213,6 +213,7 @@
         let allCatalog = [];
         let selectedClientId = null;
         let categoriesCount = 0;
+        const EDIT_ID = new URLSearchParams(window.location.search).get('id');
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -491,7 +492,9 @@
                 categorias: categorias
             };
 
-            const res = await apiFetch('/orcamentos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            const url = EDIT_ID ? `/orcamentos/${EDIT_ID}` : '/orcamentos';
+            const method = EDIT_ID ? 'PUT' : 'POST';
+            const res = await apiFetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (res && res.ok) {
                 window.location.href = '/historico.html';
             } else {
@@ -501,6 +504,55 @@
             }
         };
 
+        async function loadEditData() {
+            if (!EDIT_ID) return;
+
+            document.querySelector('h1').textContent = 'Editar Orçamento';
+            const submitBtn = document.querySelector('#orcamento-form button[type="submit"]');
+            if (submitBtn) submitBtn.innerHTML = '<i class="fas fa-save"></i> SALVAR ALTERAÇÕES';
+
+            const res = await apiFetch(`/orcamentos/${EDIT_ID}`);
+            if (!res || !res.ok) return;
+            const orc = await res.json();
+
+            document.getElementById('cliente_nome').value = orc.cliente_nome || '';
+            document.getElementById('cliente_cnpj').value = orc.cliente_cnpj || '';
+            document.getElementById('cliente_contato').value = orc.cliente_contato || '';
+            document.getElementById('cliente_endereco').value = orc.cliente_endereco || '';
+            document.getElementById('cliente_email').value = orc.cliente_email || '';
+            document.getElementById('cliente_telefone').value = orc.cliente_telefone || '';
+            document.getElementById('condicao_pagto').value = orc.condicao_pagto || '';
+            document.getElementById('descricao_intro').value = orc.descricao_intro || '';
+            document.getElementById('validade_dias').value = orc.validade_dias || 7;
+            if (document.getElementById('desconto_percent'))
+                document.getElementById('desconto_percent').value = orc.desconto_percent || 0;
+
+            document.getElementById('categories-container').innerHTML = '';
+            categoriesCount = 0;
+
+            (orc.categorias || []).forEach(cat => {
+                addCategory();
+                const catId = `cat-${categoriesCount}`;
+                const catBlock = document.getElementById(catId);
+
+                catBlock.querySelector('.cat-name').value = cat.titulo || '';
+
+                catBlock.querySelector('.items-list').innerHTML = '';
+
+                (cat.itens || []).forEach(item => {
+                    addItem(catId);
+                    const rows = catBlock.querySelectorAll('.item-row');
+                    const row = rows[rows.length - 1];
+                    row.querySelector('.item-desc').value = item.descricao || '';
+                    row.querySelector('.item-qtd').value = item.quantidade || 1;
+                    row.querySelector('.item-preco').value = item.valor_unitario || 0;
+                    row.querySelector('.item-garantia').value = item.garantia || '';
+                });
+            });
+
+            calculateTotal();
+        }
+
         // Fechar sugestões ao clicar fora
         document.addEventListener('click', (e) => {
             if(!e.target.closest('.input-with-icon')) {
@@ -509,6 +561,7 @@
         });
 
         init();
+        loadEditData();
     </script>
 </body>
 </html>
