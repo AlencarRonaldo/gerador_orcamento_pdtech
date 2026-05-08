@@ -953,37 +953,6 @@ def formulario_cadastro(db: Session = Depends(get_db)):
                 <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Solicitar Orçamento</button>
             </form>
         </div>
-            <div id="msg"></div>
-            <form id="form">
-                <div class="form-group">
-                    <label>Nome / Razão Social *</label>
-                    <input type="text" id="nome" required placeholder="Seu nome ou empresa">
-                </div>
-                <div class="grid">
-                    <div class="form-group">
-                        <label>CPF ou CNPJ</label>
-                        <input type="text" id="cnpj_cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00">
-                    </div>
-                    <div class="form-group">
-                        <label>Telefone</label>
-                        <input type="tel" id="telefone" placeholder="(00) 00000-0000">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>E-mail</label>
-                    <input type="email" id="email" placeholder="seu@email.com">
-                </div>
-                <div class="form-group">
-                    <label>Endereço</label>
-                    <input type="text" id="endereco" placeholder="Rua, número, bairro, cidade">
-                </div>
-                <div class="form-group">
-                    <label>Cidade</label>
-                    <input type="text" id="cidade" placeholder="Cidade - UF">
-                </div>
-                <button type="submit" class="btn">Cadastrar</button>
-            </form>
-        </div>
         <script>
             document.getElementById('form').onsubmit = async (e) => {{
                 e.preventDefault();
