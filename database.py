@@ -32,20 +32,7 @@ if db_url.startswith("sqlite:///"):
 else:
     print(f"[DB] Unknown database type", file=sys.stderr)
     engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
-elif db_url.startswith("sqlite"):
-    print("[DB] Using SQLite", file=sys.stderr)
-    actual_path = db_url.replace("sqlite:///", "")
-    if not actual_path.startswith("/"):
-        actual_path = "./" + actual_path
-    path_obj = Path(actual_path).resolve()
-    path_obj.parent.mkdir(parents=True, exist_ok=True)
-    if not path_obj.exists():
-        path_obj.touch()
-    db_url = f"sqlite:///{path_obj}"
-    engine = create_engine(db_url, connect_args={"check_same_thread": False})
-else:
-    print(f"[DB] Unknown database type, using SQLite", file=sys.stderr)
-    engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
