@@ -1176,7 +1176,9 @@ def listar_catalogo(db: Session = Depends(get_db)):
         grupos[cat].append({
             "id": item.id, "categoria": item.categoria,
             "descricao": item.descricao, "preco": item.preco,
-            "garantia": item.garantia, "ativo": item.ativo, "ordem": item.ordem,
+            "garantia": item.garantia, "tipo": item.tipo or "unidade",
+            "largura": item.largura, "altura": item.altura,
+            "ativo": item.ativo, "ordem": item.ordem,
         })
     return grupos
 
@@ -1189,7 +1191,8 @@ def buscar_catalogo(q: str = "", db: Session = Depends(get_db)):
     ).order_by(CatalogoItem.categoria, CatalogoItem.descricao).limit(20).all()
     return [
         {"id": i.id, "categoria": i.categoria, "descricao": i.descricao,
-         "preco": i.preco, "garantia": i.garantia}
+         "preco": i.preco, "garantia": i.garantia, "tipo": i.tipo or "unidade",
+         "largura": i.largura, "altura": i.altura}
         for i in itens
     ]
 

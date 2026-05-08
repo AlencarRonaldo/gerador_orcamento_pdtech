@@ -79,6 +79,8 @@ def create_tables():
         "ALTER TABLE config_empresa ADD COLUMN notif_email_dest TEXT",
         "ALTER TABLE orcamentos ADD COLUMN assinatura_hash TEXT",
         "ALTER TABLE catalogo_itens ADD COLUMN tipo TEXT DEFAULT 'unidade'",
+        "ALTER TABLE catalogo_itens ADD COLUMN largura REAL",
+        "ALTER TABLE catalogo_itens ADD COLUMN altura REAL",
     ]
     with engine.connect() as conn:
         for sql in migrations:
