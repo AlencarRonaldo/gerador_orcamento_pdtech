@@ -1,4 +1,5 @@
 import os
+import sys
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
@@ -7,19 +8,26 @@ from base import Base
 
 db_url = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
+print(f"[DB] DATABASE_URL: {db_url}", file=sys.stderr)
+
 if db_url.startswith("sqlite:///"):
     actual_path = db_url.replace("sqlite:///", "")
     if not actual_path.startswith("/"):
-        if os.path.exists("/data"):
+        if os.path.exists("/data") and os.access("/data", os.W_OK):
             actual_path = "/data/" + actual_path.split("/")[-1]
+            print(f"[DB] Using /data volume", file=sys.stderr)
         else:
-            actual_path = "./" + actual_path
+            actual_path = os.path.join(os.getcwd(), actual_path)
+            print(f"[DB] Using cwd: {os.getcwd()}", file=sys.stderr)
     path_obj = Path(actual_path).resolve()
+    print(f"[DB] Database file: {path_obj}", file=sys.stderr)
     path_obj.parent.mkdir(parents=True, exist_ok=True)
     if not path_obj.exists():
         path_obj.touch()
+        print(f"[DB] Created new database file", file=sys.stderr)
+    else:
+        print(f"[DB] Database file exists, size: {path_obj.stat().st_size} bytes", file=sys.stderr)
     db_url = f"sqlite:///{path_obj}"
-    print(f"Database path: {path_obj}")
 
 engine = create_engine(db_url, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
