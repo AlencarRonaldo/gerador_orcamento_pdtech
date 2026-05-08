@@ -73,6 +73,8 @@ class CatalogoItem(Base):
     preco = Column(Float, nullable=False, default=0.0)
     garantia = Column(String, default="12 Meses")
     tipo = Column(String, default="unidade")  # "unidade", "metro_linear" ou "metro_quadrado"
+    largura = Column(Float, nullable=True)
+    altura = Column(Float, nullable=True)
     ativo = Column(Boolean, default=True)
     ordem = Column(Integer, default=0)
     criado_em = Column(DateTime, default=_utc_now)
