@@ -14,7 +14,9 @@ from pathlib import Path
 from typing import List, Optional
 
 import uvicorn
-from fastapi import Depends, FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile, File
+from fastapi.responses import FileResponse
+import os
 from fastapi.responses import Response, RedirectResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -1246,6 +1248,33 @@ def importar_catalogo(itens: List[dict], db: Session = Depends(get_db)):
         db.add(novo)
     db.commit()
     return {"ok": True, "importados": len(itens)}
+
+# ── Backup/Restore do Banco ───────────────────────────────────────────────────
+
+@app.get("/api/backup")
+def fazer_backup():
+    """Download do arquivo do banco de dados."""
+    db_path = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db").replace("sqlite:///", "")
+    if not db_path.startswith("/"):
+        db_path = os.path.join(os.getcwd(), db_path)
+    if os.path.exists("/data/" + os.path.basename(db_path)):
+        db_path = "/data/" + os.path.basename(db_path)
+    return FileResponse(db_path, filename="backup_orcamentos.db", media_type="application/octet-stream")
+
+
+@app.post("/api/restore")
+def restaurar_backup(file: UploadFile = File(...)):
+    """Restaura o banco de dados a partir de um arquivo."""
+    import shutil
+    db_path = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db").replace("sqlite:///", "")
+    if not db_path.startswith("/"):
+        db_path = os.path.join(os.getcwd(), db_path)
+    if os.path.exists("/data/" + os.path.basename(db_path)):
+        db_path = "/data/" + os.path.basename(db_path)
+    
+    with open(db_path, "wb") as f:
+        shutil.copyfileobj(file.file, f)
+    return {"ok": True, "message": "Backup restaurado com sucesso!"}
 
 
 static_dir = Path(__file__).parent / "static"
