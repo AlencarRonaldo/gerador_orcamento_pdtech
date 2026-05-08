@@ -1218,6 +1218,35 @@ def excluir_item_catalogo(item_id: int, db: Session = Depends(get_db)):
     db.commit()
     return {"ok": True}
 
+# ── Export/Import Catálogo ─────────────────────────────────────────────────────
+
+@app.get("/api/catalogo/export")
+def exportar_catalogo(db: Session = Depends(get_db)):
+    """Exporta todos os itens do catálogo em JSON."""
+    itens = db.query(CatalogoItem).all()
+    return [
+        {"categoria": i.categoria, "descricao": i.descricao,
+         "preco": i.preco, "garantia": i.garantia, "ativo": i.ativo, "ordem": i.ordem}
+        for i in itens
+    ]
+
+@app.post("/api/catalogo/import")
+def importar_catalogo(itens: List[dict], db: Session = Depends(get_db)):
+    """Importa itens do catálogo (substitui os existentes)."""
+    db.query(CatalogoItem).delete()
+    for item in itens:
+        novo = CatalogoItem(
+            categoria=item.get("categoria", ""),
+            descricao=item.get("descricao", ""),
+            preco=item.get("preco", 0),
+            garantia=item.get("garantia", ""),
+            ativo=item.get("ativo", True),
+            ordem=item.get("ordem", 0)
+        )
+        db.add(novo)
+    db.commit()
+    return {"ok": True, "importados": len(itens)}
+
 
 static_dir = Path(__file__).parent / "static"
 app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
