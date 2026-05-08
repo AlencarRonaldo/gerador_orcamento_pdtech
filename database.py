@@ -1,8 +1,10 @@
+import os
+
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from base import Base
 
-DATABASE_URL = "sqlite:///./orcamentos.db"
+DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -44,6 +46,12 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN consultor_nome TEXT",
         "ALTER TABLE config_empresa ADD COLUMN consultor_nome TEXT",
         "ALTER TABLE config_empresa ADD COLUMN consultores_json TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_host TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_port INTEGER DEFAULT 587",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_user TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN smtp_pass TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN notif_email_dest TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN assinatura_hash TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:
