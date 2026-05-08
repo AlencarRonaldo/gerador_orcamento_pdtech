@@ -4,7 +4,6 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import NullPool
 from base import Base
 
 db_url = os.environ.get("DATABASE_URL")
@@ -14,15 +13,28 @@ if not db_url:
 
 print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
-if db_url.startswith("postgres"):
+if "postgresql" in db_url.lower() or db_url.startswith("postgres"):
     print("[DB] Using PostgreSQL (Supabase)", file=sys.stderr)
     engine = create_engine(
         db_url,
         pool_pre_ping=True,
         pool_size=1,
-        max_overflow=0,
-        connect_args={"connect_timeout": 15}
+        max_overflow=0
     )
+elif db_url.startswith("sqlite"):
+    print("[DB] Using SQLite", file=sys.stderr)
+    actual_path = db_url.replace("sqlite:///", "")
+    if not actual_path.startswith("/"):
+        actual_path = "./" + actual_path
+    path_obj = Path(actual_path).resolve()
+    path_obj.parent.mkdir(parents=True, exist_ok=True)
+    if not path_obj.exists():
+        path_obj.touch()
+    db_url = f"sqlite:///{path_obj}"
+    engine = create_engine(db_url, connect_args={"check_same_thread": False})
+else:
+    print(f"[DB] Unknown type, using SQLite", file=sys.stderr)
+    engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
 elif db_url.startswith("sqlite"):
     print("[DB] Using SQLite", file=sys.stderr)
     actual_path = db_url.replace("sqlite:///", "")
