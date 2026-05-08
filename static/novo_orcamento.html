@@ -456,7 +456,7 @@
             const itemsList = document.querySelector(`#${catId} .items-list`);
             const itemId = `item-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
             const html = `
-                <div class="item-row" id="${itemId}">
+                <div class="item-row" id="${itemId}" data-tipo="unidade">
                     <div class="form-group" style="margin:0">
                         <label>Descrição</label>
                         <div class="input-with-icon">
@@ -465,7 +465,8 @@
                             <div class="suggestions-box"></div>
                         </div>
                     </div>
-                    <div class="form-group" style="margin:0"><label>Qtd</label><input type="number" value="1" step="0.01" class="item-qtd" onchange="calculateTotal()"></div>
+                    <div class="form-group item-qtd-group" style="margin:0"><label>Qtd</label><input type="number" value="1" step="0.01" class="item-qtd" onchange="calculateTotal()"></div>
+                    <div class="form-group item-metro-group" style="margin:0; display:none;"><label>Metros</label><input type="number" value="1" step="0.01" class="item-metros" onchange="calculateTotal()"></div>
                     <div class="form-group" style="margin:0"><label>Preço</label><input type="number" step="0.01" class="item-preco" onchange="calculateTotal()"></div>
                     <div class="form-group" style="margin:0"><label>Garantia</label><input type="text" class="item-garantia"></div>
                     <div class="form-group" style="margin:0"><label>Prazo</label><input type="text" class="item-prazo"></div>
@@ -492,7 +493,7 @@
                 box.innerHTML = filtered.map(i => `
                     <div class="suggestion-item" onclick='selectCatalogItem("${rowId}", ${JSON.stringify(i)})'>
                         <div style="font-weight: 700; font-size: 14px;">${i.descricao}</div>
-                        <div style="font-size: 11px; opacity: 0.7;">Cat: ${i.categoria || 'Geral'} | R$ ${i.preco.toLocaleString('pt-BR')}</div>
+                        <div style="font-size: 11px; opacity: 0.7;">Cat: ${i.categoria || 'Geral'} | R$ ${i.preco.toLocaleString('pt-BR')}/${i.tipo === 'metro_linear' ? 'm' : 'un'}</div>
                     </div>
                 `).join('');
                 box.style.display = 'block';
@@ -510,6 +511,22 @@
             row.querySelector('.item-preco').value = item.preco;
             row.querySelector('.item-garantia').value = item.garantia || '';
             row.querySelector('.suggestions-box').style.display = 'none';
+            
+            const tipo = item.tipo || 'unidade';
+            row.setAttribute('data-tipo', tipo);
+            
+            const qtdGroup = row.querySelector('.item-qtd-group');
+            const metroGroup = row.querySelector('.item-metro-group');
+            
+            if (tipo === 'metro_linear') {
+                qtdGroup.style.display = 'none';
+                metroGroup.style.display = 'block';
+                row.querySelector('.item-metros').value = 1;
+            } else {
+                qtdGroup.style.display = 'block';
+                metroGroup.style.display = 'none';
+                row.querySelector('.item-qtd').value = 1;
+            }
             
             if (item.categoria) {
                 const catBlock = row.closest('.category-block');
@@ -532,9 +549,18 @@
         function calculateTotal() {
             let totalGeral = 0;
             document.querySelectorAll('.item-row').forEach(row => {
-                const qtd = parseFloat(row.querySelector('.item-qtd').value) || 0;
-                const preco = parseFloat(row.querySelector('.item-preco').value) || 0;
-                const sub = qtd * preco;
+                const tipo = row.getAttribute('data-tipo') || 'unidade';
+                let qtd, sub;
+                if (tipo === 'metro_linear') {
+                    const metros = parseFloat(row.querySelector('.item-metros').value) || 0;
+                    const preco = parseFloat(row.querySelector('.item-preco').value) || 0;
+                    qtd = metros;
+                    sub = metros * preco;
+                } else {
+                    qtd = parseFloat(row.querySelector('.item-qtd').value) || 0;
+                    const preco = parseFloat(row.querySelector('.item-preco').value) || 0;
+                    sub = qtd * preco;
+                }
                 row.querySelector('.item-sub').value = sub.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
                 totalGeral += sub;
             });

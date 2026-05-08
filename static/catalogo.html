@@ -272,11 +272,18 @@
                     <input class="dform-input" type="text" id="item-garantia" placeholder="Ex: 12 meses">
                 </div>
                 <div>
-                    <label class="dform-label">Preço Unitário</label>
-                    <div class="price-wrap">
-                        <span>R$</span>
-                        <input type="number" id="item-preco" step="0.01" min="0" placeholder="0,00" required>
-                    </div>
+                    <label class="dform-label">Tipo de Cobrança</label>
+                    <select class="dform-input" id="item-tipo" style="padding: 14px; border-radius: 10px; border: 1px solid #ddd; background: #f8f9fa;">
+                        <option value="unidade">Unidade</option>
+                        <option value="metro_linear">Metro Linear (m)</option>
+                    </select>
+                </div>
+            </div>
+            <div>
+                <label class="dform-label">Preço Unitário</label>
+                <div class="price-wrap">
+                    <span>R$</span>
+                    <input type="number" id="item-preco" step="0.01" min="0" placeholder="0,00" required>
                 </div>
             </div>
         </div>
@@ -325,11 +332,11 @@
                             ${filtered.map(item => `
                                 <div class="item-row">
                                     <div class="row-icon">
-                                        <i class="fas ${cat.toLowerCase().includes('servi') || cat.toLowerCase().includes('mão') ? 'fa-wrench' : 'fa-box'}"></i>
+                                        <i class="fas ${item.tipo === 'metro_linear' ? 'fa-ruler-horizontal' : (cat.toLowerCase().includes('servi') || cat.toLowerCase().includes('mão') ? 'fa-wrench' : 'fa-box')}"></i>
                                     </div>
-                                    <span class="row-desc">${item.descricao}</span>
+                                    <span class="row-desc">${item.descricao}${item.tipo === 'metro_linear' ? '<span style="color:#8b5cf6;font-size:11px;margin-left:5px;">(m)</span>' : ''}</span>
                                     <span class="row-garantia">${item.garantia || 'Sem gar.'}</span>
-                                    <span class="row-preco">${item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
+                                    <span class="row-preco">${item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/${item.tipo === 'metro_linear' ? 'm' : 'un'}</span>
                                     <div class="row-actions">
                                         <button class="btn-icon" onclick="editItem(${item.id})" title="Editar"><i class="fas fa-pencil-alt"></i></button>
                                         <button class="btn-icon" onclick="deleteItem(${item.id})" style="color: #ef4444;" title="Excluir"><i class="fas fa-trash"></i></button>
@@ -451,9 +458,11 @@
                 document.getElementById('item-garantia').value = editData.garantia || '';
                 document.getElementById('item-preco').value = editData.preco;
                 document.getElementById('item-categoria').value = editData.categoria || '';
+                document.getElementById('item-tipo').value = editData.tipo || 'unidade';
             } else {
                 document.getElementById('drawer-title').textContent = 'Novo Item';
                 ['item-id','item-descricao','item-garantia','item-preco','item-categoria'].forEach(id => document.getElementById(id).value = '');
+                document.getElementById('item-tipo').value = 'unidade';
             }
             dr.classList.add('active');
             ov.classList.add('active');
@@ -471,6 +480,7 @@
                 descricao: document.getElementById('item-descricao').value.trim(),
                 categoria: document.getElementById('item-categoria').value.trim(),
                 garantia: document.getElementById('item-garantia').value.trim(),
+                tipo: document.getElementById('item-tipo').value,
                 preco: parseFloat(document.getElementById('item-preco').value),
                 ativo: true, ordem: 0
             };
