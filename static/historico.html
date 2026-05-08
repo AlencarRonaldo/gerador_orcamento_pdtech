@@ -121,6 +121,20 @@
     <script src="/shared.js?v=1.2"></script>
     <script>
         let _todosOrcamentos = [];
+        let _empresaNome = localStorage.getItem('empresa_nome') || 'Nossa Empresa';
+
+        async function loadEmpresaNome() {
+            try {
+                const res = await apiFetch('/api/config');
+                if (res && res.ok) {
+                    const cfg = await res.json();
+                    if (cfg.nome_empresa) {
+                        _empresaNome = cfg.nome_empresa;
+                        localStorage.setItem('empresa_nome', cfg.nome_empresa);
+                    }
+                }
+            } catch (e) {}
+        }
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
@@ -140,7 +154,21 @@
             if (!res) return;
             const data = await res.json();
             _todosOrcamentos = data;
-            renderHistorico(data);
+            
+            // Verifica se tem ID na URL para focar no orçamento
+            const urlParams = new URLSearchParams(window.location.search);
+            const filterId = urlParams.get('id');
+            if (filterId) {
+                const filtered = data.filter(o => o.id == filterId);
+                renderHistorico(filtered);
+                // Scroll até o item
+                setTimeout(() => {
+                    const row = document.querySelector(`tr[data-id="${filterId}"]`);
+                    if (row) row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+            } else {
+                renderHistorico(data);
+            }
         }
 
         function renderHistorico(lista) {
@@ -151,7 +179,7 @@
                     ? `<span style="color:var(--primary);font-weight:700;">${orc.qtd_visualizacoes}×</span>`
                     : `<span style="color:var(--text-muted);">—</span>`;
                 return `
-                <tr>
+                <tr data-id="${orc.id}">
                     <td style="font-weight: 700; color: var(--primary);">${orc.numero}</td>
                     <td>${orc.data || '-'}</td>
                     <td style="font-weight: 500;">${orc.cliente_nome}</td>
@@ -166,7 +194,7 @@
                             <button class="btn-icon" title="Aguardando" onclick="updateStatus(${orc.id}, 'Aguardando')" style="color: #f59e0b;"><i class="fas fa-clock"></i></button>
                             <button class="btn-icon" title="Duplicar Orçamento" onclick="duplicarOrcamento(${orc.id})" style="color: #8b5cf6;"><i class="fas fa-copy"></i></button>
                             <button class="btn-icon" title="Editar Orçamento" onclick="window.location.href='/novo_orcamento.html?id=${orc.id}'" style="color: #f59e0b;"><i class="fas fa-edit"></i></button>
-                            <button class="btn-icon" title="Enviar WhatsApp" onclick="sendWhatsApp('${uuid}', '${orc.cliente_telefone || ''}', '${orc.cliente_nome}')" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
+                            <button class="btn-icon" title="Enviar WhatsApp" onclick="sendWhatsApp('${uuid}', '${orc.cliente_telefone || ''}', '${orc.cliente_nome}', '${orc.numero}')" style="color: #25D366;"><i class="fab fa-whatsapp"></i></button>
                             <button class="btn-icon" title="Copiar Link Público" onclick="copyLink('${uuid}')"><i class="fas fa-link"></i></button>
                             <button class="btn-icon" title="Abrir Link Público" onclick="abrirLink('${uuid}')" style="color: var(--primary);"><i class="fas fa-external-link-alt"></i></button>
                             <button class="btn-icon" title="Ver PDF" onclick="window.open('/orcamentos/${orc.id}/pdf')"><i class="fas fa-file-pdf"></i></button>
@@ -270,31 +298,44 @@
             window.open(`${window.location.origin}/p/${uuid}`, '_blank');
         }
 
-        function sendWhatsApp(uuid, telefone, nome) {
+        function sendWhatsApp(uuid, telefone, nome, numero) {
             if (!uuid) { showToast('Link não disponível', 'error'); return; }
-            
+
             let telefoneLimpo = telefone.replace(/\D/g, '');
             if (!telefoneLimpo || telefoneLimpo.length < 10) {
                 showToast('Telefone não cadastrado para este cliente', 'error');
                 return;
             }
-            
-            // Adiciona prefixo 55 se não houver (para 10 ou 11 dígitos)
+
             if (telefoneLimpo.length === 10 || telefoneLimpo.length === 11) {
                 telefoneLimpo = '55' + telefoneLimpo;
             }
-            
+
             const linkOrcamento = `${window.location.origin}/p/${uuid}`;
-            const empresa = localStorage.getItem('empresa_nome') || 'Nossa Empresa';
-            
-            const mensagem = `*PROPOSTA COMERCIAL - ${empresa.toUpperCase()}* 📄%0A%0AOlá, *${nome}*! 👋%0A%0AÉ um prazer apresentar nossa proposta personalizada. Preparamos os detalhes com foco em atender às suas necessidades com excelência.%0A%0A🔗 *Acesse agora para visualizar e aprovar:*%0A${linkOrcamento}%0A%0A_Este link é seguro e permite a assinatura eletrônica do documento._%0A%0AFicamos à disposição para qualquer dúvida!%0A%0AAtenciosamente,%0A*Equipe ${empresa}*`;
-            
-            const waLink = `https://wa.me/${telefoneLimpo}?text=${mensagem}`;
-            
+            const empresa = _empresaNome;
+            const refNum = numero ? ` Nº ${numero}` : '';
+
+            const mensagem =
+`Olá, ${nome}!
+
+Segue o link de acesso à sua Proposta Comercial${refNum}, elaborada pela *${empresa}*:
+
+${linkOrcamento}
+
+Por meio deste link você pode consultar todos os detalhes e assinar eletronicamente o documento, caso deseje prosseguir.
+
+Qualquer dúvida, estamos à disposição.
+
+Atenciosamente,
+*${empresa}*`;
+
+            const waLink = `https://wa.me/${telefoneLimpo}?text=${encodeURIComponent(mensagem)}`;
+
             window.open(waLink, '_blank');
             showToast('WhatsApp aberto!', 'success');
         }
 
+        loadEmpresaNome();
         loadHistorico();
     </script>
 </body>
