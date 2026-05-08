@@ -273,10 +273,21 @@
                 </div>
                 <div>
                     <label class="dform-label">Tipo de Cobrança</label>
-                    <select class="dform-input" id="item-tipo" style="padding: 14px; border-radius: 10px; border: 1px solid #ddd; background: #f8f9fa;">
+                    <select class="dform-input" id="item-tipo" style="padding: 14px; border-radius: 10px; border: 1px solid #ddd; background: #f8f9fa;" onchange="toggleDimensoes()">
                         <option value="unidade">Unidade</option>
                         <option value="metro_linear">Metro Linear (m)</option>
+                        <option value="metro_quadrado">Metro Quadrado (m²)</option>
                     </select>
+                </div>
+                <div id="dimensoes-group" style="display:none; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div>
+                        <label class="dform-label">Largura (m)</label>
+                        <input class="dform-input" type="number" id="item-largura" step="0.01" min="0" placeholder="Ex: 1.5">
+                    </div>
+                    <div>
+                        <label class="dform-label">Altura (m)</label>
+                        <input class="dform-input" type="number" id="item-altura" step="0.01" min="0" placeholder="Ex: 2.0">
+                    </div>
                 </div>
             </div>
             <div>
@@ -332,11 +343,11 @@
                             ${filtered.map(item => `
                                 <div class="item-row">
                                     <div class="row-icon">
-                                        <i class="fas ${item.tipo === 'metro_linear' ? 'fa-ruler-horizontal' : (cat.toLowerCase().includes('servi') || cat.toLowerCase().includes('mão') ? 'fa-wrench' : 'fa-box')}"></i>
+                                        <i class="fas ${item.tipo === 'metro_linear' ? 'fa-ruler-horizontal' : (item.tipo === 'metro_quadrado' ? 'fa-vector-square' : (cat.toLowerCase().includes('servi') || cat.toLowerCase().includes('mão') ? 'fa-wrench' : 'fa-box'))}"></i>
                                     </div>
-                                    <span class="row-desc">${item.descricao}${item.tipo === 'metro_linear' ? '<span style="color:#8b5cf6;font-size:11px;margin-left:5px;">(m)</span>' : ''}</span>
+                                    <span class="row-desc">${item.descricao}${item.tipo === 'metro_linear' ? '<span style="color:#8b5cf6;font-size:11px;margin-left:5px;">(m)</span>' : ''}${item.tipo === 'metro_quadrado' ? '<span style="color:#10b981;font-size:11px;margin-left:5px;">(m²)</span>' : ''}</span>
                                     <span class="row-garantia">${item.garantia || 'Sem gar.'}</span>
-                                    <span class="row-preco">${item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/${item.tipo === 'metro_linear' ? 'm' : 'un'}</span>
+                                    <span class="row-preco">${item.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}/${item.tipo === 'metro_linear' ? 'm' : (item.tipo === 'metro_quadrado' ? 'm²' : 'un')}</span>
                                     <div class="row-actions">
                                         <button class="btn-icon" onclick="editItem(${item.id})" title="Editar"><i class="fas fa-pencil-alt"></i></button>
                                         <button class="btn-icon" onclick="deleteItem(${item.id})" style="color: #ef4444;" title="Excluir"><i class="fas fa-trash"></i></button>
@@ -448,6 +459,12 @@
             e.target.value = '';
         }
 
+        function toggleDimensoes() {
+            const tipo = document.getElementById('item-tipo').value;
+            const dims = document.getElementById('dimensoes-group');
+            dims.style.display = (tipo === 'metro_quadrado') ? 'grid' : 'none';
+        }
+
         function openDrawer(editData = null) {
             const dr = document.getElementById('drawer');
             const ov = document.getElementById('drawer-overlay');
@@ -459,11 +476,14 @@
                 document.getElementById('item-preco').value = editData.preco;
                 document.getElementById('item-categoria').value = editData.categoria || '';
                 document.getElementById('item-tipo').value = editData.tipo || 'unidade';
+                document.getElementById('item-largura').value = editData.largura || '';
+                document.getElementById('item-altura').value = editData.altura || '';
             } else {
                 document.getElementById('drawer-title').textContent = 'Novo Item';
-                ['item-id','item-descricao','item-garantia','item-preco','item-categoria'].forEach(id => document.getElementById(id).value = '');
+                ['item-id','item-descricao','item-garantia','item-preco','item-categoria','item-largura','item-altura'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('item-tipo').value = 'unidade';
             }
+            toggleDimensoes();
             dr.classList.add('active');
             ov.classList.add('active');
             setTimeout(() => document.getElementById('item-descricao').focus(), 400);
@@ -482,6 +502,8 @@
                 garantia: document.getElementById('item-garantia').value.trim(),
                 tipo: document.getElementById('item-tipo').value,
                 preco: parseFloat(document.getElementById('item-preco').value),
+                largura: parseFloat(document.getElementById('item-largura').value) || null,
+                altura: parseFloat(document.getElementById('item-altura').value) || null,
                 ativo: true, ordem: 0
             };
 

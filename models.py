@@ -72,7 +72,7 @@ class CatalogoItem(Base):
     descricao = Column(String, nullable=False)
     preco = Column(Float, nullable=False, default=0.0)
     garantia = Column(String, default="12 Meses")
-    tipo = Column(String, default="unidade")  # "unidade" ou "metro_linear"
+    tipo = Column(String, default="unidade")  # "unidade", "metro_linear" ou "metro_quadrado"
     ativo = Column(Boolean, default=True)
     ordem = Column(Integer, default=0)
     criado_em = Column(DateTime, default=_utc_now)
@@ -299,5 +299,7 @@ class CatalogoItemOutput(BaseModel):
     tipo: str
     ativo: bool
     ordem: int
+    largura: float = None
+    altura: float = None
 
     model_config = {"from_attributes": True}
