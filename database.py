@@ -1,48 +1,35 @@
 import os
 import sys
-import shutil
 from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from base import Base
 
-db_url = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
+db_url = os.environ.get("DATABASE_URL")
 
-print(f"[DB] DATABASE_URL: {db_url}", file=sys.stderr)
+if not db_url:
+    db_url = "sqlite:///./orcamentos.db"
 
-backup_path = Path("/app/orcamentos.db")
+print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
-if db_url.startswith("sqlite:///"):
+if db_url.startswith("postgres"):
+    print("[DB] Using PostgreSQL (Supabase)", file=sys.stderr)
+    engine = create_engine(db_url, pool_pre_ping=True, pool_size=5, max_overflow=10)
+elif db_url.startswith("sqlite"):
+    print("[DB] Using SQLite", file=sys.stderr)
     actual_path = db_url.replace("sqlite:///", "")
-    
-    if actual_path.startswith("/data/") and os.path.exists("/data") and os.access("/data", os.W_OK):
-        volume_path = Path(actual_path)
-        print(f"[DB] Using volume /data", file=sys.stderr)
-    else:
-        volume_path = Path("./orcamentos.db").resolve()
-        print(f"[DB] Using local path", file=sys.stderr)
-    
-    print(f"[DB] Database file: {volume_path}", file=sys.stderr)
-    
-    if backup_path.exists() and not volume_path.exists():
-        print(f"[DB] Restoring from backup", file=sys.stderr)
-        shutil.copy(backup_path, volume_path)
-    
-    volume_path.parent.mkdir(parents=True, exist_ok=True)
-    if not volume_path.exists():
-        volume_path.touch()
-        print(f"[DB] Created new database file", file=sys.stderr)
-    else:
-        print(f"[DB] Database file exists, size: {volume_path.stat().st_size} bytes", file=sys.stderr)
-        if backup_path.exists():
-            os.remove(backup_path)
-        print(f"[DB] Creating backup at /app", file=sys.stderr)
-        shutil.copy(volume_path, backup_path)
-    
-    db_url = f"sqlite:///{volume_path}"
-
-engine = create_engine(db_url, connect_args={"check_same_thread": False})
+    if not actual_path.startswith("/"):
+        actual_path = "./" + actual_path
+    path_obj = Path(actual_path).resolve()
+    path_obj.parent.mkdir(parents=True, exist_ok=True)
+    if not path_obj.exists():
+        path_obj.touch()
+    db_url = f"sqlite:///{path_obj}"
+    engine = create_engine(db_url, connect_args={"check_same_thread": False})
+else:
+    print(f"[DB] Unknown database type, using SQLite", file=sys.stderr)
+    engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
