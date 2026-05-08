@@ -4,6 +4,7 @@ from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import NullPool
 from base import Base
 
 db_url = os.environ.get("DATABASE_URL")
@@ -15,7 +16,13 @@ print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
 if db_url.startswith("postgres"):
     print("[DB] Using PostgreSQL (Supabase)", file=sys.stderr)
-    engine = create_engine(db_url, pool_pre_ping=True, pool_size=5, max_overflow=10)
+    engine = create_engine(
+        db_url,
+        pool_pre_ping=True,
+        pool_size=1,
+        max_overflow=0,
+        connect_args={"connect_timeout": 15}
+    )
 elif db_url.startswith("sqlite"):
     print("[DB] Using SQLite", file=sys.stderr)
     actual_path = db_url.replace("sqlite:///", "")
