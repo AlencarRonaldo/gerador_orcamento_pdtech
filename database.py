@@ -1,12 +1,18 @@
 import os
+from pathlib import Path
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from base import Base
 
-DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
+db_path = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+if db_path.startswith("sqlite:///"):
+    actual_path = db_path.replace("sqlite:///", "")
+    path_obj = Path(actual_path)
+    path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+engine = create_engine(db_path, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
