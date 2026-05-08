@@ -936,30 +936,30 @@ def formulario_cadastro(db: Session = Depends(get_db)):
             </form>
         </div>
         <script>
-            document.getElementById('form').onsubmit = async (e) => {
+            document.getElementById('form').onsubmit = async (e) => {{
                 e.preventDefault();
-                const data = {
+                const data = {{
                     nome: document.getElementById('nome').value,
                     cnpj_cpf: document.getElementById('cnpj_cpf').value,
                     telefone: document.getElementById('telefone').value,
                     email: document.getElementById('email').value,
                     endereco: document.getElementById('endereco').value,
                     cidade: document.getElementById('cidade').value,
-                };
-                const res = await fetch('/api/cadastro/cliente', {
+                }};
+                const res = await fetch('/api/cadastro/cliente', {{
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: {{'Content-Type': 'application/json'}},
                     body: JSON.stringify(data)
-                });
+                }});
                 const result = await res.json();
                 const msg = document.getElementById('msg');
-                if (res.ok) {
+                if (res.ok) {{
                     msg.innerHTML = '<div class="msg success">✓ Cadastro realizado com sucesso!</div>';
                     document.getElementById('form').reset();
-                } else {
+                }} else {{
                     msg.innerHTML = '<div class="msg error">' + (result.detail || 'Erro ao cadastrar') + '</div>';
-                }
-            };
+                }}
+            }};
         </script>
     </body>
     </html>
