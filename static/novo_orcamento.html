@@ -135,9 +135,14 @@
     </div>
 
     <main class="main-content">
-        <header style="margin-bottom: 40px;">
-            <h1>Nova Proposta Comercial</h1>
-            <p style="color: var(--text-muted);">Clique nos campos ou digite para selecionar itens do catálogo.</p>
+        <header style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h1>Nova Proposta Comercial</h1>
+                <p style="color: var(--text-muted);">Clique nos campos ou digite para selecionar itens do catálogo.</p>
+            </div>
+            <button type="button" class="btn" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);" onclick="copiarLinkCadastro()">
+                <i class="fas fa-share-alt"></i> Compartilhar Link de Cadastro
+            </button>
         </header>
 
         <form id="orcamento-form">
@@ -232,6 +237,15 @@
                 toast.style.opacity = '0';
                 setTimeout(() => toast.remove(), 300);
             }, 3000);
+        }
+
+        function copiarLinkCadastro() {
+            const link = window.location.origin + '/cadastro';
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Link de cadastro copiado!', 'success');
+            }).catch(() => {
+                showToast('Erro ao copiar link', 'error');
+            });
         }
 
         async function loadConsultores() {
