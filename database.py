@@ -9,8 +9,12 @@ db_path = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
 if db_path.startswith("sqlite:///"):
     actual_path = db_path.replace("sqlite:///", "")
+    if not actual_path.startswith("/"):
+        actual_path = "./" + actual_path
     path_obj = Path(actual_path)
     path_obj.parent.mkdir(parents=True, exist_ok=True)
+    if not path_obj.exists():
+        path_obj.touch()
 
 engine = create_engine(db_path, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
