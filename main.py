@@ -880,30 +880,79 @@ def formulario_cadastro(db: Session = Depends(get_db)):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Cadastro de Cliente - {empresa_nome}</title>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <style>
+            :root {{ --primary: #3a7bd5; --secondary: #00d2ff; }}
             * {{ margin: 0; padding: 0; box-sizing: border-box; }}
-            body {{ font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }}
-            .container {{ background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; text-align: center; }}
-            .logo-area {{ margin-bottom: 20px; }}
-            h1 {{ color: #fff; font-size: 24px; margin-bottom: 10px; }}
-            p {{ color: #aaa; text-align: center; margin-bottom: 30px; font-size: 14px; }}
-            .form-group {{ margin-bottom: 20px; text-align: left; }}
-            label {{ display: block; color: #ccc; font-size: 12px; margin-bottom: 6px; font-weight: 600; }}
-            input {{ width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; outline: none; transition: border-color 0.3s; }}
-            input:focus {{ border-color: #3a7bd5; }}
-            .btn {{ width: 100%; padding: 16px; background: linear-gradient(135deg, #3a7bd5, #00d2ff); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }}
-            .btn:hover {{ transform: translateY(-2px); box-shadow: 0 5px 20px rgba(58,123,213,0.4); }}
+            body {{ font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, var(--primary), var(--secondary)); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }}
+            .container {{ background: #fff; border-radius: 20px; padding: 40px; width: 100%; max-width: 520px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }}
+            .logo-area {{ margin-bottom: 25px; text-align: center; }}
+            .logo-area img {{ height: 60px; max-width: 200px; object-fit: contain; }}
+            .logo-area h1 {{ color: var(--primary); font-size: 26px; margin-bottom: 5px; }}
+            .intro {{ text-align: center; margin-bottom: 30px; }}
+            .intro h2 {{ color: #1a1a2e; font-size: 22px; margin-bottom: 10px; }}
+            .intro p {{ color: #666; font-size: 14px; line-height: 1.6; }}
+            .intro .highlight {{ color: var(--primary); font-weight: 600; }}
+            .benefits {{ display: flex; justify-content: center; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }}
+            .benefit {{ display: flex; align-items: center; gap: 8px; color: #555; font-size: 13px; }}
+            .benefit i {{ color: var(--primary); }}
+            .form-group {{ margin-bottom: 18px; text-align: left; }}
+            label {{ display: block; color: #333; font-size: 12px; margin-bottom: 6px; font-weight: 600; }}
+            input {{ width: 100%; padding: 14px; border-radius: 10px; border: 1px solid #ddd; background: #f8f9fa; color: #333; font-size: 14px; outline: none; transition: border-color 0.3s, box-shadow 0.3s; }}
+            input:focus {{ border-color: var(--primary); box-shadow: 0 0 0 3px rgba(58,123,213,0.15); }}
+            input::placeholder {{ color: #999; }}
+            .btn {{ width: 100%; padding: 16px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; transition: transform 0.2s, box-shadow 0.2s; }}
+            .btn:hover {{ transform: translateY(-2px); box-shadow: 0 8px 25px rgba(58,123,213,0.4); }}
             .msg {{ padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; }}
-            .msg.success {{ background: rgba(16,185,129,0.2); color: #10b981; }}
-            .msg.error {{ background: rgba(239,68,68,0.2); color: #ef4444; }}
+            .msg.success {{ background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.3); }}
+            .msg.error {{ background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }}
             .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }}
-            @media (max-width: 500px) {{ .grid {{ grid-template-columns: 1fr; }} }}
+            @media (max-width: 500px) {{ .grid {{ grid-template-columns: 1fr; }} .container {{ padding: 25px; }} .benefits {{ flex-direction: column; align-items: center; }} }}
         </style>
     </head>
     <body>
         <div class="container">
             <div class="logo-area">{logo_html}</div>
-            <p>Preencha seus dados para continuar</p>
+            <div class="intro">
+                <h2><i class="fas fa-file-invoice-dollar" style="color: var(--primary);"></i> Solicite seu Orçamento</h2>
+                <p>Preencha seus dados abaixo para que possamos entender sua necessidade e elaborar um <span class="highlight">orçamento personalizado e profissional</span> para você.</p>
+            </div>
+            <div class="benefits">
+                <div class="benefit"><i class="fas fa-check-circle"></i> Resposta rápida</div>
+                <div class="benefit"><i class="fas fa-check-circle"></i> Orçamento detalhado</div>
+                <div class="benefit"><i class="fas fa-check-circle"></i> Sem compromisso</div>
+            </div>
+            <div id="msg"></div>
+            <form id="form">
+                <div class="form-group">
+                    <label>Nome / Razão Social *</label>
+                    <input type="text" id="nome" required placeholder="Seu nome completo ou nome da empresa">
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>CPF ou CNPJ</label>
+                        <input type="text" id="cnpj_cpf" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="email" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" id="endereco" placeholder="Rua, número, bairro">
+                </div>
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" id="cidade" placeholder="Cidade - UF">
+                </div>
+                <button type="submit" class="btn"><i class="fas fa-paper-plane"></i> Solicitar Orçamento</button>
+            </form>
+        </div>
             <div id="msg"></div>
             <form id="form">
                 <div class="form-group">
