@@ -6,34 +6,31 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from base import Base
 
-db_url = os.environ.get("DATABASE_URL")
-
-if not db_url:
-    db_url = "sqlite:///./orcamentos.db"
+db_url = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
 print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
-if "postgresql" in db_url.lower() or db_url.startswith("postgres"):
-    print("[DB] Using PostgreSQL (Supabase)", file=sys.stderr)
-    engine = create_engine(
-        db_url,
-        pool_pre_ping=True,
-        pool_size=1,
-        max_overflow=0
-    )
-elif db_url.startswith("sqlite"):
-    print("[DB] Using SQLite", file=sys.stderr)
-    actual_path = db_url.replace("sqlite:///", "")
+if db_url.startswith("sqlite:///"):
+    actual_path = db_path = db_url.replace("sqlite:///", "")
     if not actual_path.startswith("/"):
-        actual_path = "./" + actual_path
+        if os.path.exists("/data") and os.access("/data", os.W_OK):
+            actual_path = "/data/" + os.path.basename(actual_path)
+            print("[DB] Using /data volume", file=sys.stderr)
+        else:
+            actual_path = os.path.join(os.getcwd(), actual_path)
+            print("[DB] Using local path", file=sys.stderr)
     path_obj = Path(actual_path).resolve()
     path_obj.parent.mkdir(parents=True, exist_ok=True)
     if not path_obj.exists():
         path_obj.touch()
+        print("[DB] Created new database file", file=sys.stderr)
+    else:
+        print(f"[DB] Database exists, size: {path_obj.stat().st_size} bytes", file=sys.stderr)
     db_url = f"sqlite:///{path_obj}"
+    print(f"[DB] Final path: {path_obj}", file=sys.stderr)
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
 else:
-    print(f"[DB] Unknown type, using SQLite", file=sys.stderr)
+    print(f"[DB] Unknown database type", file=sys.stderr)
     engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
 elif db_url.startswith("sqlite"):
     print("[DB] Using SQLite", file=sys.stderr)
