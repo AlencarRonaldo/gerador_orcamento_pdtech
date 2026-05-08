@@ -855,6 +855,119 @@ def baixar_pdf(id: int, db: Session = Depends(get_db)):
     )
 
 
+# ── Rotas Públicas (Cadastro de Cliente) ───────────────────────────────────
+
+@app.get("/cadastro")
+def formulario_cadastro():
+    from fastapi.responses import HTMLResponse
+    html = """
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cadastro de Cliente</title>
+        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+        <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+            .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; }
+            h1 { color: #fff; font-size: 24px; margin-bottom: 10px; text-align: center; }
+            p { color: #aaa; text-align: center; margin-bottom: 30px; font-size: 14px; }
+            .form-group { margin-bottom: 20px; }
+            label { display: block; color: #ccc; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
+            input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; outline: none; transition: border-color 0.3s; }
+            input:focus { border-color: #3a7bd5; }
+            .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #3a7bd5, #00d2ff); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+            .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(58,123,213,0.4); }
+            .msg { padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; }
+            .msg.success { background: rgba(16,185,129,0.2); color: #10b981; }
+            .msg.error { background: rgba(239,68,68,0.2); color: #ef4444; }
+            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+            @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>📋 Cadastro de Cliente</h1>
+            <p>Preencha seus dados para continuar</p>
+            <div id="msg"></div>
+            <form id="form">
+                <div class="form-group">
+                    <label>Nome / Razão Social *</label>
+                    <input type="text" id="nome" required placeholder="Seu nome ou empresa">
+                </div>
+                <div class="grid">
+                    <div class="form-group">
+                        <label>CPF ou CNPJ</label>
+                        <input type="text" id="cnpj_cpf" placeholder="000.000.000-00 ou 00.000.000/0001-00">
+                    </div>
+                    <div class="form-group">
+                        <label>Telefone</label>
+                        <input type="tel" id="telefone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>E-mail</label>
+                    <input type="email" id="email" placeholder="seu@email.com">
+                </div>
+                <div class="form-group">
+                    <label>Endereço</label>
+                    <input type="text" id="endereco" placeholder="Rua, número, bairro, cidade">
+                </div>
+                <div class="form-group">
+                    <label>Cidade</label>
+                    <input type="text" id="cidade" placeholder="Cidade - UF">
+                </div>
+                <button type="submit" class="btn">Cadastrar</button>
+            </form>
+        </div>
+        <script>
+            document.getElementById('form').onsubmit = async (e) => {
+                e.preventDefault();
+                const data = {
+                    nome: document.getElementById('nome').value,
+                    cnpj_cpf: document.getElementById('cnpj_cpf').value,
+                    telefone: document.getElementById('telefone').value,
+                    email: document.getElementById('email').value,
+                    endereco: document.getElementById('endereco').value,
+                    cidade: document.getElementById('cidade').value,
+                };
+                const res = await fetch('/api/cadastro/cliente', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                const msg = document.getElementById('msg');
+                if (res.ok) {
+                    msg.innerHTML = '<div class="msg success">✓ Cadastro realizado com sucesso!</div>';
+                    document.getElementById('form').reset();
+                } else {
+                    msg.innerHTML = '<div class="msg error">' + (result.detail || 'Erro ao cadastrar') + '</div>';
+                }
+            };
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(html)
+
+
+@app.post("/api/cadastro/cliente")
+def criar_cliente_cadastro(data: ClienteInput, db: Session = Depends(get_db)):
+    # Verificar se já existe
+    existente = db.query(Cliente).filter(Cliente.cnpj_cpf == data.cnpj_cpf).first() if data.cnpj_cpf else None
+    if existente:
+        return {"ok": True, "message": "Cliente já cadastrado", "cliente_id": existente.id}
+    
+    cliente = Cliente(**data.model_dump())
+    db.add(cliente)
+    db.commit()
+    db.refresh(cliente)
+    return {"ok": True, "cliente_id": cliente.id}
+
+
 # ── Rotas Públicas (Aceite Digital) ─────────────────────────────────────────
 
 @app.get("/p/{uuid}")
