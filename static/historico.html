@@ -73,9 +73,14 @@
     </div>
 
     <main class="main-content">
-        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+        <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 12px;">
             <h1>Histórico de Orçamentos</h1>
-            <a href="/novo_orcamento.html" class="btn btn-primary">+ Novo</a>
+            <div style="display: flex; gap: 10px;">
+                <button class="btn" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);" onclick="copiarLinkCadastro()">
+                    <i class="fas fa-share-alt"></i> Compartilhar Link de Cadastro
+                </button>
+                <a href="/novo_orcamento.html" class="btn btn-primary">+ Novo</a>
+            </div>
         </header>
 
         <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">
@@ -225,6 +230,15 @@
             } else {
                 showToast('Erro ao duplicar', 'error');
             }
+        }
+        
+        function copiarLinkCadastro() {
+            const link = window.location.origin + '/cadastro';
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Link de cadastro copiado!', 'success');
+            }).catch(() => {
+                showToast('Erro ao copiar link', 'error');
+            });
         }
 
         function getStatusBadge(status) {
