@@ -858,38 +858,51 @@ def baixar_pdf(id: int, db: Session = Depends(get_db)):
 # ── Rotas Públicas (Cadastro de Cliente) ───────────────────────────────────
 
 @app.get("/cadastro")
-def formulario_cadastro():
+def formulario_cadastro(db: Session = Depends(get_db)):
     from fastapi.responses import HTMLResponse
-    html = """
+    cfg = db.query(ConfigEmpresa).first()
+    logo_b64 = cfg.empresa_logo_b64 if cfg and cfg.empresa_logo_b64 else ""
+    empresa_nome = cfg.empresa_nome if cfg and cfg.empresa_nome else "Empresa"
+    
+    if logo_b64:
+        if logo_b64.startswith("data:"):
+            logo_html = f'<img src="{logo_b64}" style="height:60px;max-width:200px;object-fit:contain;margin-bottom:20px;">'
+        else:
+            logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:60px;max-width:200px;object-fit:contain;margin-bottom:20px;">'
+    else:
+        logo_html = f'<h1 style="color:#fff;font-size:28px;margin-bottom:5px;">{empresa_nome}</h1>'
+    
+    html = f"""
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Cadastro de Cliente</title>
+        <title>Cadastro de Cliente - {empresa_nome}</title>
         <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
         <style>
-            * { margin: 0; padding: 0; box-sizing: border-box; }
-            body { font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-            .container { background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; }
-            h1 { color: #fff; font-size: 24px; margin-bottom: 10px; text-align: center; }
-            p { color: #aaa; text-align: center; margin-bottom: 30px; font-size: 14px; }
-            .form-group { margin-bottom: 20px; }
-            label { display: block; color: #ccc; font-size: 12px; margin-bottom: 6px; font-weight: 600; }
-            input { width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; outline: none; transition: border-color 0.3s; }
-            input:focus { border-color: #3a7bd5; }
-            .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #3a7bd5, #00d2ff); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-            .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(58,123,213,0.4); }
-            .msg { padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; }
-            .msg.success { background: rgba(16,185,129,0.2); color: #10b981; }
-            .msg.error { background: rgba(239,68,68,0.2); color: #ef4444; }
-            .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-            @media (max-width: 500px) { .grid { grid-template-columns: 1fr; } }
+            * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+            body {{ font-family: 'Outfit', sans-serif; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }}
+            .container {{ background: rgba(255,255,255,0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 40px; width: 100%; max-width: 500px; text-align: center; }}
+            .logo-area {{ margin-bottom: 20px; }}
+            h1 {{ color: #fff; font-size: 24px; margin-bottom: 10px; }}
+            p {{ color: #aaa; text-align: center; margin-bottom: 30px; font-size: 14px; }}
+            .form-group {{ margin-bottom: 20px; text-align: left; }}
+            label {{ display: block; color: #ccc; font-size: 12px; margin-bottom: 6px; font-weight: 600; }}
+            input {{ width: 100%; padding: 14px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 14px; outline: none; transition: border-color 0.3s; }}
+            input:focus {{ border-color: #3a7bd5; }}
+            .btn {{ width: 100%; padding: 16px; background: linear-gradient(135deg, #3a7bd5, #00d2ff); border: none; border-radius: 10px; color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 10px; }}
+            .btn:hover {{ transform: translateY(-2px); box-shadow: 0 5px 20px rgba(58,123,213,0.4); }}
+            .msg {{ padding: 12px; border-radius: 8px; margin-bottom: 20px; text-align: center; font-size: 14px; }}
+            .msg.success {{ background: rgba(16,185,129,0.2); color: #10b981; }}
+            .msg.error {{ background: rgba(239,68,68,0.2); color: #ef4444; }}
+            .grid {{ display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }}
+            @media (max-width: 500px) {{ .grid {{ grid-template-columns: 1fr; }} }}
         </style>
     </head>
     <body>
         <div class="container">
-            <h1>📋 Cadastro de Cliente</h1>
+            <div class="logo-area">{logo_html}</div>
             <p>Preencha seus dados para continuar</p>
             <div id="msg"></div>
             <form id="form">
