@@ -12,6 +12,7 @@ from contextlib import asynccontextmanager
 from datetime import datetime, timezone, timedelta, date as date_type, timedelta as td
 from pathlib import Path
 from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, Request, UploadFile, File
@@ -66,6 +67,13 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Gerador de Orçamentos", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 templates = Jinja2Templates(directory="templates")
 
 def _formatar_moeda(valor):

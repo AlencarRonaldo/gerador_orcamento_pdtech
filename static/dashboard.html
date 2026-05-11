@@ -277,7 +277,8 @@
                     `;
                 }
             } catch (e) {
-                console.error(e);
+                console.error('Erro dashboard:', e);
+                document.getElementById('total-orcamentos').textContent = 'Erro';
             }
         }
         
