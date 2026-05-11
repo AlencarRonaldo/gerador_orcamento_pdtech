@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from base import Base
 
-db_url = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
+db_url = os.environ.get("DATABASE_URL", "sqlite:////data/orcamentos.db")
 
 print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
