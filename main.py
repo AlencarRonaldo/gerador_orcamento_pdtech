@@ -882,10 +882,12 @@ def baixar_pdf(id: int, db: Session = Depends(get_db)):
         error_msg = result.stderr.decode("latin-1", errors="replace")
         raise HTTPException(status_code=500, detail=error_msg)
 
+    empresa_nome_safe = (cfg.empresa_nome or "Empresa").replace(" ", "_").replace("/", "-").replace("\\", "-")
+    filename = f"{empresa_nome_safe}_{orc.numero}.pdf"
     return Response(
         content=result.stdout,
         media_type="application/pdf",
-        headers={"Content-Disposition": f'attachment; filename="{orc.numero}.pdf"'},
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
 
 
