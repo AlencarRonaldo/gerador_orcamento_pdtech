@@ -836,6 +836,131 @@ def duplicar_orcamento(id: int, db: Session = Depends(get_db)):
     return {"id": novo.id}
 
 
+# ── Versões do Orçamento ───────────────────────────────────────────────────────
+
+@app.post("/orcamentos/{id}/criar-versao")
+def criar_nova_versao(id: int, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.id == id).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+    
+    nova_versao = Orcamento(
+        numero=orc.numero + f"-v{orc.versao + 1}",
+        uuid_publico=secrets.token_urlsafe(16),
+        cliente_nome=orc.cliente_nome,
+        cliente_contato=orc.cliente_contato,
+        cliente_endereco=orc.cliente_endereco,
+        cliente_cnpj=orc.cliente_cnpj,
+        cliente_email=orc.cliente_email,
+        cliente_telefone=orc.cliente_telefone,
+        condicao_pagto=orc.condicao_pagto,
+        descricao_intro=orc.descricao_intro,
+        validade_dias=orc.validade_dias,
+        desconto_percent=orc.desconto_percent,
+        observacoes_json=orc.observacoes_json,
+        versao=orc.versao + 1,
+        versao_original_id=orc.versao_original_id or orc.id,
+        consultor_nome=orc.consultor_nome,
+        prazo_equipamentos=orc.prazo_equipamentos,
+        prazo_instalacao=orc.prazo_instalacao,
+    )
+    db.add(nova_versao)
+    db.flush()
+
+    for cat in orc.categorias:
+        nova_cat = Categoria(orcamento_id=nova_versao.id, titulo=cat.titulo, ordem=cat.ordem)
+        db.add(nova_cat)
+        db.flush()
+        for item in cat.itens:
+            novo_item = Item(
+                categoria_id=nova_cat.id,
+                descricao=item.descricao,
+                quantidade=item.quantidade,
+                valor_unitario=item.valor_unitario,
+                valor_total=item.valor_total,
+                tipo=item.tipo,
+                metragem=item.metragem,
+                largura=item.largura,
+                altura=item.altura,
+            )
+            db.add(novo_item)
+
+    db.commit()
+    db.refresh(nova_versao)
+    return {"id": nova_versao.id, "numero": nova_versao.numero, "versao": nova_versao.versao}
+
+
+@app.get("/orcamentos/{id}/versoes")
+def listar_versoes(id: int, db: Session = Depends(get_db)):
+    orc = db.query(Orcamento).filter(Orcamento.id == id).first()
+    if not orc:
+        raise HTTPException(status_code=404, detail="Orçamento não encontrado")
+    
+    original_id = orc.versao_original_id or orc.id
+    versoes = db.query(Orcamento).filter(
+        Orcamento.versao_original_id == original_id
+    ).order_by(Orcamento.versao.desc()).all()
+    
+    return [{
+        "id": v.id,
+        "numero": v.numero,
+        "versao": v.versao,
+        "status": v.status,
+        "criado_em": v.criado_em.isoformat() if v.criado_em else None,
+        "valor_total": _valor(v),
+    } for v in versoes]
+
+
+@app.get("/orcamentos/{id}/visualizacoes")
+def listar_visualizacoes(id: int, db: Session = Depends(get_db)):
+    from models import VisualizacaoOrcamento
+    viz = db.query(VisualizacaoOrcamento).filter(
+        VisualizacaoOrcamento.orcamento_id == id
+    ).order_by(VisualizacaoOrcamento.aberta_em.desc()).all()
+    
+    return [{
+        "id": v.id,
+        "aberta_em": v.aberta_em.isoformat() if v.aberta_em else None,
+        "ip_address": v.ip_address or "",
+        "dispositivo": v.dispositivo or "",
+        "tempo_segundos": v.tempo_segundos or 0,
+    } for v in viz]
+
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+
+@app.get("/api/dashboard/orcamentos")
+def dashboard_orcamentos(db: Session = Depends(get_db)):
+    total = db.query(Orcamento).count()
+    
+    por_status = db.query(
+        Orcamento.status,
+        func.count(Orcamento.id)
+    ).group_by(Orcamento.status).all()
+    
+    ultimos_30_dias = datetime.now(timezone.utc) - timedelta(days=30)
+    criados_30_dias = db.query(Orcamento).filter(
+        Orcamento.criado_em >= ultimos_30_dias
+    ).count()
+    
+    aprovado_30_dias = db.query(Orcamento).filter(
+        Orcamento.status == "Aprovado",
+        Orcamento.aceito_em >= ultimos_30_dias
+    ).count()
+    
+    orcs = db.query(Orcamento).all()
+    valor_total = sum(_valor(o) for o in orcs)
+    
+    return {
+        "total_orcamentos": total,
+        "criados_30_dias": criados_30_dias,
+        "aprovados_30_dias": aprovado_30_dias,
+        "taxa_conversao": round((aprovado_30_dias / criados_30_dias * 100) if criados_30_dias > 0 else 0, 1),
+        "valor_total": valor_total,
+        "por_status": {s or "Sem status": q for s, q in por_status},
+    }
+
+
 # ── Listar clientes únicos ───────────────────────────────────────────────────
 
 @app.get("/clientes")
@@ -1051,6 +1176,18 @@ def ver_proposta_publica(request: Request, uuid: str, db: Session = Depends(get_
     # Atualiza status para 'Visualizado' apenas se ainda Aguardando
     if orc.status == "Aguardando":
         orc.status = "Visualizado"
+    
+    # Registra visualização no histórico
+    from models import VisualizacaoOrcamento
+    ip_addr = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent", "")
+    dispositivo = "Mobile" if "mobile" in user_agent.lower() else "Desktop"
+    viz = VisualizacaoOrcamento(
+        orcamento_id=orc.id,
+        ip_address=ip_addr,
+        dispositivo=dispositivo,
+    )
+    db.add(viz)
     db.commit()
     db.refresh(orc)
 

@@ -51,6 +51,17 @@ class ConfigEmpresa(Base):
     consultores_json = Column(Text, nullable=True)
 
 
+class VisualizacaoOrcamento(Base):
+    __tablename__ = "visualizacoes_orcamentos"
+
+    id = Column(Integer, primary_key=True, index=True)
+    orcamento_id = Column(Integer, ForeignKey("orcamentos.id"), nullable=False)
+    aberta_em = Column(DateTime, default=_utc_now)
+    ip_address = Column(String, nullable=True)
+    dispositivo = Column(String, nullable=True)
+    tempo_segundos = Column(Integer, nullable=True)
+
+
 class Cliente(Base):
     __tablename__ = "clientes"
 
@@ -119,6 +130,8 @@ class Orcamento(Base):
     consultor_nome = Column(String, nullable=True)
     prazo_equipamentos = Column(String, nullable=True)
     prazo_instalacao = Column(String, nullable=True)
+    versao = Column(Integer, default=1, nullable=True)
+    versao_original_id = Column(Integer, ForeignKey("orcamentos.id"), nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"

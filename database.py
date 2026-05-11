@@ -108,6 +108,9 @@ def create_tables():
         "ALTER TABLE config_empresa ADD COLUMN cond_pagto_opcao3 TEXT",
         "ALTER TABLE catalogo_itens ADD COLUMN tipo_produto TEXT DEFAULT 'produto_simples'",
         "ALTER TABLE catalogo_itens ADD COLUMN variantes_json TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN versao INTEGER DEFAULT 1",
+        "ALTER TABLE orcamentos ADD COLUMN versao_original_id INTEGER",
+        "CREATE TABLE IF NOT EXISTS visualizacoes_orcamentos (id INTEGER PRIMARY KEY, orcamento_id INTEGER, aberta_em DATETIME, ip_address TEXT, dispositivo TEXT, tempo_segundos INTEGER)",
     ]
     with engine.connect() as conn:
         for sql in migrations:
