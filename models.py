@@ -138,9 +138,13 @@ class Item(Base):
     categoria_id = Column(Integer, ForeignKey("categorias.id"), nullable=False)
     garantia = Column(String, nullable=False)
     descricao = Column(String, nullable=False)
-    quantidade = Column(Integer, nullable=False)
+    quantidade = Column(Float, nullable=False)
     valor_unitario = Column(Float, nullable=False)
     valor_total = Column(Float, nullable=False)
+    tipo = Column(String, default="unidade", nullable=True)
+    metragem = Column(Float, nullable=True)
+    largura = Column(Float, nullable=True)
+    altura = Column(Float, nullable=True)
 
     categoria = relationship("Categoria", back_populates="itens")
 
@@ -148,8 +152,12 @@ class Item(Base):
 class ItemInput(BaseModel):
     garantia: str
     descricao: str
-    quantidade: int
+    quantidade: float = 1.0
     valor_unitario: float
+    tipo: str = "unidade"
+    metragem: float = 0.0
+    largura: float = 0.0
+    altura: float = 0.0
 
 
 class CategoriaInput(BaseModel):
@@ -195,9 +203,13 @@ class ItemOutput(BaseModel):
     id: int
     garantia: str
     descricao: str
-    quantidade: int
+    quantidade: float
     valor_unitario: float
     valor_total: float
+    tipo: str = "unidade"
+    metragem: float = 0.0
+    largura: float = 0.0
+    altura: float = 0.0
 
     model_config = {"from_attributes": True}
 

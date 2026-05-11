@@ -569,6 +569,10 @@ def _orc_to_dict(orc: Orcamento, db: Session = None) -> dict:
                         "quantidade": item.quantidade,
                         "valor_unitario": item.valor_unitario,
                         "valor_total": item.valor_total,
+                        "tipo": item.tipo or "unidade",
+                        "metragem": item.metragem or 0.0,
+                        "largura": item.largura or 0.0,
+                        "altura": item.altura or 0.0,
                     }
                     for item in cat.itens
                 ],
@@ -588,13 +592,31 @@ def _criar_categorias(db: Session, orcamento_id: int, categorias_data):
         db.add(categoria)
         db.flush()
         for item_data in cat_data.itens:
+            tipo = item_data.tipo or "unidade"
+            if tipo == "metro_linear":
+                metros = item_data.metragem or item_data.quantidade or 1
+                valor_total = metros * item_data.valor_unitario
+                quantidade = metros
+            elif tipo == "metro_quadrado":
+                larg = item_data.largura or 1
+                alt = item_data.altura or 1
+                m2 = larg * alt
+                valor_total = m2 * item_data.valor_unitario
+                quantidade = m2
+            else:
+                quantidade = item_data.quantidade or 1
+                valor_total = quantidade * item_data.valor_unitario
             db.add(Item(
                 categoria_id=categoria.id,
                 garantia=item_data.garantia,
                 descricao=item_data.descricao,
-                quantidade=item_data.quantidade,
+                quantidade=quantidade,
                 valor_unitario=item_data.valor_unitario,
-                valor_total=item_data.quantidade * item_data.valor_unitario,
+                valor_total=valor_total,
+                tipo=tipo,
+                metragem=item_data.metragem,
+                largura=item_data.largura,
+                altura=item_data.altura,
             ))
 
 

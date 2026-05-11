@@ -10,8 +10,24 @@ db_url = os.environ.get("DATABASE_URL", "sqlite:///./orcamentos.db")
 
 print(f"[DB] DATABASE_URL: {db_url[:50]}...", file=sys.stderr)
 
-if db_url.startswith("sqlite:///"):
-    actual_path = db_path = db_url.replace("sqlite:///", "")
+if db_url.startswith("postgres"):
+    # Supabase / Railway PostgreSQL — força sslmode=require
+    print("[DB] Using PostgreSQL", file=sys.stderr)
+    if "sslmode" not in db_url:
+        sep = "&" if "?" in db_url else "?"
+        db_url = db_url + sep + "sslmode=require"
+    # SQLAlchemy 2.x exige postgresql+psycopg2://
+    if db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+    engine = create_engine(
+        db_url,
+        pool_pre_ping=True,
+        pool_size=2,
+        max_overflow=0,
+        connect_args={"connect_timeout": 15, "sslmode": "require"},
+    )
+elif db_url.startswith("sqlite:///"):
+    actual_path = db_url.replace("sqlite:///", "")
     if not actual_path.startswith("/"):
         if os.path.exists("/data") and os.access("/data", os.W_OK):
             actual_path = "/data/" + os.path.basename(actual_path)
@@ -30,7 +46,7 @@ if db_url.startswith("sqlite:///"):
     print(f"[DB] Final path: {path_obj}", file=sys.stderr)
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
 else:
-    print(f"[DB] Unknown database type", file=sys.stderr)
+    print("[DB] Fallback to local SQLite", file=sys.stderr)
     engine = create_engine("sqlite:///./orcamentos.db", connect_args={"check_same_thread": False})
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
@@ -81,6 +97,10 @@ def create_tables():
         "ALTER TABLE catalogo_itens ADD COLUMN tipo TEXT DEFAULT 'unidade'",
         "ALTER TABLE catalogo_itens ADD COLUMN largura REAL",
         "ALTER TABLE catalogo_itens ADD COLUMN altura REAL",
+        "ALTER TABLE itens ADD COLUMN tipo TEXT DEFAULT 'unidade'",
+        "ALTER TABLE itens ADD COLUMN metragem REAL",
+        "ALTER TABLE itens ADD COLUMN largura REAL",
+        "ALTER TABLE itens ADD COLUMN altura REAL",
     ]
     with engine.connect() as conn:
         for sql in migrations:
