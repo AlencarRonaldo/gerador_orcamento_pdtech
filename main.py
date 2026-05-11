@@ -139,6 +139,7 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "obs_padrao": obs,
         "prazo_equipamentos": cfg.prazo_equipamentos or "",
         "prazo_instalacao": cfg.prazo_instalacao or "",
+        "habilitar_instalacao": cfg.habilitar_instalacao or False,
         "pagto_info": cfg.pagto_info or "",
         "cond_pagto_opcao1": cfg.cond_pagto_opcao1 or "50% de entrada + 50% em 3x sem juros",
         "cond_pagto_opcao2": cfg.cond_pagto_opcao2 or "100% via faturamento (entrada + saldo em 30 dias)",

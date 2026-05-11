@@ -156,9 +156,13 @@
                 <input type="text" id="prazo_equipamentos" placeholder="Ex: 5 a 10 dias úteis após confirmação do pedido">
             </div>
             <div class="form-group">
-                <label>Prazo — Instalação</label>
-                <input type="text" id="prazo_instalacao" placeholder="Ex: Mediante agendamento após entrega dos equipamentos">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">
+                    <input type="checkbox" id="habilitar_instalacao" style="width:18px;height:18px;cursor:pointer;" onchange="toggleInstalacao()">
+                    <label for="habilitar_instalacao" style="cursor:pointer;font-weight:600;">Habilitar seção de Instalação no PDF</label>
+                </div>
+                <input type="text" id="prazo_instalacao" placeholder="Ex: Mediante agendamento após entrega dos equipamentos" style="opacity:0.5;">
             </div>
+            <script>function toggleInstalacao(){const inp=document.getElementById('prazo_instalacao');inp.style.opacity=document.getElementById('habilitar_instalacao').checked?'1':'0.5';inp.disabled=!document.getElementById('habilitar_instalacao').checked;}</script>
         </div>
 
         <div class="glass-panel">
@@ -227,6 +231,8 @@
             document.getElementById('obs_padrao').value = (data.obs_padrao || []).join('\n');
             document.getElementById('prazo_equipamentos').value = data.prazo_equipamentos || '';
             document.getElementById('prazo_instalacao').value = data.prazo_instalacao || '';
+            document.getElementById('habilitar_instalacao').checked = data.habilitar_instalacao || false;
+            toggleInstalacao();
             document.getElementById('consultor_nome').value = data.consultor_nome || '';
             document.getElementById('login_email').value = data.login_email || '';
             
@@ -291,6 +297,7 @@
                 obs_padrao_json: JSON.stringify(obsLista),
                 prazo_equipamentos: document.getElementById('prazo_equipamentos').value,
                 prazo_instalacao: document.getElementById('prazo_instalacao').value,
+                habilitar_instalacao: document.getElementById('habilitar_instalacao').checked,
                 consultor_nome: document.getElementById('consultor_nome').value,
                 login_email: document.getElementById('login_email').value,
                 login_senha: document.getElementById('login_senha').value,

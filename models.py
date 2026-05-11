@@ -29,6 +29,7 @@ class ConfigEmpresa(Base):
     obs_padrao_json = Column(Text, nullable=True)
     prazo_equipamentos = Column(String, nullable=True)
     prazo_instalacao = Column(String, nullable=True)
+    habilitar_instalacao = Column(Boolean, default=False)
     pagto_info = Column(String, nullable=True)
     cond_pagto_opcao1 = Column(String, default="50% de entrada + 50% em 30 dias")
     cond_pagto_opcao2 = Column(String, nullable=True)
@@ -285,6 +286,7 @@ class ConfigEmpresaInput(BaseModel):
     obs_padrao_json: Optional[str] = None
     prazo_equipamentos: Optional[str] = None
     prazo_instalacao: Optional[str] = None
+    habilitar_instalacao: bool = False
     pagto_info: Optional[str] = None
     cond_pagto_opcao1: Optional[str] = None
     cond_pagto_opcao2: Optional[str] = None

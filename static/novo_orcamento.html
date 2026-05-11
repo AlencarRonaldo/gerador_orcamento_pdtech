@@ -437,7 +437,13 @@
                     }
                 });
                 if (cfg.prazo_equipamentos) document.getElementById('prazo_equipamentos').value = cfg.prazo_equipamentos;
-                if (cfg.prazo_instalacao) document.getElementById('prazo_instalacao').value = cfg.prazo_instalacao;
+                const instGroup = document.getElementById('prazo_instalacao').closest('.form-group');
+                if (cfg.habilitar_instalacao) {
+                    if (cfg.prazo_instalacao) document.getElementById('prazo_instalacao').value = cfg.prazo_instalacao;
+                    instGroup.style.display = 'block';
+                } else {
+                    instGroup.style.display = 'none';
+                }
                 addCategory();
             } catch (e) { console.error(e); }
         }

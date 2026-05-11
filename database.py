@@ -82,6 +82,7 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN cliente_id INTEGER",
         "ALTER TABLE config_empresa ADD COLUMN prazo_equipamentos TEXT",
         "ALTER TABLE config_empresa ADD COLUMN prazo_instalacao TEXT",
+        "ALTER TABLE config_empresa ADD COLUMN habilitar_instalacao BOOLEAN DEFAULT 0",
         "ALTER TABLE config_empresa ADD COLUMN pagto_info TEXT",
 "ALTER TABLE orcamentos ADD COLUMN qtd_visualizacoes INTEGER DEFAULT 0",
         "ALTER TABLE orcamentos ADD COLUMN primeira_abertura_em DATETIME",

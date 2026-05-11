@@ -150,10 +150,12 @@
       <div class="delivery-label">Produtos / Equipamentos</div>
       {{ prazo_equipamentos }}
     </div>
+    {% if habilitar_instalacao %}
     <div class="delivery-item">
       <div class="delivery-label">Instalação</div>
       {{ prazo_instalacao }}
     </div>
+    {% endif %}
   </div>
 </div>
 

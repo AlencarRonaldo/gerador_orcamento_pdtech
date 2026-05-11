@@ -117,6 +117,7 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
         multiplas_categorias=len(categorias_processadas) > 1,
         prazo_equipamentos=prazo_equipamentos,
         prazo_instalacao=prazo_instalacao,
+        habilitar_instalacao=config.get("habilitar_instalacao", False),
         pagto_info=pagto_info,
     )
 
