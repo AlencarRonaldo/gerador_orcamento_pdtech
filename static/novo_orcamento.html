@@ -103,8 +103,46 @@
                 padding-left: 10px;
                 margin-bottom: 25px;
             }
-            .grid-3 { gap: 12px; }
-            .table-container { margin: 0 -15px; padding: 0 15px; overflow-x: auto; }
+.grid-3 { gap: 12px; }
+        }
+        .calc-panel {
+            background: rgba(58,123,213,0.06); border: 1px solid rgba(58,123,213,0.2);
+            border-radius: 12px; padding: 14px 16px; margin-top: 4px; margin-bottom: 8px;
+        }
+        .calc-panel-title {
+            font-size: 11px; font-weight: 700; color: var(--primary);
+            text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px;
+        }
+        .calc-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+        .calc-field { display: flex; flex-direction: column; gap: 4px; min-width: 120px; }
+        .calc-field label { font-size: 11px; color: var(--text-muted); }
+        .calc-field select, .calc-field input[type="number"] {
+            padding: 7px 10px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border); border-radius: 8px;
+            color: var(--text-main); font-size: 13px; outline: none; width: 100%;
+        }
+        .calc-field select:focus, .calc-field input:focus { border-color: var(--primary); }
+        .calc-footer {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-top: 10px; flex-wrap: wrap; gap: 8px;
+        }
+        .calc-preview { font-size: 12px; color: var(--text-muted); }
+        .calc-preview strong { color: #10b981; font-size: 15px; }
+        .btn-aplicar {
+            padding: 7px 18px; border-radius: 8px; border: none; font-size: 12px;
+            font-weight: 700; cursor: pointer; transition: all 0.2s;
+            background: #10b981; color: #fff;
+        }
+        .btn-aplicar:disabled { background: rgba(255,255,255,0.1); color: var(--text-muted); cursor: not-allowed; }
+        .btn-aplicar:not(:disabled):hover { background: #059669; }
+        .acab-list { margin-top: 8px; display: flex; flex-direction: column; gap: 5px; }
+        .acab-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+        .acab-row label { flex: 1; cursor: pointer; color: var(--text-main); }
+        .acab-row input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; }
+        .acab-row input[type="number"] {
+            width: 56px; padding: 4px 6px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border); border-radius: 6px;
+            color: var(--text-main); font-size: 12px; outline: none;
         }
     </style>
 </head>
@@ -571,6 +609,199 @@
                 }
             }
             
+            calculateTotal();
+
+            // Remove any existing calc panel first
+            const oldPanel = document.getElementById('calc-' + rowId);
+            if (oldPanel) oldPanel.remove();
+
+            // Show inline calculator for special product types
+            if (item.tipo_produto && item.tipo_produto !== 'produto_simples') {
+                // Hide metro groups (calculator controls the price directly)
+                row.querySelector('.item-qtd-group').style.display = 'block';
+                row.querySelector('.item-metro-group').style.display = 'none';
+                row.querySelector('.item-m2-group').style.display = 'none';
+                row.querySelector('.item-tipo').value = 'unidade';
+                row.setAttribute('data-tipo', 'unidade');
+                buildCalcPanel(rowId, item);
+            }
+        }
+
+        function buildCalcPanel(rowId, item) {
+            const existing = document.getElementById('calc-' + rowId);
+            if (existing) existing.remove();
+
+            const tipo = item.tipo_produto;
+            if (!tipo || tipo === 'produto_simples') return;
+
+            let variantes = null;
+            try { variantes = JSON.parse(item.variantes_json || 'null'); } catch(e) {}
+
+            const row = document.getElementById(rowId);
+            let html = '';
+
+            if (tipo === 'impressao_3d') {
+                const opts = Array.isArray(variantes)
+                    ? variantes.map(v => `<option value="${v.preco_kg}">${v.nome} (R$${v.preco_kg}/kg)</option>`).join('')
+                    : '<option value="">Sem materiais cadastrados</option>';
+                html = `<div id="calc-${rowId}" class="calc-panel">
+                    <div class="calc-panel-title"><i class="fas fa-cube"></i> Calculadora — Impressao 3D</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>Material</label>
+                            <select class="cp-mat" onchange="recalcPanel('${rowId}','${tipo}')">${opts}</select></div>
+                        <div class="calc-field"><label>Peso (g)</label>
+                            <input type="number" class="cp-peso" min="1" step="1" placeholder="Ex: 150"
+                                oninput="recalcPanel('${rowId}','${tipo}')"></div>
+                    </div>
+                    <div class="calc-footer">
+                        <div class="calc-preview">Preco/peca: <strong id="cp-res-${rowId}">R$ 0,00</strong></div>
+                        <button type="button" class="btn-aplicar" id="cp-btn-${rowId}" disabled
+                            onclick="aplicarCalc('${rowId}','${tipo}')">Aplicar</button>
+                    </div>
+                </div>`;
+
+            } else if (tipo === 'laser' || tipo === 'ploter_adesivo') {
+                const label = tipo === 'laser' ? 'Material + Espessura' : 'Tipo de Vinil';
+                const icon  = tipo === 'laser' ? 'fa-fire' : 'fa-paint-roller';
+                const title = tipo === 'laser' ? 'Corte Laser' : 'Ploter / Adesivo';
+                const opts = Array.isArray(variantes)
+                    ? variantes.map(v => `<option value="${v.preco_m2}">${v.nome} (R$${v.preco_m2}/m2)</option>`).join('')
+                    : '<option value="">Sem materiais cadastrados</option>';
+                html = `<div id="calc-${rowId}" class="calc-panel">
+                    <div class="calc-panel-title"><i class="fas ${icon}"></i> Calculadora — ${title}</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>${label}</label>
+                            <select class="cp-mat" onchange="recalcPanel('${rowId}','${tipo}')">${opts}</select></div>
+                        <div class="calc-field"><label>Largura (cm)</label>
+                            <input type="number" class="cp-larg" min="1" step="0.1" placeholder="Ex: 60"
+                                oninput="recalcPanel('${rowId}','${tipo}')"></div>
+                        <div class="calc-field"><label>Altura (cm)</label>
+                            <input type="number" class="cp-alt" min="1" step="0.1" placeholder="Ex: 90"
+                                oninput="recalcPanel('${rowId}','${tipo}')"></div>
+                    </div>
+                    <div class="calc-footer">
+                        <div class="calc-preview">Preco/un: <strong id="cp-res-${rowId}">R$ 0,00</strong></div>
+                        <button type="button" class="btn-aplicar" id="cp-btn-${rowId}" disabled
+                            onclick="aplicarCalc('${rowId}','${tipo}')">Aplicar</button>
+                    </div>
+                </div>`;
+
+            } else if (tipo === 'banner') {
+                const mats  = (variantes && variantes.materiais)   ? variantes.materiais   : [];
+                const acabs = (variantes && variantes.acabamentos) ? variantes.acabamentos : [];
+                const matOpts = mats.map(v => `<option value="${v.preco_m2}">${v.nome} (R$${v.preco_m2}/m2)</option>`).join('')
+                    || '<option value="">Sem materiais cadastrados</option>';
+                const acabRows = acabs.map((v, i) => `
+                    <div class="acab-row">
+                        <input type="checkbox" id="acb-${rowId}-${i}" class="cp-acab-chk"
+                            data-preco="${v.preco_un}" onchange="recalcPanel('${rowId}','banner')">
+                        <label for="acb-${rowId}-${i}">${v.nome} (R$${v.preco_un}/un)</label>
+                        <input type="number" class="cp-acab-qtd" value="1" min="1" step="1"
+                            oninput="recalcPanel('${rowId}','banner')">
+                    </div>`).join('');
+                html = `<div id="calc-${rowId}" class="calc-panel">
+                    <div class="calc-panel-title"><i class="fas fa-flag"></i> Calculadora — Banner / Lona</div>
+                    <div class="calc-grid">
+                        <div class="calc-field"><label>Material</label>
+                            <select class="cp-mat" onchange="recalcPanel('${rowId}','banner')">${matOpts}</select></div>
+                        <div class="calc-field"><label>Largura (cm)</label>
+                            <input type="number" class="cp-larg" min="1" step="0.1" placeholder="Ex: 100"
+                                oninput="recalcPanel('${rowId}','banner')"></div>
+                        <div class="calc-field"><label>Altura (cm)</label>
+                            <input type="number" class="cp-alt" min="1" step="0.1" placeholder="Ex: 200"
+                                oninput="recalcPanel('${rowId}','banner')"></div>
+                    </div>
+                    ${acabRows ? `<div class="acab-list">${acabRows}</div>` : ''}
+                    <div class="calc-footer">
+                        <div class="calc-preview">Total do item: <strong id="cp-res-${rowId}">R$ 0,00</strong></div>
+                        <button type="button" class="btn-aplicar" id="cp-btn-${rowId}" disabled
+                            onclick="aplicarCalc('${rowId}','banner')">Aplicar</button>
+                    </div>
+                </div>`;
+            }
+
+            if (html) row.insertAdjacentHTML('afterend', html);
+        }
+
+        function recalcPanel(rowId, tipo) {
+            const panel = document.getElementById('calc-' + rowId);
+            if (!panel) return;
+
+            let valor = 0;
+            let isValid = false;
+            let descGerada = null;
+
+            if (tipo === 'impressao_3d') {
+                const precoKg = parseFloat(panel.querySelector('.cp-mat').value) || 0;
+                const pesoG   = parseFloat(panel.querySelector('.cp-peso').value) || 0;
+                isValid = precoKg > 0 && pesoG > 0;
+                if (isValid) {
+                    valor = Math.round((pesoG / 1000) * precoKg * 100) / 100;
+                    const matNome = panel.querySelector('.cp-mat').selectedOptions[0]?.text.split(' (')[0] || '';
+                    descGerada = `Impressao 3D - ${matNome} - ${pesoG}g`;
+                }
+
+            } else if (tipo === 'laser' || tipo === 'ploter_adesivo') {
+                const precoM2 = parseFloat(panel.querySelector('.cp-mat').value) || 0;
+                const larg    = parseFloat(panel.querySelector('.cp-larg').value) || 0;
+                const alt     = parseFloat(panel.querySelector('.cp-alt').value) || 0;
+                const area    = (larg / 100) * (alt / 100);
+                isValid = precoM2 > 0 && area > 0;
+                if (isValid) {
+                    valor = Math.round(area * precoM2 * 100) / 100;
+                    const matNome  = panel.querySelector('.cp-mat').selectedOptions[0]?.text.split(' (')[0] || '';
+                    const tipoLabel = tipo === 'laser' ? 'Corte Laser' : 'Adesivo';
+                    descGerada = `${tipoLabel} - ${matNome} - ${larg}x${alt}cm (${area.toFixed(2)}m2)`;
+                }
+
+            } else if (tipo === 'banner') {
+                const precoM2 = parseFloat(panel.querySelector('.cp-mat').value) || 0;
+                const larg    = parseFloat(panel.querySelector('.cp-larg').value) || 0;
+                const alt     = parseFloat(panel.querySelector('.cp-alt').value) || 0;
+                const area    = (larg / 100) * (alt / 100);
+                let acabTotal = 0;
+                const acabDesc = [];
+                panel.querySelectorAll('.acab-row').forEach(ar => {
+                    const chk = ar.querySelector('.cp-acab-chk');
+                    if (chk && chk.checked) {
+                        const preco = parseFloat(chk.dataset.preco) || 0;
+                        const qtd   = parseInt(ar.querySelector('.cp-acab-qtd').value) || 1;
+                        acabTotal += preco * qtd;
+                        acabDesc.push(`${qtd}x ${ar.querySelector('label')?.textContent.split(' (')[0] || ''}`);
+                    }
+                });
+                isValid = precoM2 > 0 && area > 0;
+                if (isValid) {
+                    valor = Math.round((area * precoM2 + acabTotal) * 100) / 100;
+                    const matNome = panel.querySelector('.cp-mat').selectedOptions[0]?.text.split(' (')[0] || '';
+                    const acabStr = acabDesc.length ? ' + ' + acabDesc.join(' + ') : '';
+                    descGerada = `Banner ${matNome} - ${larg}x${alt}cm${acabStr}`;
+                }
+            }
+
+            const resEl = document.getElementById('cp-res-' + rowId);
+            if (resEl) resEl.textContent = valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+            const btn = document.getElementById('cp-btn-' + rowId);
+            if (btn) btn.disabled = !isValid;
+
+            panel.dataset.valor = valor;
+            panel.dataset.desc  = descGerada || '';
+        }
+
+        function aplicarCalc(rowId, tipo) {
+            const panel = document.getElementById('calc-' + rowId);
+            const row   = document.getElementById(rowId);
+            if (!panel || !row) return;
+
+            const valor = parseFloat(panel.dataset.valor) || 0;
+            const desc  = panel.dataset.desc || '';
+            if (valor <= 0) return;
+
+            row.querySelector('.item-preco').value = valor;
+            if (desc) row.querySelector('.item-desc').value = desc;
+            if (tipo === 'banner') row.querySelector('.item-qtd').value = 1;
+
             calculateTotal();
         }
 
