@@ -245,6 +245,8 @@ class LicencaMiddleware(BaseHTTPMiddleware):
         if not _licenca_ativa_db():
             if path.endswith(".html") or path == "/":
                 return RedirectResponse(url="/ativacao.html", status_code=303)
+            if path.startswith("/api/dashboard"):
+                return await call_next(request)
             return Response(content="Licença inativa", status_code=403)
         return await call_next(request)
 
@@ -257,6 +259,7 @@ class SessaoMiddleware(BaseHTTPMiddleware):
             or path.startswith("/p/")
             or path.startswith("/api/p/")
             or path.startswith("/static/")
+            or path.startswith("/api/dashboard")
         ):
             return await call_next(request)
         token = request.cookies.get("session_token")
