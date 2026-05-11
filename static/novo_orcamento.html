@@ -178,7 +178,7 @@
                 <h1>Nova Proposta Comercial</h1>
                 <p style="color: var(--text-muted);">Clique nos campos ou digite para selecionar itens do catálogo.</p>
             </div>
-            <button type="button" class="btn" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);" onclick="copiarLinkCadastro()">
+            <button type="button" class="btn" style="background: #8b5cf6; color: #ffffff; border: 1px solid #8b5cf6;" onclick="copiarLinkCadastro()">
                 <i class="fas fa-share-alt"></i> Compartilhar Link de Cadastro
             </button>
         </header>
@@ -495,7 +495,7 @@
                         <button type="button" class="btn-icon" style="color: #ef4444;" onclick="removeElement('${id}')"><i class="fas fa-trash-alt"></i></button>
                     </div>
                     <div class="items-list"></div>
-                    <button type="button" class="btn" style="font-size: 11px; background: rgba(58, 123, 213, 0.1); color: var(--primary); margin-top: 10px;" onclick="addItem('${id}')"><i class="fas fa-plus"></i> Item do Catálogo</button>
+                    <button type="button" class="btn" style="font-size: 11px; background: var(--primary); color: #ffffff; margin-top: 10px;" onclick="addItem('${id}')"><i class="fas fa-plus"></i> Item do Catálogo</button>
                 </div>
             `;
             document.getElementById('categories-container').insertAdjacentHTML('beforeend', html);

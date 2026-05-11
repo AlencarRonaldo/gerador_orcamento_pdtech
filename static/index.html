@@ -85,9 +85,9 @@
             font-size: 11px; font-weight: 700;
             padding: 3px 7px; border-radius: 6px;
         }
-        .kpi-trend.up   { background: rgba(16,185,129,0.15); color: #10b981; }
-        .kpi-trend.down { background: rgba(239,68,68,0.15);  color: #ef4444; }
-        .kpi-trend.neutral { background: rgba(148,163,184,0.12); color: #94a3b8; }
+        .kpi-trend.up   { background: #10b981; color: #ffffff; }
+        .kpi-trend.down { background: #ef4444; color: #ffffff; }
+        .kpi-trend.neutral { background: #94a3b8; color: #ffffff; }
 
         .kpi-label {
             font-size: 13px;
@@ -234,9 +234,9 @@
             padding: 2px 7px; border-radius: 5px;
             display: inline-block; white-space: nowrap;
         }
-        .badge-hoje   { background: rgba(239,68,68,0.2);  color: #ef4444; }
-        .badge-orange { background: rgba(249,115,22,0.2); color: #f97316; }
-        .badge-yellow { background: rgba(245,158,11,0.2); color: #f59e0b; }
+        .badge-hoje   { background: #ef4444; color: #ffffff; }
+        .badge-orange { background: #f97316; color: #ffffff; }
+        .badge-yellow { background: #f59e0b; color: #1e293b; }
 
         /* ── Status Overview ────────────────────────────────────────── */
         .status-overview { display: flex; flex-direction: column; gap: 10px; }
@@ -391,7 +391,7 @@
             <!-- Receita Aprovada -->
             <div class="kpi-card">
                 <div class="kpi-card-top">
-                    <div class="kpi-icon-wrap" style="background:rgba(16,185,129,0.15); color:#10b981;">
+                    <div class="kpi-icon-wrap" style="background:#10b981; color:#ffffff;">
                         <i class="fas fa-dollar-sign"></i>
                     </div>
                     <span class="kpi-trend neutral" id="trend-receita">—</span>
@@ -405,10 +405,10 @@
             <!-- Pipeline -->
             <div class="kpi-card">
                 <div class="kpi-card-top">
-                    <div class="kpi-icon-wrap" style="background:rgba(58,123,213,0.15); color:#3a7bd5;">
+                    <div class="kpi-icon-wrap" style="background:#3a7bd5; color:#ffffff;">
                         <i class="fas fa-filter"></i>
                     </div>
-                    <span class="kpi-trend neutral" id="kpi-pipeline-badge" style="background:rgba(58,123,213,0.12);color:#3a7bd5;">Pipeline</span>
+                    <span class="kpi-trend neutral" id="kpi-pipeline-badge" style="background:#3a7bd5;color:#ffffff;">Pipeline</span>
                 </div>
                 <div>
                     <div class="kpi-label">Pipeline</div>
@@ -419,7 +419,7 @@
             <!-- Orçamentos -->
             <div class="kpi-card">
                 <div class="kpi-card-top">
-                    <div class="kpi-icon-wrap" style="background:rgba(245,158,11,0.15); color:#f59e0b;">
+                    <div class="kpi-icon-wrap" style="background:#f59e0b; color:#ffffff;">
                         <i class="fas fa-file-invoice"></i>
                     </div>
                     <span class="kpi-trend neutral" id="trend-orcamentos">—</span>
@@ -433,7 +433,7 @@
             <!-- Taxa de Conversão -->
             <div class="kpi-card">
                 <div class="kpi-card-top">
-                    <div class="kpi-icon-wrap" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">
+                    <div class="kpi-icon-wrap" style="background:#8b5cf6; color:#ffffff;">
                         <i class="fas fa-bullseye"></i>
                     </div>
                 </div>
@@ -446,7 +446,7 @@
             <!-- Ticket Médio -->
             <div class="kpi-card">
                 <div class="kpi-card-top">
-                    <div class="kpi-icon-wrap" style="background:rgba(236,72,153,0.15); color:#ec4899;">
+                    <div class="kpi-icon-wrap" style="background:#ec4899; color:#ffffff;">
                         <i class="fas fa-chart-line"></i>
                     </div>
                 </div>
@@ -464,7 +464,7 @@
                 <h3><i class="fas fa-chart-bar"></i> Evolução — Últimos 6 Meses</h3>
                 <div class="chart-legend">
                     <div class="legend-item">
-                        <div class="legend-dot" style="background:rgba(148,163,184,0.4);"></div>
+                        <div class="legend-dot" style="background:#94a3b8;"></div>
                         Orçamentos
                     </div>
                     <div class="legend-item">
@@ -544,14 +544,14 @@
     <script>
         // ── Helpers ─────────────────────────────────────────────────────
         const STATUS_COLORS = {
-            'Aprovado':    { bg: 'rgba(16,185,129,0.15)',  color: '#10b981', icon: 'fa-check-circle' },
-            'Aguardando':  { bg: 'rgba(245,158,11,0.15)',  color: '#f59e0b', icon: 'fa-clock' },
-            'Recusado':    { bg: 'rgba(239,68,68,0.15)',   color: '#ef4444', icon: 'fa-times-circle' },
-            'Visualizado': { bg: 'rgba(0,210,255,0.15)',   color: '#00d2ff', icon: 'fa-eye' },
+            'Aprovado':    { bg: '#10b981', color: '#ffffff', icon: 'fa-check-circle' },
+            'Aguardando':  { bg: '#f59e0b', color: '#1e293b', icon: 'fa-clock' },
+            'Recusado':    { bg: '#ef4444', color: '#ffffff', icon: 'fa-times-circle' },
+            'Visualizado': { bg: '#00d2ff', color: '#1e293b', icon: 'fa-eye' },
         };
 
         function badge(status) {
-            const s = STATUS_COLORS[status] || { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8' };
+            const s = STATUS_COLORS[status] || { bg: '#94a3b8', color: '#ffffff' };
             return `<span class="badge" style="background:${s.bg};color:${s.color};">${status}</span>`;
         }
 
@@ -610,7 +610,7 @@
                             type: 'bar',
                             label: 'Orçamentos',
                             data: evolucao.map(e => e.orcados),
-                            backgroundColor: 'rgba(148,163,184,0.2)',
+                            backgroundColor: '#94a3b8',
                             borderRadius: 6,
                             yAxisID: 'y1',
                         },
@@ -619,7 +619,7 @@
                             label: 'Receita (R$)',
                             data: evolucao.map(e => e.receita),
                             borderColor: '#10b981',
-                            backgroundColor: 'rgba(16,185,129,0.1)',
+                            backgroundColor: '#10b981',
                             tension: 0.4,
                             fill: true,
                             yAxisID: 'y2',
@@ -725,7 +725,7 @@
             container.innerHTML = order.map(key => {
                 const count = porStatus[key] || 0;
                 const pct = total > 0 ? Math.round(count / total * 100) : 0;
-                const s = STATUS_COLORS[key] || { bg: 'rgba(148,163,184,0.12)', color: '#94a3b8', icon: 'fa-circle' };
+                const s = STATUS_COLORS[key] || { bg: '#94a3b8', color: '#ffffff', icon: 'fa-circle' };
                 return `
                 <div class="status-ov-item">
                     <div class="status-ov-icon" style="background:${s.bg}; color:${s.color};">
@@ -787,7 +787,7 @@
             }
             row.innerHTML = recentes.map(orc => {
                 const color = avatarColor(orc.cliente);
-                const s = STATUS_COLORS[orc.status] || { bg: 'rgba(148,163,184,0.1)', color: '#94a3b8' };
+                const s = STATUS_COLORS[orc.status] || { bg: '#94a3b8', color: '#ffffff' };
                 return `
                 <div class="activity-card" onclick="window.location.href='/historico.html?id=${orc.id}'">
                     <div class="activity-card-top">

@@ -41,7 +41,7 @@
         @media (max-width: 480px) {
             .main-content { padding: 10px; }
             .glass-panel { padding: 12px; }
-            .btn-icon { width: 32px; height: 32px; }
+            .btn-icon { width: 32px; height: 32px; background: transparent; }
             h1 { font-size: 18px; }
         }
     </style>
@@ -76,7 +76,7 @@
         <header style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 12px;">
             <h1>Histórico de Orçamentos</h1>
             <div style="display: flex; gap: 10px;">
-                <button class="btn" style="background: rgba(139, 92, 246, 0.15); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, 0.3);" onclick="copiarLinkCadastro()">
+                <button class="btn" style="background: #8b5cf6; color: #ffffff; border: 1px solid #8b5cf6;" onclick="copiarLinkCadastro()">
                     <i class="fas fa-share-alt"></i> Compartilhar Link de Cadastro
                 </button>
                 <a href="/novo_orcamento.html" class="btn btn-primary">+ Novo</a>
@@ -194,9 +194,9 @@
                     <td>${orc.consultor_nome || '-'}</td>
                     <td style="text-align: right;">
                         <div style="display: flex; gap: 5px; justify-content: flex-end; flex-wrap: wrap;">
-                            <button class="btn-icon" title="Aprovar" onclick="updateStatus(${orc.id}, 'Aprovado')" style="color: #10b981;"><i class="fas fa-check"></i></button>
-                            <button class="btn-icon" title="Recusar" onclick="updateStatus(${orc.id}, 'Recusado')" style="color: #ef4444;"><i class="fas fa-times"></i></button>
-                            <button class="btn-icon" title="Aguardando" onclick="updateStatus(${orc.id}, 'Aguardando')" style="color: #f59e0b;"><i class="fas fa-clock"></i></button>
+                            <button class="btn-icon" title="Aprovar" onclick="updateStatus(${orc.id}, 'Aprovado')" style="background:#10b981;color:#ffffff;"><i class="fas fa-check"></i></button>
+                            <button class="btn-icon" title="Recusar" onclick="updateStatus(${orc.id}, 'Recusado')" style="background:#ef4444;color:#ffffff;"><i class="fas fa-times"></i></button>
+                            <button class="btn-icon" title="Aguardando" onclick="updateStatus(${orc.id}, 'Aguardando')" style="background:#f59e0b;color:#ffffff;"><i class="fas fa-clock"></i></button>
                             <button class="btn-icon" title="Duplicar Orçamento" onclick="duplicarOrcamento(${orc.id})" style="color: #8b5cf6;"><i class="fas fa-copy"></i></button>
                             <button class="btn-icon" title="Criar Nova Versão" onclick="criarVersao(${orc.id})" style="color: #06b6d4;"><i class="fas fa-code-branch"></i></button>
                             <button class="btn-icon" title="Ver Detalhes" onclick="verDetalhes(${orc.id})" style="color: #64748b;"><i class="fas fa-info-circle"></i></button>
@@ -291,13 +291,13 @@
         function getStatusBadge(status) {
             return function(s) {
                 const map = {
-                    'aprovado':   ['rgba(16,185,129,0.15)',  '#10b981'],
-                    'recusado':   ['rgba(239,68,68,0.15)',   '#ef4444'],
-                    'visualizado':['rgba(58,123,213,0.15)',  'var(--primary)'],
-                    'aguardando': ['rgba(245,158,11,0.15)',  '#f59e0b'],
+                    'aprovado':   ['#10b981', '#ffffff'],
+                    'recusado':   ['#ef4444', '#ffffff'],
+                    'visualizado':['var(--primary)', '#ffffff'],
+                    'aguardando': ['#f59e0b', '#1e293b'],
                 };
                 const key = (s || '').toLowerCase();
-                const [bg, color] = map[key] || ['rgba(148,163,184,0.1)', '#94a3b8'];
+                const [bg, color] = map[key] || ['#94a3b8', '#ffffff'];
                 return `<span style="background:${bg};color:${color};font-size:11px;padding:4px 10px;border-radius:6px;font-weight:700;text-transform:uppercase;display:inline-block;">${s}</span>`;
             };
         }
