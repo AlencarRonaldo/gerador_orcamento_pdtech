@@ -79,6 +79,8 @@ class CatalogoItem(Base):
     altura = Column(Float, nullable=True)
     ativo = Column(Boolean, default=True)
     ordem = Column(Integer, default=0)
+    tipo_produto = Column(String, default="produto_simples", nullable=True)
+    variantes_json = Column(Text, nullable=True)
     criado_em = Column(DateTime, default=_utc_now)
 
 
@@ -310,6 +312,10 @@ class CatalogoItemInput(BaseModel):
     tipo: str = "unidade"
     ativo: bool = True
     ordem: int = 0
+    largura: Optional[float] = None
+    altura: Optional[float] = None
+    tipo_produto: str = "produto_simples"
+    variantes_json: Optional[str] = None
 
 
 class CatalogoItemOutput(BaseModel):
@@ -323,5 +329,7 @@ class CatalogoItemOutput(BaseModel):
     ordem: int
     largura: float = None
     altura: float = None
+    tipo_produto: str = "produto_simples"
+    variantes_json: Optional[str] = None
 
     model_config = {"from_attributes": True}

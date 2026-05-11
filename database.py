@@ -105,6 +105,8 @@ def create_tables():
         "ALTER TABLE orcamentos ADD COLUMN prazo_instalacao TEXT",
         "ALTER TABLE config_empresa ADD COLUMN cond_pagto_opcao2 TEXT",
         "ALTER TABLE config_empresa ADD COLUMN cond_pagto_opcao3 TEXT",
+        "ALTER TABLE catalogo_itens ADD COLUMN tipo_produto TEXT DEFAULT 'produto_simples'",
+        "ALTER TABLE catalogo_itens ADD COLUMN variantes_json TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

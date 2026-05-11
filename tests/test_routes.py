@@ -136,3 +136,91 @@ def test_tracking_incrementa_visualizacoes(client):
     detail = client.get(f"/orcamentos/{orc['id']}").json()
     assert detail["qtd_visualizacoes"] == 2
     assert detail["primeira_abertura_em"] is not None
+
+
+def test_catalogo_item_tipo_produto_field(client):
+    """New catalog item should accept and return tipo_produto and variantes_json."""
+    variantes = '[{"nome": "PLA", "preco_kg": 80.0}, {"nome": "PETG", "preco_kg": 120.0}]'
+    resp = client.post("/api/catalogo", json={
+        "categoria": "Impressao 3D",
+        "descricao": "Impressao 3D Personalizada",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "impressao_3d",
+        "variantes_json": variantes,
+    })
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["tipo_produto"] == "impressao_3d"
+    assert data["variantes_json"] == variantes
+
+
+def test_catalogo_listar_returns_tipo_produto(client):
+    """GET /api/catalogo should return tipo_produto and variantes_json."""
+    client.post("/api/catalogo", json={
+        "categoria": "Laser",
+        "descricao": "Corte Laser",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "laser",
+        "variantes_json": '[{"nome": "MDF 3mm", "preco_m2": 150.0}]',
+    })
+    resp = client.get("/api/catalogo")
+    assert resp.status_code == 200
+    grupos = resp.json()
+    laser_items = grupos.get("Laser", [])
+    assert any(i.get("tipo_produto") == "laser" for i in laser_items)
+
+
+def test_catalogo_buscar_returns_tipo_produto(client):
+    """GET /api/catalogo/buscar should return tipo_produto and variantes_json."""
+    client.post("/api/catalogo", json={
+        "categoria": "Ploter",
+        "descricao": "Adesivo Vinil",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "ploter_adesivo",
+        "variantes_json": '[{"nome": "Vinil Brilho", "preco_m2": 80.0}]',
+    })
+    resp = client.get("/api/catalogo/buscar?q=Adesivo")
+    assert resp.status_code == 200
+    items = resp.json()
+    assert len(items) >= 1
+    assert items[0]["tipo_produto"] == "ploter_adesivo"
+    assert items[0]["variantes_json"] is not None
+
+
+def test_catalogo_variantes_json_validation(client):
+    """Invalid variantes_json structure should return 422."""
+    # Array for banner (should be object)
+    resp = client.post("/api/catalogo", json={
+        "categoria": "Banner",
+        "descricao": "Banner Teste",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "banner",
+        "variantes_json": '[{"nome": "Lona"}]',
+    })
+    assert resp.status_code == 422
+
+    # Object for impressao_3d (should be array)
+    resp = client.post("/api/catalogo", json={
+        "categoria": "3D",
+        "descricao": "Impressao",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "impressao_3d",
+        "variantes_json": '{"nome": "PLA"}',
+    })
+    assert resp.status_code == 422
+
+    # Invalid JSON string
+    resp = client.post("/api/catalogo", json={
+        "categoria": "3D",
+        "descricao": "Impressao",
+        "preco": 0.0,
+        "garantia": "Sem garantia",
+        "tipo_produto": "impressao_3d",
+        "variantes_json": 'not-json',
+    })
+    assert resp.status_code == 422
