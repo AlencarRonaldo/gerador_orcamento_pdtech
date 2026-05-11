@@ -1196,6 +1196,30 @@ def salvar_config(data: ConfigEmpresaInput, db: Session = Depends(get_db)):
 
 # ── Catálogo de Itens ───────────────────────────────────────────────────────────
 
+
+def _validate_variantes_json(tipo_produto: str, variantes_json):
+    """Raises HTTPException 422 if variantes_json structure is invalid for tipo_produto."""
+    if tipo_produto == "produto_simples" or not variantes_json:
+        return
+    try:
+        parsed = json.loads(variantes_json)
+    except Exception:
+        raise HTTPException(status_code=422, detail="variantes_json must be valid JSON")
+
+    if tipo_produto in ("impressao_3d", "laser", "ploter_adesivo"):
+        if not isinstance(parsed, list):
+            raise HTTPException(
+                status_code=422,
+                detail=f"variantes_json for {tipo_produto} must be a JSON array"
+            )
+    elif tipo_produto == "banner":
+        if not isinstance(parsed, dict) or "materiais" not in parsed or "acabamentos" not in parsed:
+            raise HTTPException(
+                status_code=422,
+                detail="variantes_json for banner must be object with 'materiais' and 'acabamentos'"
+            )
+
+
 @app.get("/api/catalogo")
 def listar_catalogo(db: Session = Depends(get_db)):
     itens = db.query(CatalogoItem).order_by(CatalogoItem.categoria, CatalogoItem.ordem, CatalogoItem.descricao).all()
@@ -1211,6 +1235,8 @@ def listar_catalogo(db: Session = Depends(get_db)):
             "garantia": item.garantia, "tipo": item.tipo or "unidade",
             "largura": item.largura, "altura": item.altura,
             "ativo": item.ativo, "ordem": item.ordem,
+            "tipo_produto": item.tipo_produto or "produto_simples",
+            "variantes_json": item.variantes_json,
         })
     return grupos
 
@@ -1224,12 +1250,15 @@ def buscar_catalogo(q: str = "", db: Session = Depends(get_db)):
     return [
         {"id": i.id, "categoria": i.categoria, "descricao": i.descricao,
          "preco": i.preco, "garantia": i.garantia, "tipo": i.tipo or "unidade",
-         "largura": i.largura, "altura": i.altura}
+         "largura": i.largura, "altura": i.altura,
+         "tipo_produto": i.tipo_produto or "produto_simples",
+         "variantes_json": i.variantes_json}
         for i in itens
     ]
 
 @app.post("/api/catalogo")
 def criar_item_catalogo(data: CatalogoItemInput, db: Session = Depends(get_db)):
+    _validate_variantes_json(data.tipo_produto, data.variantes_json)
     item = CatalogoItem(**data.model_dump())
     db.add(item)
     db.commit()
@@ -1241,6 +1270,7 @@ def editar_item_catalogo(item_id: int, data: CatalogoItemInput, db: Session = De
     item = db.query(CatalogoItem).filter(CatalogoItem.id == item_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Item não encontrado")
+    _validate_variantes_json(data.tipo_produto, data.variantes_json)
     for field, value in data.model_dump().items():
         setattr(item, field, value)
     db.commit()
