@@ -533,7 +533,8 @@
             
             const tipo = item.tipo || 'unidade';
             row.setAttribute('data-tipo', tipo);
-            
+            row.querySelector('.item-tipo').value = tipo;
+
             const qtdGroup = row.querySelector('.item-qtd-group');
             const metroGroup = row.querySelector('.item-metro-group');
             const m2Group = row.querySelector('.item-m2-group');
@@ -556,13 +557,11 @@
                 row.querySelector('.item-qtd').value = 1;
             }
             
-            if (item.categoria) {
-                const catBlock = row.closest('.category-block');
-                if (catBlock) {
-                    const catNameInput = catBlock.querySelector('.cat-name');
-                    if (catNameInput && !catNameInput.value) {
-                        catNameInput.value = item.categoria;
-                    }
+            const catBlock = row.closest('.category-block');
+            if (catBlock) {
+                const catNameInput = catBlock.querySelector('.cat-name');
+                if (catNameInput) {
+                    catNameInput.value = item.categoria || item.descricao;
                 }
             }
             
