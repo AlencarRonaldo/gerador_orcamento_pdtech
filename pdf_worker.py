@@ -57,8 +57,8 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
     cor_primaria = config.get("cor_primaria", "#0097b2")
     cond_pagto_opcao1 = config.get("cond_pagto_opcao1", "50% de entrada + 50% em 30 dias")
     cond_pagto_opcao3_desconto = config.get("cond_pagto_opcao3_desconto", "5%")
-    prazo_equipamentos = config.get("prazo_equipamentos") or "5 a 10 dias úteis após confirmação do pedido"
-    prazo_instalacao = config.get("prazo_instalacao") or "Mediante agendamento após entrega dos equipamentos"
+    prazo_equipamentos = orcamento.get("prazo_equipamentos") or config.get("prazo_equipamentos") or "5 a 10 dias úteis após confirmação do pedido"
+    prazo_instalacao = orcamento.get("prazo_instalacao") or config.get("prazo_instalacao") or "Mediante agendamento após entrega dos equipamentos"
     pagto_info = config.get("pagto_info") or "Emissão de NF: até 7 dias após aprovação &nbsp;|&nbsp; Pagamento via Boleto, TED ou PIX"
     obs_padrao = config.get("obs_padrao", [
         "Instalação: mediante orçamento adicional",

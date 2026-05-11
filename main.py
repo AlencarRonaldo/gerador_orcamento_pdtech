@@ -556,6 +556,8 @@ def _orc_to_dict(orc: Orcamento, db: Session = None) -> dict:
         "qtd_visualizacoes": orc.qtd_visualizacoes or 0,
         "primeira_abertura_em": orc.primeira_abertura_em.isoformat() if orc.primeira_abertura_em else None,
         "consultor_nome": orc.consultor_nome or "",
+        "prazo_equipamentos": orc.prazo_equipamentos or "",
+        "prazo_instalacao": orc.prazo_instalacao or "",
         "categorias": [
             {
                 "id": cat.id,
@@ -673,6 +675,8 @@ def criar_orcamento(data: OrcamentoInput, db: Session = Depends(get_db)):
         desconto_percent=data.desconto_percent,
         observacoes_json=json.dumps(data.observacoes_custom) if data.observacoes_custom else None,
         consultor_nome=consultor,
+        prazo_equipamentos=data.prazo_equipamentos or cfg.prazo_equipamentos or "",
+        prazo_instalacao=data.prazo_instalacao or cfg.prazo_instalacao or "",
     )
     db.add(orcamento)
     db.flush()
@@ -749,6 +753,10 @@ def editar_orcamento(id: int, data: OrcamentoInput, db: Session = Depends(get_db
     orc.validade_dias = data.validade_dias
     orc.desconto_percent = data.desconto_percent
     orc.observacoes_json = json.dumps(data.observacoes_custom) if data.observacoes_custom else None
+    if data.prazo_equipamentos is not None:
+        orc.prazo_equipamentos = data.prazo_equipamentos
+    if data.prazo_instalacao is not None:
+        orc.prazo_instalacao = data.prazo_instalacao
 
     db.flush()
     _criar_categorias(db, orc.id, data.categorias)

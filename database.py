@@ -101,6 +101,8 @@ def create_tables():
         "ALTER TABLE itens ADD COLUMN metragem REAL",
         "ALTER TABLE itens ADD COLUMN largura REAL",
         "ALTER TABLE itens ADD COLUMN altura REAL",
+        "ALTER TABLE orcamentos ADD COLUMN prazo_equipamentos TEXT",
+        "ALTER TABLE orcamentos ADD COLUMN prazo_instalacao TEXT",
     ]
     with engine.connect() as conn:
         for sql in migrations:

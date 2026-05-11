@@ -112,6 +112,8 @@ class Orcamento(Base):
     qtd_visualizacoes = Column(Integer, default=0, nullable=True)
     primeira_abertura_em = Column(DateTime, nullable=True)
     consultor_nome = Column(String, nullable=True)
+    prazo_equipamentos = Column(String, nullable=True)
+    prazo_instalacao = Column(String, nullable=True)
 
     categorias = relationship(
         "Categoria", back_populates="orcamento", order_by="Categoria.ordem"
@@ -179,6 +181,8 @@ class OrcamentoInput(BaseModel):
     observacoes_custom: Optional[List[str]] = None
     cliente_id: Optional[int] = None
     consultor_nome: Optional[str] = None
+    prazo_equipamentos: Optional[str] = None
+    prazo_instalacao: Optional[str] = None
     categorias: List[CategoriaInput]
 
 

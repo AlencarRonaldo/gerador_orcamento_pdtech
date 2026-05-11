@@ -208,6 +208,10 @@
                     <div class="form-group"><label>Pagamento</label><select id="condicao_pagto"></select></div>
                     <div class="form-group"><label>Validade (Dias)</label><input type="number" id="validade_dias" value="7"></div>
                 </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group"><label>Prazo de Entrega — Equipamentos</label><input type="text" id="prazo_equipamentos" placeholder="Ex: Envio em até 3 dias úteis"></div>
+                    <div class="form-group"><label>Prazo de Entrega — Instalação</label><input type="text" id="prazo_instalacao" placeholder="Ex: Mediante agendamento após entrega"></div>
+                </div>
             </div>
 
             <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 20px; font-size: 18px;">
@@ -394,7 +398,9 @@
                         select.add(o);
                     }
                 });
-                addCategory(); 
+                if (cfg.prazo_equipamentos) document.getElementById('prazo_equipamentos').value = cfg.prazo_equipamentos;
+                if (cfg.prazo_instalacao) document.getElementById('prazo_instalacao').value = cfg.prazo_instalacao;
+                addCategory();
             } catch (e) { console.error(e); }
         }
 
@@ -663,6 +669,8 @@
                 consultor_nome: document.getElementById('consultor_select').value || null,
                 condicao_pagto: document.getElementById('condicao_pagto').value,
                 validade_dias: parseInt(document.getElementById('validade_dias').value),
+                prazo_equipamentos: document.getElementById('prazo_equipamentos').value,
+                prazo_instalacao: document.getElementById('prazo_instalacao').value,
                 categorias: categorias
             };
 
@@ -698,6 +706,8 @@
             document.getElementById('condicao_pagto').value = orc.condicao_pagto || '';
             document.getElementById('descricao_intro').value = orc.descricao_intro || '';
             document.getElementById('validade_dias').value = orc.validade_dias || 7;
+            document.getElementById('prazo_equipamentos').value = orc.prazo_equipamentos || '';
+            document.getElementById('prazo_instalacao').value = orc.prazo_instalacao || '';
             if (document.getElementById('desconto_percent'))
                 document.getElementById('desconto_percent').value = orc.desconto_percent || 0;
 
