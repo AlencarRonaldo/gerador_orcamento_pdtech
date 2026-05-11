@@ -141,6 +141,8 @@ def _config_to_dict(cfg: ConfigEmpresa) -> dict:
         "prazo_instalacao": cfg.prazo_instalacao or "",
         "pagto_info": cfg.pagto_info or "",
         "cond_pagto_opcao1": cfg.cond_pagto_opcao1 or "50% de entrada + 50% em 30 dias",
+        "cond_pagto_opcao2": cfg.cond_pagto_opcao2 or "",
+        "cond_pagto_opcao3": cfg.cond_pagto_opcao3 or "",
         "cond_pagto_opcao3_desconto": cfg.cond_pagto_opcao3_desconto or "5%",
         "login_email": cfg.login_email or "",
         "login_senha": cfg.login_senha or "",

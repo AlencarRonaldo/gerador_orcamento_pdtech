@@ -56,6 +56,8 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
     empresa_diferenciais = config.get("empresa_diferenciais", "")
     cor_primaria = config.get("cor_primaria", "#0097b2")
     cond_pagto_opcao1 = config.get("cond_pagto_opcao1", "50% de entrada + 50% em 30 dias")
+    cond_pagto_opcao2 = config.get("cond_pagto_opcao2", "")
+    cond_pagto_opcao3 = config.get("cond_pagto_opcao3", "")
     cond_pagto_opcao3_desconto = config.get("cond_pagto_opcao3_desconto", "5%")
     prazo_equipamentos = orcamento_dict.get("prazo_equipamentos") or config.get("prazo_equipamentos") or "5 a 10 dias úteis após confirmação do pedido"
     prazo_instalacao = orcamento_dict.get("prazo_instalacao") or config.get("prazo_instalacao") or "Mediante agendamento após entrega dos equipamentos"
@@ -101,6 +103,8 @@ def gerar_pdf(orcamento_dict, config) -> bytes:
         empresa_cnpj=empresa_cnpj,
         cor_primaria=cor_primaria,
         cond_pagto_opcao1=cond_pagto_opcao1,
+        cond_pagto_opcao2=cond_pagto_opcao2,
+        cond_pagto_opcao3=cond_pagto_opcao3,
         cond_pagto_opcao3_desconto=cond_pagto_opcao3_desconto,
         data_formatada=_formatar_data(criado_em, empresa_cidade),
         valor_subtotal=valor_subtotal,

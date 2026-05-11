@@ -132,11 +132,11 @@
     </div>
     <div class="payment-option">
       <div class="payment-option-label">Opção 2</div>
-      100% via faturamento em {{ orcamento.condicao_pagto }}
+      {% if cond_pagto_opcao2 %}{{ cond_pagto_opcao2 }}{% else %}100% via faturamento em {{ orcamento.condicao_pagto }}{% endif %}
     </div>
     <div class="payment-option">
       <div class="payment-option-label">Opção 3 &#9733; À vista</div>
-      Desconto de {{ cond_pagto_opcao3_desconto }} no valor total
+      {% if cond_pagto_opcao3 %}{{ cond_pagto_opcao3 }}{% else %}Desconto de {{ cond_pagto_opcao3_desconto }} no valor total{% endif %}
     </div>
   </div>
   {% if pagto_info %}<div class="payment-info">{{ pagto_info }}</div>{% endif %}
@@ -147,7 +147,7 @@
   <h2>Prazo de Entrega</h2>
   <div class="delivery-grid">
     <div class="delivery-item">
-      <div class="delivery-label">Equipamentos</div>
+      <div class="delivery-label">Produtos / Equipamentos</div>
       {{ prazo_equipamentos }}
     </div>
     <div class="delivery-item">

@@ -31,6 +31,8 @@ class ConfigEmpresa(Base):
     prazo_instalacao = Column(String, nullable=True)
     pagto_info = Column(String, nullable=True)
     cond_pagto_opcao1 = Column(String, default="50% de entrada + 50% em 30 dias")
+    cond_pagto_opcao2 = Column(String, nullable=True)
+    cond_pagto_opcao3 = Column(String, nullable=True)
     cond_pagto_opcao3_desconto = Column(String, default="5%")
     login_email = Column(String, default="admin@admin.com")
     login_senha = Column(String, default="admin123")
@@ -283,6 +285,8 @@ class ConfigEmpresaInput(BaseModel):
     prazo_instalacao: Optional[str] = None
     pagto_info: Optional[str] = None
     cond_pagto_opcao1: Optional[str] = None
+    cond_pagto_opcao2: Optional[str] = None
+    cond_pagto_opcao3: Optional[str] = None
     cond_pagto_opcao3_desconto: Optional[str] = None
     login_email: Optional[str] = None
     login_senha: Optional[str] = None

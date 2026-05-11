@@ -114,7 +114,15 @@
                 <input type="text" id="cond_pagto_opcao1" placeholder="Ex: 50% de entrada + 50% em 30 dias">
             </div>
             <div class="form-group">
-                <label>Desconto à Vista (Opção 3)</label>
+                <label>Opção 2 de Pagamento</label>
+                <input type="text" id="cond_pagto_opcao2" placeholder="Ex: 100% via faturamento">
+            </div>
+            <div class="form-group">
+                <label>Opção 3 de Pagamento (À vista)</label>
+                <input type="text" id="cond_pagto_opcao3" placeholder="Ex: Desconto de 5% no valor total">
+            </div>
+            <div class="form-group">
+                <label>Desconto à Vista — % (Opção 3, se campo acima vazio)</label>
                 <input type="text" id="cond_pagto_opcao3_desconto" placeholder="Ex: 5%">
             </div>
             <div class="form-group">
@@ -202,6 +210,8 @@
             document.getElementById('cor_primaria').value = cor;
             document.getElementById('cor_primaria_hex').value = cor;
             document.getElementById('cond_pagto_opcao1').value = data.cond_pagto_opcao1 || '';
+            document.getElementById('cond_pagto_opcao2').value = data.cond_pagto_opcao2 || '';
+            document.getElementById('cond_pagto_opcao3').value = data.cond_pagto_opcao3 || '';
             document.getElementById('cond_pagto_opcao3_desconto').value = data.cond_pagto_opcao3_desconto || '';
             document.getElementById('pagto_info').value = data.pagto_info || '';
             document.getElementById('obs_padrao').value = (data.obs_padrao || []).join('\n');
@@ -263,6 +273,8 @@
                 cor_primaria: document.getElementById('cor_primaria_hex').value || document.getElementById('cor_primaria').value,
                 empresa_logo_b64: logoBase64,
                 cond_pagto_opcao1: document.getElementById('cond_pagto_opcao1').value,
+                cond_pagto_opcao2: document.getElementById('cond_pagto_opcao2').value,
+                cond_pagto_opcao3: document.getElementById('cond_pagto_opcao3').value,
                 cond_pagto_opcao3_desconto: document.getElementById('cond_pagto_opcao3_desconto').value,
                 pagto_info: document.getElementById('pagto_info').value,
                 obs_padrao_json: JSON.stringify(obsLista),
