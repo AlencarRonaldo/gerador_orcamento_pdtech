@@ -183,6 +183,35 @@
             .row-garantia { display: none; }
             .drawer { width: 100%; }
         }
+        .variante-row {
+            display: flex; align-items: center; gap: 10px;
+            padding: 8px 0; border-bottom: 1px solid var(--glass-border);
+        }
+        .variante-row:last-child { border-bottom: none; }
+        .variante-row input {
+            flex: 1; padding: 8px 12px; background: rgba(255,255,255,0.03);
+            border: 1px solid var(--glass-border); border-radius: 8px;
+            color: var(--text-main); font-size: 13px; outline: none;
+        }
+        .variante-row input:focus { border-color: var(--primary); }
+        .variante-row .btn-del-v {
+            width: 28px; height: 28px; border-radius: 8px; border: none;
+            background: rgba(239,68,68,0.1); color: #ef4444; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; font-size: 12px; transition: background 0.2s;
+        }
+        .variante-row .btn-del-v:hover { background: #ef4444; color: #fff; }
+        .v-subsection { margin-top: 12px; }
+        .v-subsection-title {
+            font-size: 12px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px;
+        }
+        .btn-add-v {
+            margin-top: 10px; padding: 7px 14px; font-size: 12px; border-radius: 8px;
+            border: 1px dashed var(--glass-border); background: transparent;
+            color: var(--primary); cursor: pointer; transition: all 0.2s; width: 100%;
+        }
+        .btn-add-v:hover { background: rgba(58,123,213,0.1); border-color: var(--primary); }
     </style>
 </head>
 <body class="dark-mode">
@@ -290,6 +319,19 @@
                     </div>
                 </div>
             </div>
+            <div>
+                <label class="dform-label">Tipo de Produto (Calculadora)</label>
+                <select class="dform-input" id="item-tipo-produto" onchange="onTipoProdutoChange()">
+                    <option value="produto_simples">Produto / Servico Simples</option>
+                    <option value="impressao_3d">Impressao 3D (por grama)</option>
+                    <option value="laser">Corte / Gravacao Laser (por m²)</option>
+                    <option value="ploter_adesivo">Ploter / Adesivo (por m²)</option>
+                    <option value="banner">Banner / Lona (m² + acabamentos)</option>
+                </select>
+            </div>
+
+            <div id="variantes-section" style="display:none;"></div>
+
             <div>
                 <label class="dform-label">Preço Unitário</label>
                 <div class="price-wrap">
@@ -465,6 +507,148 @@
             dims.style.display = (tipo === 'metro_quadrado') ? 'grid' : 'none';
         }
 
+        function onTipoProdutoChange() {
+            const tipo = document.getElementById('item-tipo-produto').value;
+            const section = document.getElementById('variantes-section');
+            if (tipo === 'produto_simples') {
+                section.style.display = 'none';
+                section.innerHTML = '';
+                return;
+            }
+            section.style.display = 'block';
+            renderVariantesEditor(tipo, null);
+        }
+
+        function renderVariantesEditor(tipo, variantesJson) {
+            const section = document.getElementById('variantes-section');
+            let existing = null;
+            if (variantesJson) { try { existing = JSON.parse(variantesJson); } catch(e) {} }
+
+            if (tipo === 'impressao_3d') {
+                const rows = (Array.isArray(existing) ? existing : []).map(v => vRow3D(v)).join('') || vRow3D();
+                section.innerHTML = `<div class="v-subsection">
+                    <div class="v-subsection-title"><i class="fas fa-cube"></i> Materiais e Preco/kg</div>
+                    <div id="v-list">${rows}</div>
+                    <button type="button" class="btn-add-v" onclick="addVRow3D()">+ Adicionar Material</button>
+                </div>`;
+            } else if (tipo === 'laser') {
+                const rows = (Array.isArray(existing) ? existing : []).map(v => vRowLaser(v)).join('') || vRowLaser();
+                section.innerHTML = `<div class="v-subsection">
+                    <div class="v-subsection-title"><i class="fas fa-fire"></i> Material + Espessura e Preco/m²</div>
+                    <div id="v-list">${rows}</div>
+                    <button type="button" class="btn-add-v" onclick="addVRowLaser()">+ Adicionar Material</button>
+                </div>`;
+            } else if (tipo === 'ploter_adesivo') {
+                const rows = (Array.isArray(existing) ? existing : []).map(v => vRowPloter(v)).join('') || vRowPloter();
+                section.innerHTML = `<div class="v-subsection">
+                    <div class="v-subsection-title"><i class="fas fa-paint-roller"></i> Tipo de Vinil e Preco/m²</div>
+                    <div id="v-list">${rows}</div>
+                    <button type="button" class="btn-add-v" onclick="addVRowPloter()">+ Adicionar Vinil</button>
+                </div>`;
+            } else if (tipo === 'banner') {
+                const mat = (existing && existing.materiais) ? existing.materiais : [];
+                const acab = (existing && existing.acabamentos) ? existing.acabamentos : [];
+                const matRows = mat.map(v => vRowBannerMat(v)).join('') || vRowBannerMat();
+                const acabRows = acab.map(v => vRowBannerAcab(v)).join('') || vRowBannerAcab();
+                section.innerHTML = `
+                <div class="v-subsection">
+                    <div class="v-subsection-title"><i class="fas fa-flag"></i> Materiais (Preco/m²)</div>
+                    <div id="v-materiais">${matRows}</div>
+                    <button type="button" class="btn-add-v" onclick="addVRowBannerMat()">+ Adicionar Material</button>
+                </div>
+                <div class="v-subsection" style="margin-top:16px;">
+                    <div class="v-subsection-title"><i class="fas fa-tools"></i> Acabamentos Opcionais (Preco/un)</div>
+                    <div id="v-acabamentos">${acabRows}</div>
+                    <button type="button" class="btn-add-v" onclick="addVRowBannerAcab()">+ Adicionar Acabamento</button>
+                </div>`;
+            }
+        }
+
+        function vRow3D(v) {
+            return `<div class="variante-row">
+                <input type="text" class="v-nome" placeholder="Material (ex: PLA)" value="${v ? v.nome||'' : ''}">
+                <input type="number" class="v-preco-kg" placeholder="R$/kg" step="0.01" min="0" style="max-width:90px;" value="${v ? v.preco_kg||'' : ''}">
+                <button type="button" class="btn-del-v" onclick="this.closest('.variante-row').remove()"><i class="fas fa-times"></i></button>
+            </div>`;
+        }
+        function addVRow3D() { document.getElementById('v-list').insertAdjacentHTML('beforeend', vRow3D()); }
+
+        function vRowLaser(v) {
+            return `<div class="variante-row">
+                <input type="text" class="v-nome" placeholder="Ex: MDF 3mm" value="${v ? v.nome||'' : ''}">
+                <input type="number" class="v-preco-m2" placeholder="R$/m²" step="0.01" min="0" style="max-width:90px;" value="${v ? v.preco_m2||'' : ''}">
+                <button type="button" class="btn-del-v" onclick="this.closest('.variante-row').remove()"><i class="fas fa-times"></i></button>
+            </div>`;
+        }
+        function addVRowLaser() { document.getElementById('v-list').insertAdjacentHTML('beforeend', vRowLaser()); }
+
+        function vRowPloter(v) {
+            return `<div class="variante-row">
+                <input type="text" class="v-nome" placeholder="Ex: Vinil Brilho" value="${v ? v.nome||'' : ''}">
+                <input type="number" class="v-preco-m2" placeholder="R$/m²" step="0.01" min="0" style="max-width:90px;" value="${v ? v.preco_m2||'' : ''}">
+                <button type="button" class="btn-del-v" onclick="this.closest('.variante-row').remove()"><i class="fas fa-times"></i></button>
+            </div>`;
+        }
+        function addVRowPloter() { document.getElementById('v-list').insertAdjacentHTML('beforeend', vRowPloter()); }
+
+        function vRowBannerMat(v) {
+            return `<div class="variante-row">
+                <input type="text" class="v-nome" placeholder="Ex: Lona Brilho" value="${v ? v.nome||'' : ''}">
+                <input type="number" class="v-preco-m2" placeholder="R$/m²" step="0.01" min="0" style="max-width:90px;" value="${v ? v.preco_m2||'' : ''}">
+                <button type="button" class="btn-del-v" onclick="this.closest('.variante-row').remove()"><i class="fas fa-times"></i></button>
+            </div>`;
+        }
+        function addVRowBannerMat() { document.getElementById('v-materiais').insertAdjacentHTML('beforeend', vRowBannerMat()); }
+
+        function vRowBannerAcab(v) {
+            return `<div class="variante-row">
+                <input type="text" class="v-nome" placeholder="Ex: Ilhao" value="${v ? v.nome||'' : ''}">
+                <input type="number" class="v-preco-un" placeholder="R$/un" step="0.01" min="0" style="max-width:90px;" value="${v ? v.preco_un||'' : ''}">
+                <button type="button" class="btn-del-v" onclick="this.closest('.variante-row').remove()"><i class="fas fa-times"></i></button>
+            </div>`;
+        }
+        function addVRowBannerAcab() { document.getElementById('v-acabamentos').insertAdjacentHTML('beforeend', vRowBannerAcab()); }
+
+        function collectVariantesJson(tipo) {
+            if (tipo === 'produto_simples') return null;
+            if (tipo === 'impressao_3d') {
+                const rows = document.querySelectorAll('#v-list .variante-row');
+                return JSON.stringify([...rows].map(r => ({
+                    nome: r.querySelector('.v-nome').value.trim(),
+                    preco_kg: parseFloat(r.querySelector('.v-preco-kg').value) || 0
+                })).filter(v => v.nome));
+            }
+            if (tipo === 'laser') {
+                const rows = document.querySelectorAll('#v-list .variante-row');
+                return JSON.stringify([...rows].map(r => ({
+                    nome: r.querySelector('.v-nome').value.trim(),
+                    preco_m2: parseFloat(r.querySelector('.v-preco-m2').value) || 0
+                })).filter(v => v.nome));
+            }
+            if (tipo === 'ploter_adesivo') {
+                const rows = document.querySelectorAll('#v-list .variante-row');
+                return JSON.stringify([...rows].map(r => ({
+                    nome: r.querySelector('.v-nome').value.trim(),
+                    preco_m2: parseFloat(r.querySelector('.v-preco-m2').value) || 0
+                })).filter(v => v.nome));
+            }
+            if (tipo === 'banner') {
+                const matRows = document.querySelectorAll('#v-materiais .variante-row');
+                const acabRows = document.querySelectorAll('#v-acabamentos .variante-row');
+                return JSON.stringify({
+                    materiais: [...matRows].map(r => ({
+                        nome: r.querySelector('.v-nome').value.trim(),
+                        preco_m2: parseFloat(r.querySelector('.v-preco-m2').value) || 0
+                    })).filter(v => v.nome),
+                    acabamentos: [...acabRows].map(r => ({
+                        nome: r.querySelector('.v-nome').value.trim(),
+                        preco_un: parseFloat(r.querySelector('.v-preco-un').value) || 0
+                    })).filter(v => v.nome)
+                });
+            }
+            return null;
+        }
+
         function openDrawer(editData = null) {
             const dr = document.getElementById('drawer');
             const ov = document.getElementById('drawer-overlay');
@@ -478,10 +662,25 @@
                 document.getElementById('item-tipo').value = editData.tipo || 'unidade';
                 document.getElementById('item-largura').value = editData.largura || '';
                 document.getElementById('item-altura').value = editData.altura || '';
+                // New fields
+                const tipoProd = editData.tipo_produto || 'produto_simples';
+                document.getElementById('item-tipo-produto').value = tipoProd;
+                const section = document.getElementById('variantes-section');
+                if (tipoProd !== 'produto_simples') {
+                    section.style.display = 'block';
+                    renderVariantesEditor(tipoProd, editData.variantes_json || null);
+                } else {
+                    section.style.display = 'none';
+                    section.innerHTML = '';
+                }
             } else {
                 document.getElementById('drawer-title').textContent = 'Novo Item';
                 ['item-id','item-descricao','item-garantia','item-preco','item-categoria','item-largura','item-altura'].forEach(id => document.getElementById(id).value = '');
                 document.getElementById('item-tipo').value = 'unidade';
+                // Reset new fields
+                document.getElementById('item-tipo-produto').value = 'produto_simples';
+                document.getElementById('variantes-section').style.display = 'none';
+                document.getElementById('variantes-section').innerHTML = '';
             }
             toggleDimensoes();
             dr.classList.add('active');
@@ -496,6 +695,7 @@
 
         async function saveItem() {
             const id = document.getElementById('item-id').value;
+            const tipoProd = document.getElementById('item-tipo-produto').value;
             const payload = {
                 descricao: document.getElementById('item-descricao').value.trim(),
                 categoria: document.getElementById('item-categoria').value.trim(),
@@ -504,7 +704,10 @@
                 preco: parseFloat(document.getElementById('item-preco').value),
                 largura: parseFloat(document.getElementById('item-largura').value) || null,
                 altura: parseFloat(document.getElementById('item-altura').value) || null,
-                ativo: true, ordem: 0
+                ativo: true,
+                ordem: 0,
+                tipo_produto: tipoProd,
+                variantes_json: collectVariantesJson(tipoProd),
             };
 
             if (!payload.descricao || !payload.categoria || isNaN(payload.preco)) {
